@@ -1,0 +1,29 @@
+.card {
+    margin-top: 80px;
+}
+
+.inPutZone {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+input.form-control {
+    padding-left: 30px;
+}
+
+img {
+    position: absolute;
+    top: 11px;
+    left: 8px;
+}
+
+#privacy {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 12px;
+}
+
+#gotologin {
+    font-size: 12px;
+    text-align: center;
+}

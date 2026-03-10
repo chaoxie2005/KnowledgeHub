@@ -41,7 +41,7 @@
             <button type="submit" class="btn btn-primary">登录</button>
         </div>
         <p id='gotoregister'>没有账户, <a href="{% url 'authentication:register' %}">立即注册</a></p>
-        <p id='reset-password'>忘记密码, <a href="#">重置密码</a></p>
+        <p id='reset-password'>忘记密码, <a href="{% url 'authentication:forget_password' %}">重置密码</a></p>
       </form>
     </div>
   </div>

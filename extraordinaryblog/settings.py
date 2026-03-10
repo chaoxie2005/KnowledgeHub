@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from django.contrib import messages
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -132,3 +133,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+MESSAGE_TAGS = {
+    messages.ERROR: "danger",
+}
+
+# 邮件配置 (QQ邮箱推荐的稳定版)
+EMAIL_BACKEND = "extraordinaryblog.email_backend.CustomEmailBackend"
+EMAIL_HOST = "smtp.qq.com"
+EMAIL_PORT = 465  # 使用 SSL 加密的标准端口
+EMAIL_HOST_USER = "3320841884@qq.com"
+EMAIL_HOST_PASSWORD = "pigcapvpbktgcjhj"  # 确保这里是 QQ 邮箱生成的有效授权码
+EMAIL_USE_SSL = True  # 明确启用 SSL
+EMAIL_USE_TLS = False  # 明确禁用 TLS，避免与 SSL 冲突

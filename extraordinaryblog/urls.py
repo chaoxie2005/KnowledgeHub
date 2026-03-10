@@ -7,7 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('core.urls')),
     path('authentication/', include('authentication.urls')), # 用户模块
-] 
+]
 
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

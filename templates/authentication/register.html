@@ -8,6 +8,7 @@
 {% block content %}
   <div class="card shadow-lg">
     <div class="card-body">
+      <h5 class="card-title text-center"><a href="{% url 'core:index' %}" style="text-decoration: none">返回首页</a></h5>
       <h5 class="card-title text-center py-3">注册</h5>
       <form action="{% url 'authentication:register' %}" method="post">
         {% csrf_token %}

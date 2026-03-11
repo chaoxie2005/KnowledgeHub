@@ -68,6 +68,23 @@ class LoginForm(forms.Form):
         }
     )
 
+    captcha = forms.CharField(
+        max_length=10, error_messages={"required": "验证码不能为空"}
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super(LoginForm, self).__init__(*args, **kwargs)
+
+    def clean_captcha(self):
+        captcha = self.cleaned_data.get("captcha").lower()
+        if not self.request:
+            raise forms.ValidationError("请求对象丢失，无法验证")
+        verify_code = self.request.session.get("verify_code")
+        if not verify_code or captcha != verify_code:
+            raise forms.ValidationError("验证码错误")
+        return captcha
+
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')

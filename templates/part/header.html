@@ -1,38 +1,93 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">超凡博客</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
-  <div class="collapse navbar-collapse" id="navbarScroll">
-    <ul class="navbar-nav mr-auto my-2 my-lg-0 navbar-nav-scroll" style="max-height: 100px;">
-      <li class="nav-item active">
-        <a class="nav-link" href="#">首页<span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">热点</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">分类</a>
-        <ul class="dropdown-menu">
-          <li>
-            <a class="dropdown-item" href="#">Action</a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="#">Another action</a>
-          </li>
-          <li>
-            <hr class="dropdown-divider" />
-          </li>
-          <li>
-            <a class="dropdown-item" href="#">Something else here</a>
-          </li>
-        </ul>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link disabled" href="#">关于我</a>
-      </li>
-    </ul>
-    <form class="d-flex">
-      <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search" />
-      <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
+<style>
+  /* 全局重置：避免 Bootstrap 默认样式干扰 */
+  .blog-header .row {
+    margin: 0;
+    align-items: center;
+  }
+  .blog-header .col-4 {
+    padding: 0;
+  }
+  
+  /* 搜索框样式 */
+  .blog-header input[name='keyword'] {
+    padding: 6px 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px 0 0 4px;
+    font-size: 0.9rem;
+    width: 140px; /* 缩小一点，避免换行 */
+    outline: none;
+    transition: all 0.2s ease;
+    border-right: 0;
+  }
+  
+  /* 搜索框聚焦 */
+  .blog-header input[name='keyword']:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+  }
+  
+  /* 搜索按钮 */
+  .blog-header .search-btn {
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9rem;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    padding: 6px 10px;
+    margin-left: -1px;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .blog-header .search-btn:hover {
+    background-color: #0066cc;
+    border-color: #0066cc;
+    color: #fff;
+  }
+  
+  /* 登录按钮 hover 样式 */
+  .blog-header .login-btn:hover {
+    background-color: #0066cc !important;
+    border-color: #0066cc !important;
+    color: #fff !important;
+  }
+  
+  /* 右侧容器：强制不换行，元素紧凑排列 */
+  .blog-header .right-col {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px; /* 元素之间固定间距 */
+    flex-shrink: 0; /* 关键：防止被压缩换行 */
+  }
+  
+  /* 搜索组：强制一行显示 */
+  .blog-header .search-group {
+    display: flex;
+    flex-shrink: 0;
+  }
+</style>
+
+<header class="blog-header py-3">
+  <div class="row flex-nowrap justify-content-between align-items-center">
+    <!-- 左侧：关于我 -->
+    <div class="col-4">
+      <a class="text-muted" href="#" style="font-size: 1rem;">关于我</a>
+    </div>
+
+    <!-- 中间：博客标题 -->
+    <div class="col-4 text-center">
+      <a class="blog-header-logo text-dark" href="/" style="font-size: 1.5rem; font-weight: 600;">超凡博客</a>
+    </div>
+
+    <!-- 右侧：搜索 + 登录 -->
+    <div class="col-4 right-col">
+      <form action="{% url 'core:index' %}" method="get">
+        <div class="search-group">
+          <input type="text" name="keyword" class="form-control" placeholder="搜索文章..." value="{{ keyword|default:'' }}" />
+          <button class="search-btn">搜索</button>
+        </div>
+      </form>
+      <a class="btn btn-sm btn-outline-secondary login-btn" href="{% url 'authentication:login' %}">登录 / 注册</a>
+    </div>
   </div>
-</nav>
+</header>

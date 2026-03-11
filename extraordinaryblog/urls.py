@@ -7,6 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('', include('core.urls')),
     path('authentication/', include('authentication.urls')), # 用户模块
+    path('article/', include('article.urls')), # 文章模块
 ]
 
 

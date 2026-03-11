@@ -7,7 +7,7 @@ from django.contrib.auth import login as login_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, FileResponse
 from django.views.decorators.csrf import csrf_exempt # 这个库可以禁用csrf保护机制，方便我们在前端通过ajax进行异步请求
 from email_validator import validate_email as ValidateEmail,EmailNotValidError,EmailSyntaxError,EmailUndeliverableError
 from django.core.mail import send_mail
@@ -130,16 +130,16 @@ def login(request):
     if request.method == 'GET':
         return render(request, 'authentication/login.html')
     elif request.method == 'POST':
-        form = LoginForm(request.POST)
+        form = LoginForm(request.POST, request=request)
         if form.is_valid():
             login_auth(request, form.user)
             messages.success(request, f'欢迎回来')
-            return redirect(to='/')
-    context = {
-        'form': form, 
-        'value': request.POST
-    }
-    return render(request, 'authentication/login.html', context)           
+            return redirect(to='core:index')
+        context = {
+            'form': form, 
+            'value': request.POST
+        }
+        return render(request, 'authentication/login.html', context)           
 
 
 def verify_account(request, username):
@@ -221,3 +221,15 @@ def reset_password(request, pk, token):
             user.save()
             messages.success(request, "密码修改成功，请使用新密码进行登录！")
             return redirect(to="authentication:login")
+
+from .utils import generate_verify_code
+
+
+def captcha(request):
+    verify_code, buff = generate_verify_code()  # 生成验证码图片和验证码字符串
+    request.session["verify_code"] = (
+        verify_code.lower()
+    )  # 将验证码字符串存入session，方便 后续校验
+    return FileResponse(
+        buff, filename="verify.gif", headers={"Content-Type": "image/gif"}
+    )

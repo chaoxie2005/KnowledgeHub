@@ -1,0 +1,91 @@
+<style>
+  /* 分页容器：居中对齐 */
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
+  }
+  
+  /* 分页列表：去掉默认样式，统一间距 */
+  .pagination {
+    display: flex;
+    gap: 4px; /* 按钮之间的间距 */
+    padding-left: 0;
+    list-style: none;
+  }
+  
+  /* 分页按钮基础样式 */
+  .page-link {
+    display: block;
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px; /* 圆角和标签保持一致 */
+    color: #0066cc; /* 和你博客的蓝色统一 */
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  
+  /* 按钮 hover 效果 */
+  .page-link:hover {
+    background-color: #f0f7ff;
+    border-color: #0066cc;
+    color: #0066cc;
+  }
+  
+  /* 当前页高亮样式 */
+  .page-item.active .page-link {
+    background-color: #0066cc;
+    border-color: #0066cc;
+    color: white;
+  }
+  
+  /* 禁用状态（比如第一页时的 Previous） */
+  .page-item.disabled .page-link {
+    color: #94a3b8;
+    cursor: not-allowed;
+    background-color: white;
+    border-color: #e2e8f0;
+  }
+</style>
+
+<!-- 分页导航：外层包一层容器实现居中 -->
+<div class="pagination-container">
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+      {% if not articles.has_previous %}
+        <li class="page-item disabled">
+          <a class="page-link" href="#">上一页</a>
+        </li>
+      {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ articles.previous_page_number }}&search={{ keyword }}">上一页</a>
+        </li>
+      {% endif %}
+      {% for page in articles.paginator.page_range %}
+        {% if page >= articles.number|add:'-3' and page <= articles.number|add:'3' %}
+          {# 只显示当前页前后3页的页码 #}
+          {% if page == articles.number %}
+            <li class="page-item active">
+              <a class="page-link" href="?page={{ page }}&search={{ keyword }}">{{ page }}</a>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page }}&search={{ keyword }}">{{ page }}</a>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if not articles.has_next %}
+        <li class="page-item disabled">
+          <a class="page-link" href="#">下一页</a>
+        </li>
+      {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ articles.next_page_number }}&search={{ keyword }}">下一页</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>

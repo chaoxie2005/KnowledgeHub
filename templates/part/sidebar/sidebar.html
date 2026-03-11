@@ -1,0 +1,43 @@
+<div class="p-4 mb-3 bg-light rounded">
+  <h4 class="font-italic">最新文章</h4>
+  <ol class="list-unstyled mb-0">
+    {% block latest-articles %}
+    <li>
+      <a href="#">最新文章</a>
+    </li>
+    {% endblock %}
+  </ol>
+</div>
+
+<div class="p-4 mb-3 bg-light rounded">
+  <h4 class="font-italic">热门文章</h4>
+  <ol class="list-unstyled mb-0">
+    {% block hot-articles %}
+    <li>
+      <a href="#">热门文章</a>
+    </li>
+    {% endblock %}
+  </ol>
+</div>
+
+<div class="p-4 bg-light mb-3">
+  <h4 class="font-italic">文章归档</h4>
+  <ol class="list-unstyled mb-0">
+    {% block article-archive %}
+    <li>
+      <a href="#">文章归档</a>
+    </li>
+    {% endblock %}
+  </ol>
+</div>
+
+<div class="p-4 bg-light mb-3">
+  <h4 class="font-italic">社交链接</h4>
+  <ol class="list-unstyled mb-0">
+    {% block elsewhere %}
+      <li>
+        <a href="#">社交链接</a>
+      </li>
+    {% endblock %}
+  </ol>
+</div>

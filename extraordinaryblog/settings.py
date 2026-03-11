@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     
     'core', # 博客核心 全局配置
     'authentication', # 用户认证模块
+    'article', # 文章模块
     
 ]
 

@@ -45,7 +45,13 @@ class Article(models.Model):
     title = models.CharField(max_length=200, verbose_name='文章标题')
     summary = models.CharField(max_length=200, blank=True, null=True, verbose_name='文章摘要')
     content = models.TextField(verbose_name='文章内容') # 富文本/Markdown内容
-    cover = models.ImageField(upload_to='article/cover/', blank=True, null=True, verbose_name='封面图')
+    cover = models.ImageField(
+        upload_to="article/cover/",
+        blank=True,
+        null=True,
+        verbose_name="封面图",
+        default="https://picsum.photos/800/600",
+    )
 
     # 关联字段
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='作者') # 关联用户，用户删除则文章删除

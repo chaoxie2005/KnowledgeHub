@@ -8,47 +8,103 @@
     padding: 0;
   }
   
-  /* 搜索框样式 */
-  .blog-header input[name='keyword'] {
-    padding: 6px 10px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px 0 0 4px;
-    font-size: 0.9rem;
-    width: 140px; /* 缩小一点，避免换行 */
-    outline: none;
-    transition: all 0.2s ease;
-    border-right: 0;
+  /* 响应式布局优化：解决移动端换行问题 */
+  @media (max-width: 768px) {
+    .blog-header > .row {
+      flex-wrap: wrap !important;
+      gap: 10px;
+    }
+    .blog-header .col-4 {
+      flex: 1 0 30%;
+      min-width: 120px;
+    }
+    .blog-header .col-4.text-center {
+      order: -1;
+      flex: 1 0 100%;
+      margin-bottom: 10px;
+    }
+    /* 移动端分类导航自适应 */
+    .blog-nav .nav {
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+    }
   }
   
-  /* 搜索框聚焦 */
+  /* 左侧导航文字：提升对比度，明确层级 */
+  .blog-header .col-4 a.text-muted {
+    color: #424242 !important;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .blog-header .col-4 a.text-muted:hover {
+    color: #0066cc !important;
+  }
+  
+  /* 中间标题：强化视觉核心 */
+  .blog-header .blog-header-logo {
+    color: #212121 !important;
+    font-size: 1.5rem;
+    font-weight: 700 !important;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+  
+  /* 搜索框样式：优化颜色和交互 */
+  .blog-header input[name='keyword'] {
+    padding: 6px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px 0 0 6px;
+    font-size: 0.9rem;
+    width: 140px;
+    outline: none;
+    transition: all 0.3s ease;
+    border-right: 0;
+    color: #424242;
+  }
+  .blog-header input[name='keyword']::placeholder {
+    color: #6c757d;
+    opacity: 1;
+  }
   .blog-header input[name='keyword']:focus {
     border-color: #0066cc;
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
   }
   
-  /* 搜索按钮 */
+  /* 搜索按钮：优化默认/hover样式 */
   .blog-header .search-btn {
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 6px 6px 0;
     font-size: 0.9rem;
-    border: 1px solid #dee2e6;
-    background-color: #fff;
-    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    background-color: #f8f9fa;
+    padding: 6px 12px;
     margin-left: -1px;
-    color: #6c757d;
+    color: #495057;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
   }
   .blog-header .search-btn:hover {
     background-color: #0066cc;
     border-color: #0066cc;
-    color: #fff;
+    color: #fff !important;
   }
   
-  /* 登录按钮 hover 样式 */
-  .blog-header .login-btn:hover {
-    background-color: #0066cc !important;
+  /* 登录按钮：优化默认样式，强化hover */
+  .blog-header .login-btn {
+    color: #0066cc !important;
     border-color: #0066cc !important;
+    background-color: #fff !important;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+  .blog-header .login-btn:hover {
+    background-color: #0056b3 !important;
+    border-color: #0056b3 !important;
     color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
   
   /* 右侧容器：强制不换行，元素紧凑排列 */
@@ -56,8 +112,8 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 8px; /* 元素之间固定间距 */
-    flex-shrink: 0; /* 关键：防止被压缩换行 */
+    gap: 10px;
+    flex-shrink: 0;
   }
   
   /* 搜索组：强制一行显示 */
@@ -65,13 +121,46 @@
     display: flex;
     flex-shrink: 0;
   }
+  
+  /* ========== 核心修改：分类导航样式 ========== */
+  /* 解决分类少导致的空荡问题：均匀分布 + 补充功能入口 */
+  .blog-nav {
+    margin-bottom: 1.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #e9ecef; /* 改成浅灰，更柔和 */
+  }
+  .blog-nav .nav {
+    display: flex;
+    justify-content: space-around !important; /* 均匀分布，不再挤在一起 */
+    width: 100%; /* 占满整行 */
+    gap: 10px; /* 小间距，避免拥挤 */
+  }
+  .blog-nav .nav a {
+    flex: 1; /* 每个项占等宽，自动填充 */
+    text-align: center; /* 文字居中 */
+    color: #6c757d;
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 4px 0 !important; /* 减少上下padding，更精致 */
+    border-radius: 4px; /* 轻微圆角，hover更友好 */
+    transition: all 0.2s ease;
+  }
+  .blog-nav .nav a:hover {
+    color: #0066cc;
+    background-color: #f0f7ff; /* 增加hover背景，更明显 */
+  }
+  /* 活跃状态（可选，当前页高亮） */
+  .blog-nav .nav a.active {
+    color: #0066cc !important;
+    font-weight: 600;
+  }
 </style>
 
 <header class="blog-header py-3">
   <div class="row flex-nowrap justify-content-between align-items-center">
     <!-- 左侧：关于我 -->
     <div class="col-4">
-      <a class="text-muted" href="#" style="font-size: 1rem;">关于我</a>
+      <a class="btn btn-sm login-btn" href="#" style="font-size: 1rem;">个人中心</a>
     </div>
 
     <!-- 中间：博客标题 -->
@@ -81,13 +170,26 @@
 
     <!-- 右侧：搜索 + 登录 -->
     <div class="col-4 right-col">
-      <form action="{% url 'core:index' %}" method="get">
+      <form action="{% url 'core:index' %}" method="get" class="d-flex">
         <div class="search-group">
           <input type="text" name="keyword" class="form-control" placeholder="搜索文章..." value="{{ keyword|default:'' }}" />
-          <button class="search-btn">搜索</button>
+          <button class="search-btn" type="submit">搜索</button>
         </div>
       </form>
-      <a class="btn btn-sm btn-outline-secondary login-btn" href="{% url 'authentication:login' %}">登录 / 注册</a>
+      <a class="btn btn-sm login-btn" href="{% url 'authentication:login' %}">登录 / 注册</a>
     </div>
   </div>
 </header>
+
+<!-- 分类导航区：补充功能入口 + 均匀分布 -->
+<nav class="blog-nav">
+  <div class="nav d-flex justify-content-between">
+    <!-- 固定入口：首页 + 功能入口，解决分类少的问题 -->
+    <a class="p-2 text-muted {% if request.path == '/' %}active{% endif %}" href="/">首页</a>
+    <!-- 动态分类 -->
+    {% for category in categories %}
+      <a class="p-2 text-muted" href="{% url 'article:category_list' category.id %}">{{ category.name }}</a>
+    {% endfor %}
+    <!-- 补充功能入口，填满导航栏 -->
+  </div>
+</nav>

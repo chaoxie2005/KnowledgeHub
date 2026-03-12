@@ -1,48 +1,171 @@
-.{# 最新发布的文章 #}
-<div class="jumbotron p-4 p-md-5 text-white rounded bg-dark">
-  <div class="col-md-6 px-0">
-    <h1 class="display-4 font-italic">Title of a longer featured blog post</h1>
-    <p class="lead my-3">Multiple lines of text that form the lede, informing new readers quickly and efficiently about what’s most interesting in this post’s contents.</p>
-    <p class="lead mb-0">
-      <a href="#" class="text-white font-weight-bold">Continue reading...</a>
-    </p>
-  </div>
-</div>
+<style>
+  /* 兼容低版本Bootstrap & 基础样式 */
+  .no-gutters {
+    margin-right: 0;
+    margin-left: 0;
+  }
+  .no-gutters > .col,
+  .no-gutters > [class*='col-'] {
+    padding-right: 0;
+    padding-left: 0;
+  }
 
+  /* 文章标签样式：和截图风格一致 */
+  .article-tag {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    margin-right: 0.3rem;
+    margin-bottom: 0.5rem;
+    background-color: #e8f3ff;
+    color: #0066cc;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  .article-tag a {
+    text-decoration: none;
+    color: #0066cc;
+  }
+  .no-tag {
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+
+  /* 统一「继续阅读」链接样式 */
+  .stretched-link {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .stretched-link:hover {
+    text-decoration: underline;
+  }
+
+  /* 强制卡片高度一致 + 文本溢出处理 */
+  .h-md-250 {
+    height: 280px !important;
+  }
+  .h-md-250 .col.position-static {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .article-summary {
+    flex: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-height: 1.5;
+  }
+  h3.mb-0 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+  }
+  .h-md-250 .col-auto img {
+    height: 280px !important;
+    width: 200px;
+    object-fit: cover;
+  }
+
+  /* 响应式适配：小屏幕优化 */
+  @media (max-width: 768px) {
+    .h-md-250 {
+      height: auto !important;
+    }
+    .col-auto.d-none.d-lg-block {
+      display: none !important;
+    }
+    h3.mb-0 {
+      font-size: 1.2rem !important;
+    }
+  }
+</style>
+
+<!-- 最新头条文章区域 -->
 <div class="row mb-2">
-  {# 阅读量 Top1 #}
-  <div class="col-md-6">
+  <div class="col-md-12">
     <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
       <div class="col p-4 d-flex flex-column position-static">
-        <strong class="d-inline-block mb-2 text-primary">World</strong>
-        <h3 class="mb-0">Featured post</h3>
-        <div class="mb-1 text-muted">Nov 12</div>
-        <p class="card-text mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p>
-        <a href="#" class="stretched-link">Continue reading</a>
+        <div class="article-tags">
+          {% if latest_articles.tags.exists %}
+            {% for tag in latest_articles.tags.all %}
+              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+            {% endfor %}
+          {% else %}
+            <span class="no-tag">暂无标签</span>
+          {% endif %}
+        </div>
+        <h3 class="mb-0">{{ latest_articles.title }}</h3>
+        <div class="mb-1 text-muted">{{ latest_articles.published_time }}</div>
+        <p class="card-text mb-auto article-summary">{{ latest_articles.summary|truncatechars:150 }}</p>
+        <a href="{% url 'article:detail' latest_articles.id %}" class="stretched-link">继续阅读</a>
       </div>
       <div class="col-auto d-none d-lg-block">
-        <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false">
-          <title>Placeholder</title><rect width="100%" height="100%" fill="#55595c" />
-          <text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text>
-        </svg>
+        {% if latest_articles.cover %}
+          <img src="{{ latest_articles.cover.url }}" alt="{{ latest_articles.title }}" class="bd-placeholder-img" />
+        {% comment %} {% else %}
+          <img src="https://picsum.photos/800/500" alt="{{ latest_articles.title }}" class="bd-placeholder-img" /> {% endcomment %}
+        {% endif %}
       </div>
     </div>
   </div>
-  {# 阅读量 Top2 #}
+</div>
+
+<!-- 热门文章Top1 & Top2 -->
+<div class="row mb-2">
   <div class="col-md-6">
     <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
       <div class="col p-4 d-flex flex-column position-static">
-        <strong class="d-inline-block mb-2 text-success">Design</strong>
-        <h3 class="mb-0">Post title</h3>
-        <div class="mb-1 text-muted">Nov 11</div>
-        <p class="mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p>
-        <a href="#" class="stretched-link">Continue reading</a>
+        <div class="article-tags">
+          {% if hot_one.tags.exists %}
+            {% for tag in hot_one.tags.all %}
+              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+            {% endfor %}
+          {% else %}
+            <span class="no-tag">暂无标签</span>
+          {% endif %}
+        </div>
+        <h3 class="mb-0">{{ hot_one.title }}</h3>
+        <div class="mb-1 text-muted">{{ hot_one.published_time }}</div>
+        <p class="card-text mb-auto article-summary">{{ hot_one.summary|truncatechars:40 }}</p>
+        <a href="{% url 'article:detail' hot_one.id %}" class="stretched-link">继续阅读</a>
       </div>
       <div class="col-auto d-none d-lg-block">
-        <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false">
-          <title>Placeholder</title><rect width="100%" height="100%" fill="#55595c" />
-          <text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text>
-        </svg>
+        {% if hot_one.cover %}
+          <img src="{{ hot_one.cover.url }}" alt="{{ hot_one.title }}" class="bd-placeholder-img" />
+        {% comment %} {% else %}
+          <img src="https://picsum.photos/800/400" alt="{{ hot_one.title }}" class="bd-placeholder-img" /> {% endcomment %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+      <div class="col p-4 d-flex flex-column position-static">
+        <div class="article-tags">
+          {% if hot_two.tags.exists %}
+            {% for tag in hot_two.tags.all %}
+              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+            {% endfor %}
+          {% else %}
+            <span class="no-tag">暂无标签</span>
+          {% endif %}
+        </div>
+        <h3 class="mb-0">{{ hot_two.title }}</h3>
+        <div class="mb-1 text-muted">{{ hot_two.published_time }}</div>
+        <p class="card-text mb-auto article-summary">{{ hot_two.summary|truncatechars:40 }}</p>
+        <a href="{% url 'article:detail' hot_two.id %}" class="stretched-link">继续阅读</a>
+      </div>
+      <div class="col-auto d-none d-lg-block">
+        {% if hot_two.cover %}
+          <img src="{{ hot_two.cover.url }}" alt="{{ hot_two.title }}" class="bd-placeholder-img" />
+        {% comment %} {% else %}
+          <img src="https://picsum.photos/800/600" alt="{{ hot_two.title }}" class="bd-placeholder-img" /> {% endcomment %}
+        {% endif %}
       </div>
     </div>
   </div>

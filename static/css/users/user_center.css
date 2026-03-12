@@ -1,0 +1,258 @@
+/* 用户中心整体布局 */
+.user-center-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #f5f5f5;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* 顶部导航栏 */
+.top-nav {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+/* 网站名称 */
+.site-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 用户信息区域 */
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+/* 用户头像 */
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* 邮箱 */
+.user-email {
+    font-size: 14px;
+    color: #666;
+    margin-right: 20px;
+}
+
+/* 下拉菜单 */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.dropdown-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: white;
+    min-width: 120px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+    border-radius: 4px;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* 主体内容区域 */
+.main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* 左侧菜单 */
+.left-menu {
+    width: 200px;
+    background-color: white;
+    border-right: 1px solid #e0e0e0;
+    padding: 20px 0;
+    overflow-y: auto;
+}
+
+/* 菜单项 */
+.menu-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* 子菜单 */
+.sub-menu {
+    padding-left: 20px;
+    background-color: #fafafa;
+}
+
+.sub-menu-item {
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+}
+
+.sub-menu-item:hover {
+    background-color: #f0f0f0;
+}
+
+
+/* 右侧内容区域 */
+.right-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background-color: #f5f5f5;
+}
+
+/* 内容卡片 */
+.content-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 标题样式 */
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* 账号信息区域 */
+.account-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* 大号头像 */
+.large-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 20px;
+    object-fit: cover;
+    /* 确保图片完整覆盖容器 */
+}
+
+/* 用户名区域 */
+.username-section {
+    flex: 1;
+}
+
+.username {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.personalized-name {
+    font-size: 14px;
+    color: #666;
+}
+
+/* 修改信息按钮 */
+.modify-btn {
+    background-color: #f0f0f0;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+}
+
+.modify-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* 信息列表 */
+.info-list {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.info-label {
+    width: 100px;
+    font-size: 14px;
+    color: #666;
+}
+
+.info-value {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+}
+
+/* 可修改链接 */
+.modify-link {
+    color: #2196F3;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.modify-link:hover {
+    text-decoration: underline;
+}
+
+/* 个人简介 */
+.profile-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.5;
+}

@@ -234,6 +234,48 @@ def reset_password(request, pk, token):
             return redirect(to="authentication:login")
 
 
+def change_password(request):
+    """修改密码"""
+    if request.method == "GET":
+        return render(request, "authentication/change_password.html")
+    elif request.method == "POST":
+        # 1. 取值
+        old_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password")
+        re_password = request.POST.get("re_password")
+
+        # 2. 第一步：非空校验（兜底）
+        if not all([old_password, new_password, re_password]):
+            messages.error(request, "所有密码字段都不能为空！")
+            return render(request, "authentication/change_password.html")
+
+        # 3. 第二步：优先检查旧密码是否正确（核心！）
+        if not request.user.check_password(old_password):
+            messages.error(request, "旧密码错误！")
+            return render(request, "authentication/change_password.html")
+
+        # 4. 第三步：旧密码和新密码不能相同
+        if old_password == new_password:
+            messages.error(request, "旧密码不能与新密码相同！")
+            return render(request, "authentication/change_password.html")
+
+        # 5. 第四步：新密码长度校验
+        if len(new_password) < 6:
+            messages.error(request, "密码不能少于6位")
+            return render(request, "authentication/change_password.html")
+
+        # 6. 第五步：两次新密码一致校验
+        if new_password != re_password:
+            messages.error(request, "两次密码输入不一致！")
+            return render(request, "authentication/change_password.html")
+
+        # 7. 所有校验通过，修改密码
+        request.user.set_password(new_password)
+        request.user.save()
+        messages.success(request, "密码修改成功，请重新登录")
+        return redirect("authentication:login")
+
+
 from .utils import generate_verify_code
 
 

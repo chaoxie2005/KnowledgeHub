@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+{% load static %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>修改个人信息</title>
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <style>
+    /* 全局样式 */
+    body {
+      background-color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 160px;
+      background-color: #fff;
+      min-height: 100vh;
+      padding-top: 20px;
+      border-right: 1px solid #eee;
+    }
+    .sidebar .nav-link {
+      color: #333;
+      padding: 10px 20px;
+    }
+    .sidebar .nav-link:hover {
+      background-color: #f8f9fa;
+    }
+    .sidebar .dropdown-toggle::after {
+      float: right;
+      margin-top: 8px;
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+    }
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      border: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+      font-size: 18px;
+      font-weight: 500;
+      color: #333;
+    }
+    .card-body {
+      padding: 20px;
+    }
+
+    /* 表单样式 */
+    .form-label {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .form-control, .form-select {
+      border: none;
+      border-bottom: 1px solid #eee;
+      border-radius: 0;
+      padding: 8px 0;
+      box-shadow: none;
+    }
+    .form-control:focus, .form-select:focus {
+      border-bottom: 1px solid #007bff;
+      box-shadow: none;
+    }
+    /* 头像预览样式 */
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #eee;
+      margin-bottom: 10px;
+    }
+    /* 按钮样式 */
+    .btn-save {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 20px;
+    }
+    .btn-save:hover {
+      background-color: #0069d9;
+    }
+    .btn-cancel {
+      background-color: #e9ecef;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 20px;
+      margin-left: 10px;
+    }
+    .btn-cancel:hover {
+      background-color: #dee2e6;
+    }
+    /* 新增：返回链接样式 */
+    .back-link {
+      font-size: 0.9rem;
+      color: #007bff;
+      text-decoration: none;
+      margin-left: 15px;
+    }
+    .back-link:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <nav class="nav flex-column">
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">个人中心</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item active" href="#">修改个人信息</a>
+            <a class="dropdown-item" href="#">修改密码</a>
+          </div>
+        </div>
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">内容管理</a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="#">发布文章</a>
+            <a class="dropdown-item" href="#">草稿箱</a>
+            <a class="dropdown-item" href="#">已发布</a>
+            <a class="dropdown-item" href="#">评论管理</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 标题 + 返回链接（核心修改） -->
+      <div class="d-flex align-items-center mb-4">
+        <h4 class="mb-0">修改个人信息</h4>
+        <a href="{% url 'users:user_center' %}" class="back-link">← 返回个人中心</a>
+      </div>
+
+      <!-- 个人信息表单卡片 -->
+      <div class="card">
+        <div class="card-header">基本信息</div>
+        <div class="card-body">
+          <form id="profileForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %}  <!-- Django必须的CSRF令牌 -->
+
+            <!-- 头像上传 -->
+            <div class="mb-4">
+              <label class="form-label">头像</label>
+              <br>
+              <!-- 回显用户当前头像 -->
+              {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="头像预览" class="avatar-preview" id="avatarPreview">
+              {% else %}
+                <img src="/media/avatars/default_avatar.png" alt="头像预览" class="avatar-preview" id="avatarPreview">
+              {% endif %}
+              <br>
+              <input type="file" class="form-control-sm" id="avatar" name="avatar" accept="image/*" onchange="previewAvatar(this)">
+              <div class="form-text">建议上传正方形图片，大小不超过2MB</div>
+            </div>
+
+            <!-- 昵称（回显当前值） -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="nickname" class="form-label">昵称</label>
+                <input type="text" class="form-control" id="nickname" name="nickname" maxlength="50" 
+                       value="{{ profile.nickname|default:'' }}" placeholder="请输入昵称">
+              </div>
+              <!-- 性别（回显当前值） -->
+              <div class="col-md-6">
+                <label for="gender" class="form-label">性别</label>
+                <select id="gender" name="gender" class="form-select">
+                  {% for value, label in gender_choices %}
+                    <option value="{{ value }}" {% if profile.gender == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- 手机号（回显当前值） -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="phone" class="form-label">手机号</label>
+                <input type="text" class="form-control" id="phone" name="phone" maxlength="11" 
+                       value="{{ profile.phone|default:'' }}" placeholder="请输入11位手机号">
+                <div class="form-text">格式示例：13800138000</div>
+              </div>
+              <!-- 邮箱（回显当前值） -->
+              <div class="col-md-6">
+                <label for="email" class="form-label">邮箱</label>
+                <input type="email" class="form-control" id="email" name="email" maxlength="254" 
+                       value="{{ profile.email|default:request.user.email }}" placeholder="请输入邮箱地址">
+              </div>
+            </div>
+
+            <!-- 个人简介（回显当前值） -->
+            <div class="mb-4">
+              <label for="bio" class="form-label">个人简介</label>
+              <textarea class="form-control" id="bio" name="bio" rows="3" maxlength="500" placeholder="请输入个人简介（最多500字）">
+                {{ profile.bio|default:'' }}
+              </textarea>
+              <div class="form-text"><span id="bioCount">{{ profile.bio|length|default:0 }}</span>/500 字</div>
+            </div>
+
+            <!-- 地址信息（可选，回显当前值） -->
+            <div class="card mb-4">
+              <div class="card-header py-2">
+                <h6 class="mb-0">地址信息（选填）</h6>
+              </div>
+              <div class="card-body py-2">
+                <div class="row mb-3">
+                  <div class="col-md-8">
+                    <label for="address" class="form-label">详细地址</label>
+                    <input type="text" class="form-control" id="address" name="address" maxlength="200" 
+                           value="{{ profile.address|default:'' }}" placeholder="请输入详细地址">
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="city" class="form-label">城市</label>
+                    <input type="text" class="form-control" id="city" name="city" maxlength="50" 
+                           value="{{ profile.city|default:'' }}" placeholder="请输入城市">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="state" class="form-label">省份/州</label>
+                    <input type="text" class="form-control" id="state" name="state" maxlength="50" 
+                           value="{{ profile.state|default:'' }}" placeholder="请输入省份/州">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <div class="mt-4">
+              <button type="submit" class="btn btn-save">保存修改</button>
+              <button type="button" class="btn btn-cancel" onclick="window.location.href='{% url 'users:user_center' %}'">取消</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  <script>
+    // 头像预览功能
+    function previewAvatar(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('avatarPreview').src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // 个人简介字数统计
+    document.getElementById('bio').addEventListener('input', function() {
+      const count = this.value.length;
+      document.getElementById('bioCount').textContent = count;
+    });
+  </script>
+</body>
+</html>

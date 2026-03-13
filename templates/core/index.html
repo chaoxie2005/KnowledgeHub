@@ -20,15 +20,16 @@
               </div>
               <h3 class="mb-0">{{ article.title }}</h3>
 
-              <div class="mb-1 text-muted">
+              <div class="mb-1 text-muted" style="position: relative;">
                 {% if article.category %}
                   <a href="#" style="color: #0066cc; text-decoration: none;">{{ article.category.name }}</a>
                 {% else %}
                   <span style="color: #6c757d;">暂无分类</span>
                 {% endif %}
                 <span style="margin:0 6px;">|</span>
-                <a href="#" class="article-author">{{ article.author }}</a>
-                <span class="article-time">| {{ article.published_time }}</span>
+                <!-- 关键：提升作者链接的层级，避免被 stretched-link 覆盖 -->
+                <a href="{% url 'users:user_center' article.author.id %}" class="article-author" style="color: purple; position: relative; z-index: 2;">{{ article.author.profile.nickname|default:article.author.username }}</a>
+                <span class="article-time">| {{ article.published_time|date:'Y-m-d H:i' }}</span>
               </div>
 
               <p class="card-text mb-auto article-summary">{{ article.summary|truncatechars:100 }}</p>

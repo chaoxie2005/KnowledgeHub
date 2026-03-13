@@ -21,4 +21,5 @@ urlpatterns = [
     ),  # 重置密码
     path("captcha/", views.captcha, name="captcha"),  # 验证码
     path('change_password', views.change_password, name='change_password'), # 修改密码
+    path('logout/', views.logout, name='logout'), # 退出登录
 ]

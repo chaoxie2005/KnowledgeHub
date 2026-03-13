@@ -99,7 +99,7 @@
           {% endif %}
         </div>
         <h3 class="mb-0">{{ latest_articles.title }}</h3>
-        <div class="mb-1 text-muted">{{ latest_articles.published_time }}</div>
+        <div class="mb-1 text-muted">{{ latest_articles.published_time|date:'Y-m-d H:i' }}</div>
         <p class="card-text mb-auto article-summary">{{ latest_articles.summary|truncatechars:150 }}</p>
         <a href="{% url 'article:detail' latest_articles.id %}" class="stretched-link">继续阅读</a>
       </div>
@@ -129,7 +129,7 @@
           {% endif %}
         </div>
         <h3 class="mb-0">{{ hot_one.title }}</h3>
-        <div class="mb-1 text-muted">{{ hot_one.published_time }}</div>
+        <div class="mb-1 text-muted">{{ hot_one.published_time|date:'Y-m-d H:i' }}</div>
         <p class="card-text mb-auto article-summary">{{ hot_one.summary|truncatechars:40 }}</p>
         <a href="{% url 'article:detail' hot_one.id %}" class="stretched-link">继续阅读</a>
       </div>
@@ -156,7 +156,7 @@
           {% endif %}
         </div>
         <h3 class="mb-0">{{ hot_two.title }}</h3>
-        <div class="mb-1 text-muted">{{ hot_two.published_time }}</div>
+        <div class="mb-1 text-muted">{{ hot_two.published_time|date:'Y-m-d H:i' }}</div>
         <p class="card-text mb-auto article-summary">{{ hot_two.summary|truncatechars:40 }}</p>
         <a href="{% url 'article:detail' hot_two.id %}" class="stretched-link">继续阅读</a>
       </div>

@@ -3,7 +3,7 @@ from threading import Thread
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404, resolve_url
 from django.contrib.auth.models import User
-from django.contrib.auth import login as login_auth
+from django.contrib.auth import login as login_auth, logout as logout_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import RegisterForm, LoginForm
@@ -274,6 +274,14 @@ def change_password(request):
         request.user.save()
         messages.success(request, "密码修改成功，请重新登录")
         return redirect("authentication:login")
+
+
+def logout(request):
+    logout_auth(request)
+    messages.success(request, '退出成功！')
+    return redirect(to='core:index')
+
+
 
 
 from .utils import generate_verify_code

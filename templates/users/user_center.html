@@ -109,13 +109,13 @@
           </div>
           <div class="sub-menu" id="content-menu">
             <div class="sub-menu-item">
-              <a href="#" style="text-decoration: none; color: inherit;">发布文章</a>
+              <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
             </div>
             <div class="sub-menu-item">
-              <a href="#" style="text-decoration: none; color: inherit;">草稿箱</a>
+              <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
             </div>
             <div class="sub-menu-item">
-              <a href="#" style="text-decoration: none; color: inherit;">已发布</a>
+              <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
             </div>
             <div class="sub-menu-item">
               <a href="#" style="text-decoration: none; color: inherit;">评论管理</a>

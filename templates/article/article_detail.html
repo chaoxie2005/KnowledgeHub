@@ -54,14 +54,20 @@
     color: #6c757d;
   }
   
-  /* 封面图 */
+  /* 封面图：固定大小（核心修改） */
   .article-cover {
     margin-bottom: 1.5rem;
+    width: 100%;
+    max-width: 300px; /* 限制最大宽度 */
+    height: 400px;    /* 固定高度 */
+    overflow: hidden; /* 隐藏超出部分 */
+    border-radius: 6px;
   }
   .article-cover img {
-    max-width: 80%;
-    max-height: 300px;
-    object-fit: cover;
+    width: 100%;      /* 图片铺满容器宽度 */
+    height: 100%;     /* 图片铺满容器高度 */
+    object-fit: cover;/* 等比例填充，裁剪多余 */
+    object-position: center; /* 图片居中 */
     border-radius: 6px;
   }
   
@@ -74,7 +80,7 @@
   .article-content p {
     margin-bottom: 1.2rem;
   }
-
+  
   /* ========== 新增/修改：翻页样式 ========== */
   /* 翻页容器：去掉默认 padding/margin，和正文对齐 */
   .article-nav-pagination {
@@ -125,8 +131,7 @@
         {{ article.read_count }}
       </span>
 
-      &nbsp;&nbsp;&nbsp;&nbsp;
-      {% if article.category %}
+      &nbsp;&nbsp;&nbsp;&nbsp;{% if article.category %}
         <a href="#" class="article-category" style="color: #0066cc; text-decoration: none;">{{ article.category.name }}</a>
       {% else %}
         <span style="color: #6c757d; text-decoration: none;" class="no-category">暂无分类</span>
@@ -135,8 +140,7 @@
 
     <div class="article-tags">
       {% if article.tags.exists %}
-        标签:
-        {% for tag in article.tags.all %}
+        标签:{% for tag in article.tags.all %}
           <span class="article-tag">{{ tag.name }}&nbsp;</span>
         {% endfor %}
       {% else %}
@@ -165,12 +169,12 @@
             <span class="page-link">没有上一篇了~</span>
           </li>
         {% endif %}
-        
+
         {% if next_article %}
           <li class="page-item">
-            <a class="page-link" href="{% url 'article:detail' next_article.id %}">下一篇：{{next_article.title|truncatechars:7}}</a>
+            <a class="page-link" href="{% url 'article:detail' next_article.id %}">下一篇：{{ next_article.title|truncatechars:7 }}</a>
           </li>
-        {% else%}
+        {% else %}
           <li class="page-item disabled">
             <span class="page-link">没有下一篇了~</span>
           </li>

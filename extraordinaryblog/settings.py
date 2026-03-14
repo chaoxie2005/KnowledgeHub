@@ -33,18 +33,16 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    
-    'core', # 博客核心 全局配置
-    'authentication', # 用户认证模块
-    'article', # 文章模块
-    'users', # 用户个人信息模块
-    
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "core",  # 博客核心 全局配置
+    "authentication",  # 用户认证模块
+    "article",  # 文章模块
+    "users",  # 用户个人信息模块
 ]
 
 MIDDLEWARE = [
@@ -111,12 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = "zh-hans"
+TIME_ZONE = "Asia/Shanghai"
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -149,3 +144,4 @@ EMAIL_HOST_USER = "3320841884@qq.com"
 EMAIL_HOST_PASSWORD = "pigcapvpbktgcjhj"  # 确保这里是 QQ 邮箱生成的有效授权码
 EMAIL_USE_SSL = True  # 明确启用 SSL
 EMAIL_USE_TLS = False  # 明确禁用 TLS，避免与 SSL 冲突
+

@@ -50,7 +50,7 @@ class Article(models.Model):
         blank=True,
         null=True,
         verbose_name="封面图",
-        default="https://picsum.photos/800/600",
+        default="avatars/default_cover.png",
     )
 
     # 关联字段

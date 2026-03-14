@@ -5,10 +5,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('', include('core.urls')),
-    path('authentication/', include('authentication.urls')), # 登录模块
-    path('article/', include('article.urls')), # 文章模块
-    path('users/', include('users.urls')), # 用户个人信息模块
+    path("", include("core.urls")),
+    path("authentication/", include("authentication.urls")),  # 登录模块
+    path("article/", include("article.urls")),  # 文章模块
+    path("users/", include("users.urls")),  # 用户个人信息模块
 ]
 
 

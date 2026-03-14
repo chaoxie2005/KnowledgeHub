@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+{% load static %}
+
+<head>
+  <meta charset="UTF-8" />
+  <title>编辑草稿 - 用户中心</title>  <!-- 改标题为编辑草稿 -->
+  <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
+  <style>
+    /* 修复编辑器样式，和你的页面风格统一 */
+      .editor-toolbar {
+        border-color: #eee !important;
+        background: #f8f9fa !important;
+      }
+      .editor-toolbar button {
+        color: #333 !important;
+      }
+      .editor-preview {
+        background: #fff !important;
+      }
+    /* 保留原有样式，无需修改 */
+    .menu-item {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sub-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .sub-menu.active {
+      max-height: 300px;
+    }
+    .menu-item span {
+      transition: transform 0.3s ease;
+    }
+    .menu-item.active span {
+      transform: rotate(180deg);
+    }
+    .publish-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+    .publish-card .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+      transition: border-color 0.2s ease;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    }
+    .form-text {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+    .cover-preview {
+      margin-top: 10px;
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 6px;
+      display: block;  /* 改为block，默认显示草稿封面 */
+    }
+    .tag-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .tag-item {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .tag-item input {
+      margin-right: 5px;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+    .btn-cancel:hover {
+      background: #eee;
+    }
+    .btn-draft {
+      background: #0066cc;
+      color: #fff;
+    }
+    .btn-draft:hover {
+      background: #0056b3;
+    }
+    .btn-publish {
+      background: #28a745;
+      color: #fff;
+    }
+    .btn-publish:hover {
+      background: #218838;
+    }
+    .count-text {
+      font-size: 12px;
+      color: #6c757d;
+      text-align: right;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="user-center-container">
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+      <div class="site-name">
+        <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
+      </div>
+      <div class="user-info">
+        {% if user.profile.avatar %}
+          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+        {% else %}
+          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+        {% endif %}
+        <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
+        <div class="dropdown">
+          <button class="dropdown-btn">▼</button>
+          <div class="dropdown-content">
+            <a href="{% url 'users:user_center' %}">账号设置</a>
+            <a href="{% url 'authentication:logout' %}">退出登录</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="main-content">
+      <!-- 左侧菜单：高亮草稿箱 -->
+      <div class="left-menu">
+        <div class="menu-item" data-target="personal-menu">
+          个人中心
+          <span>▼</span>
+        </div>
+        <div class="sub-menu" id="personal-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'users:user_center' %}" style="text-decoration: none; color: inherit;">个人信息</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
+          </div>
+        </div>
+
+        <div class="menu-item active" data-target="content-menu">
+          内容管理
+          <span>▼</span>
+        </div>
+        <div class="sub-menu active" id="content-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
+          </div>
+          <div class="sub-menu-item active"> 
+            <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="#" style="text-decoration: none; color: inherit;">评论管理</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧编辑内容区 -->
+      <div class="right-content">
+        <!-- 表单提交到当前编辑接口 -->
+        <form method="post" enctype="multipart/form-data" id="publishForm">
+          {% csrf_token %}
+          
+          <!-- 文章标题：回显草稿标题 -->
+          <div class="publish-card">
+            <div class="section-title">文章标题</div>
+            <div class="form-group">
+              <input type="text" class="form-control" id="title" name="title" 
+                     placeholder="请输入文章标题（最多200字）" maxlength="200" required
+                     value="{{ article.title|default:'' }}">
+              <div class="form-text">标题是文章的核心，建议简洁明了</div>
+            </div>
+          </div>
+
+          <!-- 封面图 + 分类/标签 -->
+          <div class="publish-card">
+            <div class="section-title">基础设置</div>
+            
+            <!-- 封面图：默认显示草稿封面 -->
+            <div class="form-group">
+              <label class="form-label">封面图</label>
+              <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
+              <img src="{{ article.cover.url }}" alt="当前封面" class="cover-preview" id="coverPreview">
+              <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 2MB</div>
+            </div>
+
+            <!-- 文章分类：回显选中状态 -->
+            <div class="form-group">
+              <label class="form-label">文章分类</label>
+              <select class="form-control" id="category" name="category" required>
+                <option value="">请选择分类</option>
+                {% for category in categories %}
+                  <option value="{{ category.id }}" {% if article.category.id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- 文章标签：回显选中状态 -->
+            <div class="form-group">
+              <label class="form-label">文章标签（可多选）</label>
+              <div class="tag-group">
+                {% for tag in tags %}
+                  <label class="tag-item">
+                    <input type="checkbox" name="tags" value="{{ tag.id }}" 
+                           {% if tag in article.tags.all %}checked{% endif %}> {{ tag.name }}
+                  </label>
+                {% empty %}
+                  <span class="form-text">暂无可用标签，请先创建标签</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <!-- 文章摘要：回显内容 + 初始化字数 -->
+          <div class="publish-card">
+            <div class="section-title">文章摘要</div>
+            <div class="form-group">
+              <textarea class="form-control" id="summary" name="summary" rows="3" 
+                        placeholder="请输入文章摘要（最多200字）" maxlength="200" required>
+                {{ article.summary|default:'' }}
+              </textarea>
+              <div class="count-text">
+                <span id="summaryCount">{{ article.summary|default:''|length }}</span>/200 字
+              </div>
+            </div>
+          </div>
+
+          <!-- 文章内容：回显内容 -->
+          <div class="publish-card">
+              <div class="section-title">文章内容（支持 Markdown）</div>
+              <div class="form-group">
+                <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入文章正文内容，支持Markdown格式" required>{{ article.content|default:'' }}</textarea>
+                <div class="form-text">支持标题、列表、代码块、图片等 Markdown 语法</div>
+              </div>
+          </div>
+
+          <!-- 操作按钮：修改文案为编辑场景 -->
+          <div class="btn-group">
+            <button type="button" class="btn btn-cancel" onclick="history.back()">取消</button>
+            <button type="submit" class="btn btn-draft" name="action" value="draft">保存修改</button>  <!-- 改为保存修改 -->
+            <button type="submit" class="btn btn-publish" name="action" value="publish">发布文章</button>  <!-- 改为发布文章 -->
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 侧边栏折叠功能
+    document.querySelectorAll('.menu-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const targetId = item.getAttribute('data-target')
+        const subMenu = document.getElementById(targetId)
+        item.classList.toggle('active')
+        subMenu.classList.toggle('active')
+      })
+    })
+
+    // 封面图预览：新上传时替换
+    const coverInput = document.getElementById('cover')
+    const coverPreview = document.getElementById('coverPreview')
+    coverInput.addEventListener('change', function(e) {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = function(e) {
+          coverPreview.src = e.target.result
+        }
+        reader.readAsDataURL(file)
+      }
+    })
+
+    // 摘要字数统计：初始化已有字数
+    const summaryInput = document.getElementById('summary')
+    const summaryCount = document.getElementById('summaryCount')
+    // 初始化时触发一次计算（修复textarea空格问题）
+    summaryInput.value = summaryInput.value.trim()
+    summaryCount.textContent = summaryInput.value.length
+    // 输入时实时更新
+    summaryInput.addEventListener('input', function() {
+      summaryCount.textContent = this.value.length
+    })
+
+    // 表单提交提示
+    document.getElementById('publishForm').addEventListener('submit', function(e) {
+      const action = this.querySelector('[name="action"]').value
+      if (action === 'publish' && !confirm('确定要发布这篇文章吗？发布后将公开可见')) {
+        e.preventDefault()
+      }
+    })
+  </script>
+
+  <!-- 弹窗插件 -->
+  <script src='{% static 'js/sweetalert.min.js'%}'></script>
+  {% include 'part/sweetalert.html' %}
+  <script>
+    // 初始化 SimpleMDE 编辑器
+      const simplemde = new SimpleMDE({
+        element: document.getElementById('content'),
+        spellChecker: false, // 关闭拼写检查
+        placeholder: '请输入文章正文内容，支持Markdown格式...',
+        toolbar: ['bold', 'italic', 'strikethrough', '|', 'heading', '|', 'quote', 'code', '|', 'unordered-list', 'ordered-list', '|', 'link', 'image', '|', 'preview', 'side-by-side', 'fullscreen', '|', 'guide']
+      })
+      
+      // 表单提交前同步编辑器内容到 textarea
+      document.getElementById('publishForm').addEventListener('submit', function () {
+        document.getElementById('content').value = simplemde.value()
+      })
+  </script>
+</body>
+</html>

@@ -12,23 +12,23 @@
               <div class="article-tags">
                 {% if article.tags.exists %}
                   {% for tag in article.tags.all %}
-                    <span class="article-tag"><a href="#" style="color:  #2385bb;">{{ tag.name }}</a></span>
+                    <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
                   {% endfor %}
                 {% else %}
                   <span class="no-tag">暂无标签</span>
                 {% endif %}
               </div>
-              <h3 class="mb-0" style="color: #212529;">{{ article.title }}</h3>
+              <h3 class="mb-0">{{ article.title }}</h3>
 
               <div class="mb-1 text-muted">
                 {% if article.category %}
-                  <a href="#" style="color: #0066cc; text-decoration: none;">{{ article.category.name }}</a>
+                  <a href="#">{{ article.category.name }}</a>
                 {% else %}
                   <span style="color: #6c757d;">暂无分类</span>
                 {% endif %}
                 <span style="margin:0 6px;">|</span>
                 <a href="#" class="article-author">{{ article.author }}</a>
-                <span class="article-time">| {{ article.published_time }}</span>
+                <span class="article-time" style="color: #cc00b8;">| {{ article.published_time }}</span>
               </div>
 
               <p class="card-text mb-auto article-summary">{{ article.summary|truncatechars:100 }}</p>

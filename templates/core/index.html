@@ -12,13 +12,13 @@
               <div class="article-tags">
                 {% if article.tags.exists %}
                   {% for tag in article.tags.all %}
-                    <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+                    <span class="article-tag"><a href="#" style="color: #212529;">{{ tag.name }}</a></span>
                   {% endfor %}
                 {% else %}
                   <span class="no-tag">暂无标签</span>
                 {% endif %}
               </div>
-              <h3 class="mb-0">{{ article.title }}</h3>
+              <h3 class="mb-0" style="color: #212529;">{{ article.title }}</h3>
 
               <div class="mb-1 text-muted" style="position: relative;">
                 {% if article.category %}
@@ -28,8 +28,8 @@
                 {% endif %}
                 <span style="margin:0 6px;">|</span>
                 <!-- 关键：提升作者链接的层级，避免被 stretched-link 覆盖 -->
-                <a href="{% url 'users:user_center' article.author.id %}" class="article-author" style="color: purple; position: relative; z-index: 2;">{{ article.author.profile.nickname|default:article.author.username }}</a>
-                <span class="article-time">| {{ article.published_time|date:'Y-m-d H:i' }}</span>
+                <a href="{% url 'users:user_detail' article.author.id %}" class="article-author" style="color: purple; position: relative; z-index: 2;">{{ article.author.profile.nickname|default:article.author.username }}</a>
+                <span class="article-time">| {{ article.published_time|date:'Y年m月d日 H:i' }}</span>
               </div>
 
               <p class="card-text mb-auto article-summary">{{ article.summary|truncatechars:100 }}</p>

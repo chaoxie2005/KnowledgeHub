@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Article, Category, Tag
+from .models import Article, Category, Tag, Comment
 
 
 # 自定义文章后台显示
@@ -21,3 +21,4 @@ class ArticleAdmin(admin.ModelAdmin):
 # 注册分类和标签
 admin.site.register(Category)
 admin.site.register(Tag)
+admin.site.register(Comment)

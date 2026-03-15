@@ -77,7 +77,9 @@ class UserProfile(models.Model):
     # 邮箱
     email = models.EmailField(
         max_length=254, blank=True, null=True, verbose_name="邮箱"
-    )
+    ) 
+    
+    
     bio = models.TextField(
         max_length=500,
         blank=True,

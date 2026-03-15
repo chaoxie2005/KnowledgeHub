@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from article.models import Article, Category
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
 from django.contrib.auth.decorators import login_required
-
+from django.db.models.functions import ExtractYear, ExtractMonth
+from django.contrib.auth.models import User
 
 
 def index(request):
@@ -45,11 +46,26 @@ def index(request):
 
     last_articles = Article.objects.filter(status="published").order_by(
         "-published_time"
-    )[:5] # 最新文章列表页
+    )[
+        :5
+    ]  # 最新文章列表页
 
     hot_list = hot_articles[:5]
 
     categories = Category.objects.all()
+
+    # ====== 文章归档 =======
+    archive_data = (
+        Article.objects.filter(status="published")
+        # 用 Django 内置函数提取年/月，自动适配数据库
+        .annotate(
+            year=ExtractYear("published_time"), month=ExtractMonth("published_time")
+        )
+        .values("year", "month")
+        .annotate(article_count=Count("id"))
+        .order_by("-year", "-month")
+    )
+
     # 7. 上下文数据：区分分页后的文章和原始查询集，变量名更清晰
     context = {
         "articles": paginated_articles,  # 分页后的文章列表
@@ -60,5 +76,6 @@ def index(request):
         "last_articles": last_articles,  # 最新文章列表页
         "hot_list": hot_list,  # 热门文章列表页
         "categories": categories,
+        "archive_data": archive_data,
     }
     return render(request, "core/index.html", context)

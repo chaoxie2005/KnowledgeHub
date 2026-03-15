@@ -1,126 +1,301 @@
 {% extends 'article_detail_base.html' %}
 {% load static %}
 
-<style>
-  /* 全局容器 */
-  .article-detail-container {
-    max-width: 720px;
-    margin: 0;
-  }
-  
-  /* 文章标题 */
-  .article-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    line-height: 1.3;
-    margin-bottom: 1rem;
-    color: #222;
-  }
-  
-  /* 元信息行：时间 + 阅读量 */
-  .article-meta-info {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    font-size: 0.9rem;
-    color: #6c757d;
-    margin-bottom: 0.8rem;
-  }
-  
-  .read-count-icon {
-    width: 1.1em;
-    height: 1.1em;
-    vertical-align: top;
-    fill: #6c757d;
-  }
-  
-  /* 标签样式：更柔和精致 */
-  .article-tags {
-    margin-bottom: 1rem;
-  }
-  .article-tag {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    margin-right: 0.3rem;
-    margin-bottom: 0.5rem;
-    background-color: #f0f7ff;
-    color: #0066cc;
-    border-radius: 6px;
-    font-size: 0.72rem;
-    border: 1px solid #d0e8ff;
-  }
-  .no-tag {
-    font-size: 0.78rem;
-    color: #6c757d;
-  }
-  
-  /* 封面图：固定大小（核心修改） */
-  .article-cover {
-    margin-bottom: 1.5rem;
-    width: 100%;
-    max-width: 300px; /* 限制最大宽度 */
-    height: 400px;    /* 固定高度 */
-    overflow: hidden; /* 隐藏超出部分 */
-    border-radius: 6px;
-  }
-  .article-cover img {
-    width: 100%;      /* 图片铺满容器宽度 */
-    height: 100%;     /* 图片铺满容器高度 */
-    object-fit: cover;/* 等比例填充，裁剪多余 */
-    object-position: center; /* 图片居中 */
-    border-radius: 6px;
-  }
-  
-  /* 正文内容 */
-  .article-content {
-    line-height: 1.8;
-    font-size: 1.05rem;
-    color: #333;
-  }
-  .article-content p {
-    margin-bottom: 1.2rem;
-  }
-  
-  /* ========== 新增/修改：翻页样式 ========== */
-  /* 翻页容器：去掉默认 padding/margin，和正文对齐 */
-  .article-nav-pagination {
-    margin-top: 2rem;
-    padding: 0;
-  }
-  /* 翻页列表：水平排列，间距适中 */
-  .article-nav-pagination .pagination {
-    display: flex;
-    gap: 0.8rem;
-    padding-left: 0;
-    list-style: none;
-    margin: 0;
-  }
-  /* 翻页按钮基础样式（和标签风格统一） */
-  .article-nav-pagination .page-link {
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    color: #0066cc;
-    background-color: #f0f7ff;
-    border: 1px solid #d0e8ff;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  /* 可点击按钮 hover 效果 */
-  .article-nav-pagination .page-item:not(.disabled) .page-link:hover {
-    background-color: #e0edff;
-    border-color: #0066cc;
-  }
-  /* 禁用状态（没有上下篇） */
-  .article-nav-pagination .page-item.disabled .page-link {
-    color: #6c757d;
-    background-color: #f8f9fa;
-    border-color: #e9ecef;
-    cursor: not-allowed;
-  }
-</style>
-
 {% block post %}
+  <style>
+    /* 全局容器 */
+    .article-detail-container {
+      max-width: 720px;
+      margin: 0 auto !important; /* 居中显示 */
+    }
+    
+    /* 文章标题 */
+    .article-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 1rem;
+      color: #222;
+    }
+    
+    /* 元信息行：时间 + 阅读量 */
+    .article-meta-info {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.9rem;
+      color: #6c757d;
+      margin-bottom: 0.8rem;
+    }
+    
+    .read-count-icon {
+      width: 1.1em;
+      height: 1.1em;
+      vertical-align: top;
+      fill: #6c757d;
+    }
+    
+    /* 标签样式：更柔和精致 */
+    .article-tags {
+      margin-bottom: 1rem;
+    }
+    .article-tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      margin-right: 0.3rem;
+      margin-bottom: 0.5rem;
+      background-color: #f0f7ff;
+      color: #0066cc;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      border: 1px solid #d0e8ff;
+    }
+    .no-tag {
+      font-size: 0.78rem;
+      color: #6c757d;
+    }
+    
+    /* 封面图：固定大小（核心修改） */
+    .article-cover {
+      margin-bottom: 1.5rem;
+      width: 100%;
+      max-width: 800px; /* 限制最大宽度 */
+      height: 400px; /* 固定高度 */
+      overflow: hidden; /* 隐藏超出部分 */
+      border-radius: 6px;
+    }
+    .article-cover img {
+      width: 100%; /* 图片铺满容器宽度 */
+      height: 100%; /* 图片铺满容器高度 */
+      object-fit: cover; /* 等比例填充，裁剪多余 */
+      object-position: center; /* 图片居中 */
+      border-radius: 6px;
+    }
+    
+    /* 正文内容 */
+    .article-content {
+      line-height: 1.8;
+      font-size: 1.05rem;
+      color: #333;
+      margin-bottom: 2rem;
+    }
+    .article-content p {
+      margin-bottom: 1.2rem;
+    }
+    
+    /* ========== 翻页样式 ========== */
+    .article-nav-pagination {
+      margin-top: 2rem;
+      padding: 0;
+      margin-bottom: 3rem;
+    }
+    .article-nav-pagination .pagination {
+      display: flex;
+      gap: 0.8rem;
+      padding-left: 0;
+      list-style: none;
+      margin: 0;
+    }
+    .article-nav-pagination .page-link {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      color: #0066cc;
+      background-color: #f0f7ff;
+      border: 1px solid #d0e8ff;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .article-nav-pagination .page-item:not(.disabled) .page-link:hover {
+      background-color: #e0edff;
+      border-color: #0066cc;
+    }
+    .article-nav-pagination .page-item.disabled .page-link {
+      color: #6c757d;
+      background-color: #f8f9fa;
+      border-color: #e9ecef;
+      cursor: not-allowed;
+    }
+    
+    /* ========== 掘金风格评论区样式 ========== */
+    .comment-section {
+      margin-top: 3rem !important;
+      padding-top: 1.5rem !important;
+      border-top: 1px solid #f0f0f0 !important;
+      width: 100% !important;
+      max-width: 720px !important;
+    }
+    .comment-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      margin-bottom: 1.5rem !important;
+    }
+    .comment-title {
+      font-size: 1.2rem !important;
+      font-weight: 600 !important;
+      color: #333 !important;
+      margin: 0 !important;
+    }
+    .comment-count {
+      font-size: 0.9rem !important;
+      color: #999 !important;
+    }
+    /* 评论输入框 */
+    .comment-input-wrapper {
+      background: #f7f8fa !important;
+      border: 1px solid #e5e6eb !important;
+      border-radius: 4px !important;
+      padding: 12px 16px !important;
+      margin-bottom: 1.5rem !important;
+    }
+    .comment-input {
+      width: 100% !important;
+      border: none !important;
+      background: transparent !important;
+      resize: none !important;
+      font-size: 0.95rem !important;
+      line-height: 1.5 !important;
+      color: #333 !important;
+      min-height: 40px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .comment-input:focus {
+      outline: none !important;
+    }
+    .comment-input-footer {
+      display: flex !important;
+      justify-content: flex-end !important;
+      margin-top: 8px !important;
+    }
+    .comment-submit-btn {
+      background: #0066cc !important;
+      color: #fff !important;
+      border: none !important;
+      border-radius: 4px !important;
+      padding: 6px 16px !important;
+      font-size: 0.9rem !important;
+      cursor: pointer !important;
+    }
+    .comment-submit-btn:hover {
+      background: #0052a3 !important;
+    }
+    /* 未登录提示 */
+    .comment-login-tip {
+      background: #f7f8fa !important;
+      border: 1px solid #e5e6eb !important;
+      border-radius: 4px !important;
+      padding: 12px 16px !important;
+      color: #666 !important;
+      font-size: 0.9rem !important;
+      margin-bottom: 1.5rem !important;
+    }
+    .comment-login-tip a {
+      color: #0066cc !important;
+      text-decoration: none !important;
+    }
+    /* 评论列表 */
+    .comment-list {
+      margin-top: 1rem !important;
+    }
+    .comment-item {
+      padding: 16px 0 !important;
+      border-bottom: 1px solid #f0f0f0 !important;
+    }
+    .comment-main {
+      display: flex !important;
+      gap: 12px !important;
+    }
+    .comment-avatar {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+      overflow: hidden !important;
+      flex-shrink: 0 !important;
+    }
+    .comment-avatar img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+    .comment-content {
+      flex: 1 !important;
+    }
+    .comment-user-info {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      margin-bottom: 6px !important;
+    }
+    .comment-username {
+      font-weight: 600 !important;
+      color: #333 !important;
+      font-size: 0.95rem !important;
+    }
+    .comment-author-tag {
+      background: #e8f3ff !important;
+      color: #0066cc !important;
+      font-size: 0.75rem !important;
+      padding: 1px 6px !important;
+      border-radius: 2px !important;
+    }
+    .comment-time {
+      font-size: 0.85rem !important;
+      color: #999 !important;
+    }
+    .comment-text {
+      font-size: 0.95rem !important;
+      color: #333 !important;
+      line-height: 1.6 !important;
+      margin-bottom: 10px !important;
+    }
+    .comment-actions {
+      display: flex !important;
+      align-items: center !important;
+      gap: 20px !important;
+      font-size: 0.85rem !important;
+      color: #999 !important;
+    }
+    .comment-action {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      cursor: pointer !important;
+    }
+    .comment-action:hover {
+      color: #0066cc !important;
+    }
+    /* 嵌套回复 */
+    .comment-replies {
+      margin-top: 12px !important;
+      padding-left: 48px !important;
+    }
+    .reply-item {
+      padding: 12px 0 !important;
+      border-bottom: none !important;
+    }
+    .reply-username {
+      font-weight: 500 !important;
+      color: #0066cc !important;
+    }
+    /* 空评论 */
+    .empty-comment {
+      text-align: center !important;
+      padding: 3rem 0 !important;
+      color: #999 !important;
+      font-size: 0.95rem !important;
+    }
+    /* 回复表单 */
+    .comment-reply-form {
+      margin-top: 10px !important;
+      padding: 10px !important;
+      background: #f7f8fa !important;
+      border-radius: 4px !important;
+    }
+  </style>
+
+
   <div class="article-detail-container">
     <h1 class="article-title">{{ article.title }}</h1>
 
@@ -132,7 +307,7 @@
       </span>
 
       &nbsp;&nbsp;&nbsp;&nbsp;{% if article.category %}
-        <a href="#" class="article-category" style="color: #0066cc; text-decoration: none;">{{ article.category.name }}</a>
+        <a href="{% url 'article:category_list' article.category.id %}" class="article-category" style="color: #0066cc; text-decoration: none;">{{ article.category.name }}</a>
       {% else %}
         <span style="color: #6c757d; text-decoration: none;" class="no-category">暂无分类</span>
       {% endif %}
@@ -181,5 +356,144 @@
         {% endif %}
       </ul>
     </nav>
+
+    <!-- ========== 掘金风格评论区 ========== -->
+    <div class="comment-section">
+      <div class="comment-header">
+        <h2 class="comment-title">评论</h2>
+        <span class="comment-count">{{ comments.count }} 条评论</span>
+      </div>
+
+      <!-- 评论输入框 -->
+      {% if user.is_authenticated %}
+        <div class="comment-input-wrapper">
+          <form method="post" action="{% url 'article:detail' article.id %}">
+            {% csrf_token %}
+            <textarea name="content" class="comment-input" placeholder="平等表达，友善交流"></textarea>
+            <div class="comment-input-footer">
+              <button type="submit" class="comment-submit-btn">发送</button>
+            </div>
+          </form>
+        </div>
+      {% else %}
+        <div class="comment-login-tip">
+          请 <a href="{% url 'login' %}">登录</a> 后发表评论
+        </div>
+      {% endif %}
+
+      <!-- 评论列表 -->
+      <div class="comment-list">
+        {% if comments %}
+          {% for comment in comments %}
+            <div class="comment-item">
+              <div class="comment-main">
+                <div class="comment-avatar">
+                  {% if comment.user.profile.avatar %}
+                    <img src="{{ comment.user.profile.avatar.url }}" alt="{{ comment.user.username }}" />
+                  {% else %}
+                    <img src="https://p3-passport.byteimg.com/avatar/aweme_100/avatar-{{ comment.user.id }}~100x100.png" alt="默认头像" />
+                  {% endif %}
+                </div>
+                <div class="comment-content">
+                  <div class="comment-user-info">
+                    <a class="comment-username" href="{% url 'users:user_detail' comment.user.id %}">{{ comment.user.username }}</a>
+                    {% if comment.user == article.author %}
+                      <span class="comment-author-tag">作者</span>
+                    {% endif %}
+                    <span class="comment-time">{{ comment.created_time|date:'Y-m-d H:i' }}</span>
+                  </div>
+                  <div class="comment-text">{{ comment.content|linebreaksbr }}</div>
+                  <div class="comment-actions">
+                    <div class="comment-action">
+                      <i class="bi bi-hand-thumbs-up"></i>
+                      <span>点赞</span>
+                    </div>
+                    <div class="comment-action" onclick="toggleReplyForm({{ comment.id }})">
+                      <i class="bi bi-chat-dots"></i>
+                      <span>回复</span>
+                    </div>
+                  </div>
+
+                  <!-- 回复表单 -->
+                  <div class="comment-reply-form" id="reply-form-{{ comment.id }}" style="display: none;">
+                    <form method="post" action="{% url 'article:detail' article.id %}">
+                      {% csrf_token %}
+                      <textarea name="content" class="comment-input" style="min-height: 32px;" placeholder="回复 {{ comment.user.username }}"></textarea>
+                      <input type="hidden" name="parent" value="{{ comment.id }}" />
+                      <div class="comment-input-footer">
+                        <button type="submit" class="comment-submit-btn" style="padding: 4px 12px; font-size: 0.85rem;">回复</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 嵌套回复列表 -->
+              {% if comment.replies.exists %}
+                <div class="comment-replies">
+                  {% for reply in comment.replies.all %}
+                    <div class="reply-item">
+                      <div class="comment-main">
+                        <div class="comment-avatar">
+                          {% if reply.user.profile.avatar %}
+                            <img src="{{ reply.user.profile.avatar.url }}" alt="{{ reply.user.username }}" />
+                          {% else %}
+                            <img src="https://p3-passport.byteimg.com/avatar/aweme_100/avatar-{{ reply.user.id }}~100x100.png" alt="默认头像" />
+                          {% endif %}
+                        </div>
+                        <div class="comment-content">
+                          <div class="comment-user-info">
+                            <a class="comment-username" href="{% url 'users:user_detail' reply.user.id %}">{{ reply.user.username }}</a>
+                            {% if reply.user == article.author %}
+                              <span class="comment-author-tag">作者</span>
+                            {% endif %}
+                            <span class="comment-time">{{ reply.created_time|date:'Y-m-d H:i' }}</span>
+                          </div>
+                          <div class="comment-text">
+                            <a class="reply-username" href="{% url 'users:user_detail' comment.user.id %}">@{{ comment.user.username }}</a> {{ reply.content|linebreaksbr }}
+                          </div>
+                          <div class="comment-actions">
+                            <div class="comment-action">
+                              <i class="bi bi-hand-thumbs-up"></i>
+                              <span>点赞</span>
+                            </div>
+                            <div class="comment-action" onclick="toggleReplyForm({{ reply.id }})">
+                              <i class="bi bi-chat-dots"></i>
+                              <span>回复</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-comment">
+            <p>暂无评论，快来抢沙发吧~</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
+
+  <script>
+    function toggleReplyForm(commentId) {
+      // 找到对应的回复框
+      const replyForm = document.getElementById(`reply-form-${commentId}`)
+    
+      // 确保元素存在
+      if (!replyForm) return
+    
+      // 切换显示/隐藏
+      replyForm.style.display = replyForm.style.display === 'block' ? 'none' : 'block'
+    
+      // 展开时聚焦输入框
+      if (replyForm.style.display === 'block') {
+        replyForm.querySelector('textarea').focus()
+      }
+    }
+  </script>
 {% endblock %}

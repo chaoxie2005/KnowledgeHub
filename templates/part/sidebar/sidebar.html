@@ -4,7 +4,7 @@
     {% block latest-articles %}
       {% for article in last_articles %}
         <li>
-          <a href="{% url 'article:detail' article.id %}">{{ article.title|truncatechars:18 }}</a>
+          <a href="{% url 'article:detail' article.id %}" class="text-decoration-none" style="color: #212529;">{{ article.title|truncatechars:18 }}</a>
         </li>
       {% endfor %}
     {% endblock %}
@@ -17,7 +17,7 @@
     {% block hot-articles %}
       {% for article in hot_list %}
           <li>
-            <a href="{% url 'article:detail' article.id %}">{{ article.title|truncatechars:18 }}</a>
+            <a href="{% url 'article:detail' article.id %}" class="text-decoration-none" style="color: #212529;">{{ article.title|truncatechars:18 }}</a>
           </li>
         {% endfor %}
     {% endblock %}
@@ -28,20 +28,20 @@
   <h4 class="font-italic">文章归档</h4>
   <ol class="list-unstyled mb-0">
     {% block article-archive %}
-    <li>
-      <a href="#">文章归档</a>
-    </li>
+      {% if archive_data %}
+        {% for data in archive_data %}
+            <li class="d-flex justify-content-between align-items-center py-1">
+              <a href="{% url 'article:archive_list' data.year data.month  %}" class="text-decoration-none" >
+                <i class="bi bi-calendar-event text-primary me-2"></i>
+                {{ data.year }}年{{ data.month }}月
+              </a>
+              <small class="text-muted ms-2">({{ data.article_count }}篇)</small>
+            </li>
+        {% endfor %}
+      {% else %}
+        <li class="text-muted">暂无归档数据</li>
+      {% endif %}
     {% endblock %}
   </ol>
 </div>
 
-<div class="p-4 bg-light mb-3">
-  <h4 class="font-italic">社交链接</h4>
-  <ol class="list-unstyled mb-0">
-    {% block elsewhere %}
-      <li>
-        <a href="#">社交链接</a>
-      </li>
-    {% endblock %}
-  </ol>
-</div>

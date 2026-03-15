@@ -1,13 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Article, Category, Tag
+from .models import Article, Category, Tag, Comment, CommentLike
+from .forms import CommentForm
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
 from django.db.models import Q
-from django.core.exceptions import ValidationError
 from django.utils.text import gettext_lazy as _
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .forms import ArticleForm
+from django.contrib.auth.models import User
 
 def detail(request, article_id):
     """文章详情页"""
@@ -16,8 +16,8 @@ def detail(request, article_id):
     article.read_count += 1  # 阅读量增加
     article.save(update_fields=["read_count"])
 
-    prev_article = Article.objects.filter(id__lt=article_id).order_by("-id").first()
-    next_article = Article.objects.filter(id__gt=article_id).order_by("id").first()
+    prev_article = Article.objects.filter(id__lt=article_id, status='published').order_by("-id").first()
+    next_article = Article.objects.filter(id__gt=article_id, status='published').order_by("id").first()
 
     hot_list = (
         Article.objects.filter(status="published")
@@ -31,6 +31,30 @@ def detail(request, article_id):
     ]  # 最新文章列表页
 
     categories = Category.objects.all()
+
+    # 只取 parent=None 的一级评论，按时间倒序（和模型 ordering 一致）
+    comments = article.comments.filter(parent=None)
+
+    # 处理评论提交
+    if request.method == "POST" and request.user.is_authenticated:
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.article = article
+            comment.user = request.user
+            # 处理回复：如果有 parent 参数，设置父评论
+            parent_id = request.POST.get("parent")
+            if parent_id:
+                try:
+                    parent_comment = Comment.objects.get(id=parent_id, article=article)
+                    comment.parent = parent_comment
+                except Comment.DoesNotExist:
+                    comment.parent = None
+            comment.save()
+            return redirect("article:detail", article_id=article_id)
+
+    articles = Article.objects.filter(status='published')[:5]
+
     context = {
         "article": article,
         "prev_article": prev_article,
@@ -38,13 +62,15 @@ def detail(request, article_id):
         "last_articles": last_articles,  # 最新文章列表页
         "hot_list": hot_list,  # 热门文章列表页
         "categories": categories,  # 分类
+        "comments": comments,  # 评论
+        "articles": articles, # 推荐文章，按阅读量排序
     }
     return render(request, "article/article_detail.html", context)
 
 
 def category_list(request, category_id):
     """与其标签相关的文章列表页"""
-    articles = Article.objects.filter(category_id=category_id, status="published")
+    articles = Article.objects.filter(category_id=category_id, status="published").order_by('-published_time')
     page = request.GET.get("page", 1)
     keyword = request.GET.get("keyword", "").strip()
 
@@ -78,14 +104,63 @@ def category_list(request, category_id):
         :5
     ]  # 最新文章列表页
     categories = Category.objects.all()
+    about_articles = articles[:5]
     context = {
         "articles": articles,
         "last_articles": last_articles,  # 最新文章列表页
         "hot_list": hot_list,  # 热门文章列表页
         "categories": categories,
+        "about_articles": about_articles,
     }
     return render(request, "article/category_list.html", context)
 
+
+def archive_list(request, archive_year, archive_month):
+    """文章归档列表"""
+    articles = Article.objects.filter(published_time__year=archive_year, published_time__month=archive_month, status="published").order_by('-published_time')
+
+    page = request.GET.get("page", 1)
+    keyword = request.GET.get("keyword", "").strip()
+
+    if keyword:
+        articles = articles.filter(
+            Q(title__icontains=keyword)
+            | Q(summary__icontains=keyword)
+            | Q(content__icontains=keyword)
+        )
+
+    # 6. 分页处理：优化异常捕获，统一变量名
+    paginator = Paginator(articles, 5)
+    try:
+        articles = paginator.page(page)
+    except PageNotAnInteger:
+        articles = paginator.page(1)
+    except EmptyPage:
+        articles = paginator.page(paginator.num_pages)
+    # 增加通用异常捕获，避免未预期的错误
+    except Exception:
+        articles = paginator.page(1)
+
+    hot_list = (
+        Article.objects.filter(status="published")
+        .order_by("-created_time")
+        .order_by("-read_count")[:5]
+    )
+    last_articles = Article.objects.filter(status="published").order_by(
+        "-published_time"
+    )[
+        :5
+    ]  # 最新文章列表页
+    categories = Category.objects.all()
+    about_articles = articles[:5]
+    context = {
+        "articles": articles,
+        "last_articles": last_articles,  # 最新文章列表页
+        "hot_list": hot_list,  # 热门文章列表页
+        "categories": categories,
+        "about_articles": about_articles,
+    }
+    return render(request, "article/archive_list.html", context)
 
 # 必须登录才能发布文章
 @login_required(login_url='authentication:login')
@@ -111,14 +186,14 @@ def publish_article(request):
             return render(
                 request,
                 "article/publish_article.html",
-                {"categories": categories, "tags": tags},
+                {"categories": categories, "tags": tags, "values": request.POST},
             )
         if len(title) > 200:  # 模型中title是max_length=200
             messages.error(request, "文章标题不能超过200字！")
             return render(
                 request,
                 "article/publish_article.html",
-                {"categories": categories, "tags": tags},
+                {"categories": categories, "tags": tags, 'values': request.POST},
             )
         article.title = title
 
@@ -162,12 +237,12 @@ def publish_article(request):
 
         # 4. 处理摘要（可选，模型中允许空）
         summary = request.POST.get("summary", "").strip()
-        if summary and len(summary) > 200:
-            messages.error(request, "文章摘要不能超过200字！")
+        if summary and len(summary) > 500:
+            messages.error(request, "文章摘要不能超过500字！")
             return render(
                 request,
                 "article/publish_article.html",
-                {"categories": categories, "tags": tags},
+                {"categories": categories, "tags": tags, "values": request.POST},
             )
         article.summary = summary
 
@@ -178,7 +253,7 @@ def publish_article(request):
             return render(
                 request,
                 "article/publish_article.html",
-                {"categories": categories, "tags": tags},
+                {"categories": categories, "tags": tags, "values": request.POST},
             )
         article.content = content
 

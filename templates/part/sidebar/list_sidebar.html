@@ -25,12 +25,12 @@
 </div>
 
 <div class="p-4 bg-light mb-3">
-  <h4 class="font-italic">推荐文章</h4>
+  <h4 class="font-italic">相关推荐文章</h4>
   <ol class="list-unstyled mb-0">
     {% block article-archive %}
-    {% for article in articles %}
+    {% for article in about_articles %}
       <li>
-        <a href="{% url 'article:detail' article.id %}" style="color: #212529;" class="text-decoration-none">{{ article.title|truncatechars:18 }}</a>
+        <a href="#">{{ article.title|truncatechars:18 }}</a>
       </li>
     {% endfor %}
     
@@ -38,15 +38,3 @@
   </ol>
 </div>
 
-<div class="p-4 bg-light mb-3">
-  <h4 class="font-italic">社交链接</h4>
-  <ol class="list-unstyled mb-0">
-    {% block elsewhere %}
-      <li>
-        <a href="#" class="text-decoration-none">邮箱：{{ article.author.profile.email|default:"未填写" }}</a>
-        <br>
-        <a href="#" class="text-decoration-none">手机号：{{ article.author.profile.phone|default:"未填写"  }}</a>
-      </li>
-    {% endblock %}
-  </ol>
-</div> 

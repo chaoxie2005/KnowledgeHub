@@ -43,7 +43,7 @@ class Article(models.Model):
 
     # 基础字段
     title = models.CharField(max_length=200, verbose_name='文章标题')
-    summary = models.CharField(max_length=200, blank=True, null=True, verbose_name='文章摘要')
+    summary = models.CharField(max_length=500, blank=True, null=True, verbose_name='文章摘要')
     content = models.TextField(verbose_name='文章内容') # 富文本/Markdown内容
     cover = models.ImageField(
         upload_to="article/cover/",
@@ -75,3 +75,68 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title  # 后台显示文章标题
+
+
+# ========== 新增：评论/点赞相关模型（核心） ==========
+class Comment(models.Model):
+    """评论模型（支持嵌套回复，对标掘金）"""
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments', verbose_name="关联文章")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments', verbose_name='评论用户')
+    content = models.TextField(max_length=500, verbose_name="评论内容", help_text="最多500字")
+
+    # 父评论（用于回复：null表示一级评论，非null表示回复）
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name='replies', verbose_name='父评论')
+
+    # 时间字段
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+    updated_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
+
+    class Meta:
+        verbose_name = "评论"
+        verbose_name_plural = "评论"
+        ordering = ["-created_time"]  # 最新评论在前
+        indexes = [
+            models.Index(fields=["article", "-created_time"]),  # 优化文章评论查询
+            models.Index(fields=["user"]),  # 优化用户评论查询
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.user.username} 评论《{self.article.title}》：{self.content[:20]}..."
+        )
+
+    @property
+    def is_root(self):
+        """判断是否是一级评论"""
+        return self.parent is None
+
+    @property
+    def like_count(self):
+        """获取评论点赞数"""
+        return self.comment_likes.count()
+
+
+class CommentLike(models.Model):
+    """评论点赞模型（防止重复点赞）"""
+
+    comment = models.ForeignKey(
+        Comment,
+        on_delete=models.CASCADE,
+        related_name="comment_likes",
+        verbose_name="关联评论",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="comment_likes",
+        verbose_name="点赞用户",
+    )
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="点赞时间")
+
+    class Meta:
+        verbose_name = "评论点赞"
+        verbose_name_plural = "评论点赞"
+        unique_together = ["comment", "user"]  # 一个用户只能给一个评论点一次赞
+
+    def __str__(self):
+        return f"{self.user.username} 点赞了 {self.comment.id} 号评论"

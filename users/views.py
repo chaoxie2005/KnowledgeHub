@@ -165,3 +165,12 @@ def user_center(request, user_id=None):
     user_profile, created = UserProfile.objects.get_or_create(user=user)
     context = {"user": user, "user_profile": user_profile}
     return render(request, "users/user_center.html", context)
+
+
+def user_detail(request, user_id):
+    """用户个人中心"""
+    user = get_object_or_404(User, id=user_id)
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+
+    context = {"user": user, "user_profile": user_profile}
+    return render(request, 'users/user_detail.html', context)

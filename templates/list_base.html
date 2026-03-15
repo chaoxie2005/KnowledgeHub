@@ -7,17 +7,13 @@
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    
-    
-
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
   </head>
   <body>
     <div class="container">
+      {% include 'part/messages.html' %}
       {# 头部分 #}
       {% include 'part/header.html' %}
-
-      {% include 'part/top_article.html' %}
     </div>
 
     <main role="main" class="container">
@@ -30,7 +26,7 @@
 
         {# 侧边栏 #}
         <aside class="col-md-4 blog-sidebar">
-          {% include 'part/sidebar/sidebar.html' %}
+          {% include 'part/sidebar/list_sidebar.html' %}
         </aside>
       </div>
     </main>
@@ -41,7 +37,3 @@
     </footer>
   </body>
 </html>
-
-
-<script src='{% static 'js/sweetalert.min.js'%}'></script>
-{% include 'part/sweetalert.html' %}

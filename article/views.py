@@ -8,11 +8,64 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.auth.models import User
+from rest_framework import viewsets, filters
+from django_filters.rest_framework import DjangoFilterBackend
+from .serializers import ArticleSerializer, CategorySerializer, CommentSerializer
+import os
+import uuid
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import markdown
+
+# 1. 文章 API 视图（支持增删改查、过滤、排序）
+class ArticleViewSet(viewsets.ModelViewSet):
+    """
+    博客文章 API：
+    - GET: 查看文章列表/详情（所有人可看）
+    - POST/PUT/DELETE: 增删改文章（仅登录用户）
+    """
+
+    queryset = Article.objects.all().order_by("-created_time")  # 按时间倒序
+    serializer_class = ArticleSerializer
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    # 过滤：按分类、标签、作者过滤
+    filterset_fields = ["category", "tags", "author"]
+    # 搜索：按标题、内容搜索
+    search_fields = ["title", "content"]
+    # 排序：按创建时间、阅读量排序
+    ordering_fields = ["created_time", "read_count"]
+
+
+# 2. 分类 API 视图
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+# 3. 评论 API 视图
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all().order_by("-created_time")
+    serializer_class = CommentSerializer
+    filterset_fields = ["article", "parent"]  # 按文章、父评论过滤
+
 
 def detail(request, article_id):
     """文章详情页"""
     article = get_object_or_404(Article, pk=article_id, status="published")
 
+    article.content = markdown.markdown(
+        article.content,
+        extensions=[
+            "fenced_code",  # 支持 ```代码块
+            "codehilite",  # 代码高亮
+            "tables",  # 表格
+        ],
+    )
     article.read_count += 1  # 阅读量增加
     article.save(update_fields=["read_count"])
 
@@ -513,3 +566,23 @@ def delete_published(request, published_id):
     Article.objects.filter(pk=published_id, author=request.user).delete()
     messages.success(request, "文章删除成功！")
     return redirect(to="core:index")
+
+
+# 图片上传接口（注意：csrf_exempt 是因为前端已经传了 CSRF Token，这里简化处理）
+@csrf_exempt
+def upload_image(request):
+    if request.method == "POST":
+        file = request.FILES.get("image")
+
+        if not file:
+            return JsonResponse({"success": 0, "message": "没有文件"})
+
+        path = os.path.join(settings.MEDIA_ROOT, file.name)
+
+        with open(path, "wb") as f:
+            for chunk in file.chunks():
+                f.write(chunk)
+
+        url = settings.MEDIA_URL + file.name
+
+        return JsonResponse({"success": 1, "url": url})

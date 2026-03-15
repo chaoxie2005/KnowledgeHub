@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
   <style>
-    /* 修复编辑器样式，和你的页面风格统一 */
       .editor-toolbar {
         border-color: #eee !important;
         background: #f8f9fa !important;
@@ -21,7 +20,6 @@
       .editor-preview {
         background: #fff !important;
       }
-    /* 保留原有样式，无需修改 */
     .menu-item {
       cursor: pointer;
       display: flex;
@@ -91,7 +89,7 @@
       max-width: 200px;
       max-height: 150px;
       border-radius: 6px;
-      display: block;  /* 改为block，默认显示草稿封面 */
+      display: block; 
     }
     .tag-group {
       display: flex;
@@ -293,11 +291,11 @@
               </div>
           </div>
 
-          <!-- 操作按钮：修改文案为编辑场景 -->
+          <!-- 操作按钮-->
           <div class="btn-group">
             <button type="button" class="btn btn-cancel" onclick="history.back()">取消</button>
-            <button type="submit" class="btn btn-draft" name="action" value="draft">保存修改</button>  <!-- 改为保存修改 -->
-            <button type="submit" class="btn btn-publish" name="action" value="publish">发布文章</button>  <!-- 改为发布文章 -->
+            <button type="submit" class="btn btn-draft" name="action" value="draft">保存修改</button>  
+            <button type="submit" class="btn btn-publish" name="action" value="publish">发布文章</button>  
           </div>
         </form>
       </div>
@@ -350,16 +348,350 @@
   </script>
 
   <!-- 弹窗插件 -->
-  <script src='{% static 'js/sweetalert.min.js'%}'></script>
+  <script src="{% static 'js/sweetalert.min.js'%}"></script>
   {% include 'part/sweetalert.html' %}
   <script>
-    // 初始化 SimpleMDE 编辑器
+      // 初始化 SimpleMDE 编辑器
       const simplemde = new SimpleMDE({
-        element: document.getElementById('content'),
-        spellChecker: false, // 关闭拼写检查
-        placeholder: '请输入文章正文内容，支持Markdown格式...',
-        toolbar: ['bold', 'italic', 'strikethrough', '|', 'heading', '|', 'quote', 'code', '|', 'unordered-list', 'ordered-list', '|', 'link', 'image', '|', 'preview', 'side-by-side', 'fullscreen', '|', 'guide']
+
+        element: document.getElementById("content"),
+
+        spellChecker: false,
+
+        placeholder: "请输入文章正文内容，支持 Markdown 格式...",
+
+        autosave: {
+          enabled: true,
+          uniqueId: "blog_editor",
+          delay: 5000,
+        },
+
+        status: [
+          "autosave",
+          "lines",
+          "words",
+          "cursor"
+        ],
+
+        toolbar: [
+
+          {
+            name: "bold",
+            action: SimpleMDE.toggleBold,
+            className: "fa fa-bold",
+            title: "加粗"
+          },
+
+          {
+            name: "italic",
+            action: SimpleMDE.toggleItalic,
+            className: "fa fa-italic",
+            title: "斜体"
+          },
+
+          {
+            name: "strikethrough",
+            action: SimpleMDE.toggleStrikethrough,
+            className: "fa fa-strikethrough",
+            title: "删除线"
+          },
+
+          "|",
+
+          {
+            name: "heading",
+            action: SimpleMDE.toggleHeadingSmaller,
+            className: "fa fa-header",
+            title: "标题"
+          },
+
+          {
+            name: "heading-smaller",
+            action: SimpleMDE.toggleHeadingSmaller,
+            className: "fa fa-header",
+            title: "小标题"
+          },
+
+          {
+            name: "heading-bigger",
+            action: SimpleMDE.toggleHeadingBigger,
+            className: "fa fa-header",
+            title: "大标题"
+          },
+
+          "|",
+
+          {
+            name: "quote",
+            action: SimpleMDE.toggleBlockquote,
+            className: "fa fa-quote-left",
+            title: "引用"
+          },
+
+          {
+            name: "code",
+            action: SimpleMDE.toggleCodeBlock,
+            className: "fa fa-code",
+            title: "代码"
+          },
+
+          {
+            name: "codeblock",
+            action: function(editor){
+
+              const cm = editor.codemirror
+
+              const code = "\n```python\n\n```\n"
+
+              cm.replaceSelection(code)
+
+            },
+            className: "fa fa-file-code-o",
+            title: "插入代码块"
+          },
+
+          "|",
+
+          {
+            name: "unordered-list",
+            action: SimpleMDE.toggleUnorderedList,
+            className: "fa fa-list-ul",
+            title: "无序列表"
+          },
+
+          {
+            name: "ordered-list",
+            action: SimpleMDE.toggleOrderedList,
+            className: "fa fa-list-ol",
+            title: "有序列表"
+          },
+
+          "|",
+
+          {
+            name: "table",
+            action: function(editor){
+
+              const cm = editor.codemirror
+
+              const table = `
+      | 标题1 | 标题2 |
+      |------|------|
+      | 内容 | 内容 |
+      `
+
+              cm.replaceSelection(table)
+
+            },
+            className: "fa fa-table",
+            title: "插入表格"
+          },
+
+          {
+            name: "link",
+            action: function(editor){
+
+              const cm = editor.codemirror
+
+              const link = "[链接文字](https://)"
+
+              cm.replaceSelection(link)
+
+            },
+            className: "fa fa-link",
+            title: "插入链接"
+          },
+
+          "|",
+
+          // 文字颜色
+          {
+            name: "color",
+            action: function(editor){
+
+              const color = prompt("请输入颜色，例如 red 或 #ff0000")
+
+              if(!color) return
+
+              const cm = editor.codemirror
+
+              const text = cm.getSelection() || "彩色文字"
+
+              cm.replaceSelection(`<span style="color:${color}">${text}</span>`)
+
+            },
+            className: "fa fa-paint-brush",
+            title: "设置文字颜色",
+          },
+
+          // 高亮文字
+          {
+            name: "highlight",
+            action: function(editor){
+
+              const cm = editor.codemirror
+
+              const text = cm.getSelection() || "高亮文字"
+
+              cm.replaceSelection(`<mark>${text}</mark>`)
+
+            },
+            className: "fa fa-pencil",
+            title: "高亮文字"
+          },
+
+          // 字体大小
+          {
+            name: "fontsize",
+            action: function(editor){
+
+              const size = prompt("请输入字体大小，例如 18px")
+
+              if(!size) return
+
+              const cm = editor.codemirror
+
+              const text = cm.getSelection() || "大号文字"
+
+              cm.replaceSelection(`<span style="font-size:${size}">${text}</span>`)
+
+            },
+            className: "fa fa-text-height",
+            title: "设置字体大小"
+          },
+
+          "|",
+
+          // 图片上传
+          {
+            name: "image",
+            action: function(editor){
+
+              const input = document.createElement("input")
+
+              input.type = "file"
+              input.accept = "image/*"
+
+              input.onchange = function(){
+
+                const file = input.files[0]
+
+                const formData = new FormData()
+
+                formData.append("image", file)
+
+                fetch("/article/upload_image/", {
+
+                  method: "POST",
+
+                  body: formData,
+
+                  headers: {
+
+                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+
+                  }
+
+                })
+
+                .then(res => res.json())
+
+                .then(data => {
+
+                  if(data.success){
+
+                    const url = data.url
+
+                    const cm = editor.codemirror
+
+                    cm.replaceSelection(`\n![](${url})\n`)
+
+                  }
+
+                })
+
+              }
+
+              input.click()
+
+            },
+
+            className: "fa fa-picture-o",
+
+            title: "上传图片"
+
+          },
+
+          "|",
+
+          {
+            name: "preview",
+            action: SimpleMDE.togglePreview,
+            className: "fa fa-eye",
+            title: "预览"
+          },
+
+          {
+            name: "side-by-side",
+            action: SimpleMDE.toggleSideBySide,
+            className: "fa fa-columns",
+            title: "分屏预览"
+          },
+
+          {
+            name: "fullscreen",
+            action: SimpleMDE.toggleFullScreen,
+            className: "fa fa-arrows-alt",
+            title: "全屏编辑"
+          },
+
+          "|",
+
+          {
+            name: "guide",
+            action: "https://www.markdownguide.org/basic-syntax/",
+            className: "fa fa-question-circle",
+            title: "Markdown 语法帮助"
+          }
+
+        ]
+
       })
+      
+      simplemde.codemirror.on("paste", function(cm, e){
+
+      const items = e.clipboardData.items
+
+      for (let item of items){
+
+        if(item.type.indexOf("image") !== -1){
+
+          const file = item.getAsFile()
+
+          const formData = new FormData()
+          formData.append("image", file)
+
+          fetch("/article/upload_image/", {
+            method:"POST",
+            body:formData,
+            headers:{
+              "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(res=>res.json())
+          .then(data=>{
+
+            if(data.success){
+              cm.replaceSelection(`\n![](${data.url})\n`)
+            }
+
+          })
+
+        }
+
+      }
+
+    })
       
       // 表单提交前同步编辑器内容到 textarea
       document.getElementById('publishForm').addEventListener('submit', function () {

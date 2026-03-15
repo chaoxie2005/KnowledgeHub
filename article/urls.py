@@ -8,7 +8,11 @@ urlpatterns = [
     path(
         "category_list/<int:category_id>", views.category_list, name="category_list"
     ),  # 与其分类相关的文章列表页
-    path('archive_list/<int:archive_year>/<int:archive_month>', views.archive_list, name='archive_list'), # 文章归档列表页
+    path(
+        "archive_list/<int:archive_year>/<int:archive_month>",
+        views.archive_list,
+        name="archive_list",
+    ),  # 文章归档列表页
     path("publish_article/", views.publish_article, name="publish_article"),  # 发布文章
     path("drafts/", views.drafts, name="drafts"),  # 草稿箱
     path("edit_draft/<int:draft_id>/", views.edit_draft, name="edit_draft"),  # 编辑草稿
@@ -26,4 +30,5 @@ urlpatterns = [
         views.delete_published,
         name="delete_published",
     ),  # 删除已发布
+    path("upload_image/", views.upload_image, name="upload_image"),
 ]

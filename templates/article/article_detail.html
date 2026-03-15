@@ -21,8 +21,7 @@
     /* 元信息行：时间 + 阅读量 */
     .article-meta-info {
       display: flex;
-      align-items: center;
-      gap: 0.8rem;
+      align-items: center; 
       font-size: 0.9rem;
       color: #6c757d;
       margin-bottom: 0.8rem;
@@ -31,8 +30,8 @@
     .read-count-icon {
       width: 1.1em;
       height: 1.1em;
-      vertical-align: top;
-      fill: #6c757d;
+      vertical-align: middle; 
+      display: inline-block;
     }
     
     /* 标签样式：更柔和精致 */
@@ -55,7 +54,7 @@
       color: #6c757d;
     }
     
-    /* 封面图：固定大小（核心修改） */
+    /* 封面图：固定大小 */
     .article-cover {
       margin-bottom: 1.5rem;
       width: 100%;
@@ -293,6 +292,35 @@
       background: #f7f8fa !important;
       border-radius: 4px !important;
     }
+    .markdown-body{
+    line-height: 1.8;
+    font-size: 16px;
+}
+
+  .markdown-body img{
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+  }
+
+  .markdown-body pre{
+      background:#f6f8fa;
+      padding:15px;
+      border-radius:6px;
+      overflow-x:auto;
+  }
+
+  .markdown-body code{
+      background:#f3f3f3;
+      padding:2px 6px;
+      border-radius:4px;
+  }
+
+  .markdown-body h1,
+  .markdown-body h2,
+  .markdown-body h3{
+      margin-top:20px;
+  }
   </style>
 
 
@@ -331,7 +359,9 @@
     {% endif %}
 
     <!-- 文章内容(富文本编辑) -->
-    <div class="article-content">{{ article.content|safe }}</div>
+    <div class="article-content markdown-body">
+      {{ article.content|safe }}
+    </div>
 
     <nav aria-label="文章翻页" class="article-nav-pagination">
       <ul class="pagination">
@@ -377,7 +407,7 @@
         </div>
       {% else %}
         <div class="comment-login-tip">
-          请 <a href="{% url 'login' %}">登录</a> 后发表评论
+          请 <a href="{% url 'authentication:login' %}">登录</a> 后发表评论
         </div>
       {% endif %}
 
@@ -396,7 +426,7 @@
                 </div>
                 <div class="comment-content">
                   <div class="comment-user-info">
-                    <a class="comment-username" href="{% url 'users:user_detail' comment.user.id %}">{{ comment.user.username }}</a>
+                    <a class="comment-username" href="{% url 'users:user_detail' comment.user.id %}">{{ comment.user.profile.nickname|default:comment.user.username }}</a>
                     {% if comment.user == article.author %}
                       <span class="comment-author-tag">作者</span>
                     {% endif %}

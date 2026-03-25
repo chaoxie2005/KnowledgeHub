@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    <div class="submit-row">
+        <label for="optimize_title">
+            <input type="checkbox" name="optimize_title" id="optimize_title">
+            🤖 使用AI优化标题
+        </label>
+    </div>
+{% endblock %}

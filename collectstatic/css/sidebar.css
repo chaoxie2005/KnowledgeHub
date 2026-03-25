@@ -1,0 +1,85 @@
+/* 通用侧边栏容器 */
+.sidebar-widget {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #2196f3;
+    /* 掘金蓝左侧竖线 */
+}
+
+/* 侧边栏标题 */
+.sidebar-widget .widget-title {
+    color: #2196f3;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* 文章列表基础样式 */
+.sidebar-widget .article-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    line-height: 1.8;
+}
+
+/* 列表项间距 */
+.sidebar-widget .article-list li {
+    margin-bottom: 0.5rem;
+}
+
+/* 通用链接样式 */
+.sidebar-widget .link-item {
+    color: #212529;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.2s ease;
+}
+
+/* 链接 hover 效果 */
+.sidebar-widget .link-item:hover {
+    color: #2196f3;
+    text-decoration: underline;
+}
+
+/* 社交链接样式 */
+.sidebar-widget .social-item {
+    color: #212529;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-widget .social-item:hover {
+    color: #2196f3;
+    text-decoration: underline;
+}
+
+/* 无数据提示 */
+.sidebar-widget .empty-tip {
+    color: #6c757d;
+    font-size: 0.875rem;
+    padding: 0.5rem 0;
+}
+.sidebar-widget .article-link {
+    color: #212529 !important;
+    text-decoration: none !important;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.2s ease;
+}
+
+.sidebar-widget .article-link:hover {
+    color: #2196f3 !important;
+    text-decoration: underline !important;
+}

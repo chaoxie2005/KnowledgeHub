@@ -1,171 +1,340 @@
 <style>
-  /* 兼容低版本Bootstrap & 基础样式 */
-  .no-gutters {
-    margin-right: 0;
-    margin-left: 0;
-  }
-  .no-gutters > .col,
-  .no-gutters > [class*='col-'] {
-    padding-right: 0;
-    padding-left: 0;
+  /* 置顶区全局样式：和列表完全统一 */
+  .top-banner {
+    margin-bottom: 24px;
   }
 
-  /* 文章标签样式：和截图风格一致 */
-  .article-tag {
+  /* 置顶标签：明确提示读者这是置顶区 */
+  .sticky-badge {
     display: inline-block;
-    padding: 0.2rem 0.6rem;
-    margin-right: 0.3rem;
-    margin-bottom: 0.5rem;
-    background-color: #e8f3ff;
-    color: #0066cc;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
     border-radius: 4px;
-    font-size: 0.85rem;
-  }
-  .article-tag a {
-    text-decoration: none;
-    color: #0066cc;
-  }
-  .no-tag {
-    font-size: 0.85rem;
-    color: #6c757d;
+    margin-bottom: 8px;
   }
 
-  /* 统一「继续阅读」链接样式 */
-  .stretched-link {
-    color: #0066cc;
-    text-decoration: none;
-    font-weight: 500;
-  }
-  .stretched-link:hover {
-    text-decoration: underline;
+  /* 置顶卡片：和列表.article-item完全统一 */
+  .sticky-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
   }
 
-  /* 强制卡片高度一致 + 文本溢出处理 */
-  .h-md-250 {
-    height: 280px !important;
+  .sticky-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   }
-  .h-md-250 .col.position-static {
+
+  /* 置顶卡片图片区：统一比例 */
+  .sticky-card-img {
+    width: 280px;
+    overflow: hidden;
+    background: #f8f9fa;
+  }
+
+  .sticky-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .sticky-card:hover .sticky-card-img img {
+    transform: scale(1.05);
+  }
+
+  /* 置顶卡片内容区：和列表完全统一 */
+  .sticky-card-content {
+    flex: 1;
+    padding: 24px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    justify-content: space-between;
   }
+
+  /* 标签样式：和列表完全统一 */
+  .article-tags {
+    margin-bottom: 8px;
+  }
+
+  .article-tag {
+    display: inline-block;
+    background: #f5f7fa;
+    color: #555;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+
+  .article-tag a {
+    color: #555 !important;
+    text-decoration: none;
+  }
+
+  .article-tag:hover {
+    background: #e9ecef;
+  }
+
+  .no-tag {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* 标题：和列表完全统一 */
+  .article-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* 信息栏：和列表完全统一（小圆点分隔） */
+  .article-info {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .article-info a {
+    text-decoration: none;
+  }
+
+  .article-author {
+    color: #722ed1 !important;
+    font-weight: 500;
+  }
+
+  /* 摘要：和列表完全统一 */
   .article-summary {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
     flex: 1;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
-    line-height: 1.5;
-  }
-  h3.mb-0 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-height: 1.3;
-  }
-  .h-md-250 .col-auto img {
-    height: 280px !important;
-    width: 200px;
-    object-fit: cover;
+    margin-bottom: 16px;
   }
 
-  /* 响应式适配：小屏幕优化 */
-  @media (max-width: 768px) {
-    .h-md-250 {
-      height: auto !important;
+  /* 阅读更多：和列表完全统一 */
+  .read-more {
+    font-size: 14px;
+    color: #0066cc !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: padding 0.2s;
+  }
+
+  .read-more:hover {
+    padding-left: 3px;
+    color: #0056b3 !important;
+  }
+
+  /* 热门双列卡片：和列表+置顶头条统一 */
+  .hot-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 100%;
+  }
+
+  .hot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .hot-card-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .hot-card-img {
+    width: 160px;
+    overflow: hidden;
+    background: #f8f9fa;
+  }
+
+  .hot-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .hot-card:hover .hot-card-img img {
+    transform: scale(1.05);
+  }
+
+  /* 响应式适配：小屏幕隐藏图片 */
+  @media (max-width: 992px) {
+
+    .sticky-card-img,
+    .hot-card-img {
+      display: none;
     }
-    .col-auto.d-none.d-lg-block {
-      display: none !important;
+
+    .sticky-card-content,
+    .hot-card-content {
+      padding: 16px;
     }
-    h3.mb-0 {
-      font-size: 1.2rem !important;
+
+    .article-title {
+      font-size: 18px;
     }
   }
 </style>
 
-<!-- 最新头条文章区域 -->
-<div class="row mb-2">
-  <div class="col-md-12">
-    <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-      <div class="col p-4 d-flex flex-column position-static">
-        <div class="article-tags">
-          {% if latest_articles.tags.exists %}
-            {% for tag in latest_articles.tags.all %}
-              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
-            {% endfor %}
-          {% else %}
-            <span class="no-tag">暂无标签</span>
+<!-- 置顶头条区（带明确置顶标识） -->
+<div class="top-banner">
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="sticky-card">
+        <div class="sticky-card-img">
+          {% if latest_articles.cover %}
+          <img src="{{ latest_articles.cover.url }}" alt="{{ latest_articles.title }}">
           {% endif %}
         </div>
-        <h3 class="mb-0">{{ latest_articles.title }}</h3>
-        <div class="mb-1 text-muted">{{ latest_articles.published_time|date:'Y年m月d日 H:i' }}</div>
-        <p class="card-text mb-auto article-summary">{{ latest_articles.summary|truncatechars:150 }}</p>
-        <a href="{% url 'article:detail' latest_articles.id %}" class="stretched-link">继续阅读</a>
-      </div>
-      <div class="col-auto d-none d-lg-block">
-        {% if latest_articles.cover %}
-          <img src="{{ latest_articles.cover.url }}" alt="{{ latest_articles.title }}" class="bd-placeholder-img" />
-        {% comment %} {% else %}
-          <img src="https://picsum.photos/800/500" alt="{{ latest_articles.title }}" class="bd-placeholder-img" /> {% endcomment %}
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 热门文章Top1 & Top2 -->
-<div class="row mb-2">
-  <div class="col-md-6">
-    <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-      <div class="col p-4 d-flex flex-column position-static">
-        <div class="article-tags">
-          {% if hot_one.tags.exists %}
-            {% for tag in hot_one.tags.all %}
+        <div class="sticky-card-content">
+          <div>
+            <!-- 置顶标签：明确提示读者 -->
+            <span class="sticky-badge">📌 最新推荐</span>
+            <div class="article-tags">
+              {% if latest_articles.tags.exists %}
+              {% for tag in latest_articles.tags.all %}
               <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
-            {% endfor %}
-          {% else %}
-            <span class="no-tag">暂无标签</span>
-          {% endif %}
+              {% endfor %}
+              {% else %}
+              <span class="no-tag">暂无标签</span>
+              {% endif %}
+            </div>
+            <a class="article-title" href="{% url 'article:detail' latest_articles.id %}">{{ latest_articles.title }}</a>
+            <div class="article-info">
+              {% if latest_articles.category %}
+              <a href="{% url 'article:category_list' latest_articles.category.id %}" style="color: #0066cc;">{{ latest_articles.category.name }}</a>
+              {% else %}
+              <span style="color: #6c757d;">暂无分类</span>
+              {% endif %}
+              <span style="margin:0 6px;">|</span>
+              <a href="{% url 'users:user_detail' latest_articles.author.id %}" class="article-author">
+                {{ latest_articles.author.profile.nickname|default:latest_articles.author.username }}
+              </a>
+              <span style="margin:0 6px;">|</span>
+              <span>{{ latest_articles.published_time|date:'Y-m-d H:i' }}</span>
+            </div>
+            <p class="article-summary">{{ latest_articles.summary|truncatechars:150|default:'暂无摘要' }}</p>
+          </div>
+          <a href="{% url 'article:detail' latest_articles.id %}" class="read-more">继续阅读 →</a>
         </div>
-        <h3 class="mb-0">{{ hot_one.title }}</h3>
-        <div class="mb-1 text-muted">{{ hot_one.published_time|date:'Y年m月d日 H:i' }}</div>
-        <p class="card-text mb-auto article-summary">{{ hot_one.summary|truncatechars:40 }}</p>
-        <a href="{% url 'article:detail' hot_one.id %}" class="stretched-link">继续阅读</a>
-      </div>
-      <div class="col-auto d-none d-lg-block">
-        {% if hot_one.cover %}
-          <img src="{{ hot_one.cover.url }}" alt="{{ hot_one.title }}" class="bd-placeholder-img" />
-        {% comment %} {% else %}
-          <img src="https://picsum.photos/800/400" alt="{{ hot_one.title }}" class="bd-placeholder-img" /> {% endcomment %}
-        {% endif %}
       </div>
     </div>
   </div>
 
-  <div class="col-md-6">
-    <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-      <div class="col p-4 d-flex flex-column position-static">
-        <div class="article-tags">
-          {% if hot_two.tags.exists %}
-            {% for tag in hot_two.tags.all %}
+  <!-- 热门推荐区（和置顶+列表完全统一） -->
+  <div class="row mb-4">
+    <div class="col-md-6 mb-4 mb-md-0">
+      <div class="hot-card">
+        <div class="hot-card-content">
+          <div>
+            <span class="sticky-badge" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🔥 热门推荐</span>
+            <div class="article-tags">
+              {% if hot_one.tags.exists %}
+              {% for tag in hot_one.tags.all %}
               <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
-            {% endfor %}
-          {% else %}
-            <span class="no-tag">暂无标签</span>
+              {% endfor %}
+              {% else %}
+              <span class="no-tag">暂无标签</span>
+              {% endif %}
+            </div>
+            <a class="article-title" href="{% url 'article:detail' hot_one.id %}" style="font-size: 18px;">{{ hot_one.title }}</a>
+            <div class="article-info">
+              {% if hot_one.category %}
+              <a href="{% url 'article:category_list' hot_one.category.id %}"  style="color: #0066cc;">{{ hot_one.category.name }}</a>
+              {% else %}
+              <span style="color: #6c757d;">暂无分类</span>
+              {% endif %}
+              <span style="margin:0 6px;">|</span>
+              <a href="{% url 'users:user_detail' hot_one.author.id %}" class="article-author">
+                {{ hot_one.author.profile.nickname|default:hot_one.author.username }}
+              </a>
+              <span style="margin:0 6px;">|</span>
+              <span>{{ hot_one.published_time|date:'Y-m-d H:i' }}</span>
+            </div>
+            <p class="article-summary">{{ hot_one.summary|truncatechars:80|default:'暂无摘要' }}</p>
+          </div>
+          <a href="{% url 'article:detail' hot_one.id %}" class="read-more">继续阅读 →</a>
+        </div>
+        <div class="hot-card-img">
+          {% if hot_one.cover %}
+          <img src="{{ hot_one.cover.url }}" alt="{{ hot_one.title }}">
           {% endif %}
         </div>
-        <h3 class="mb-0">{{ hot_two.title }}</h3>
-        <div class="mb-1 text-muted">{{ hot_two.published_time|date:'Y年m月d日 H:i' }}</div>
-        <p class="card-text mb-auto article-summary">{{ hot_two.summary|truncatechars:40 }}</p>
-        <a href="{% url 'article:detail' hot_two.id %}" class="stretched-link">继续阅读</a>
       </div>
-      <div class="col-auto d-none d-lg-block">
-        {% if hot_two.cover %}
-          <img src="{{ hot_two.cover.url }}" alt="{{ hot_two.title }}" class="bd-placeholder-img" />
-        {% comment %} {% else %}
-          <img src="https://picsum.photos/800/600" alt="{{ hot_two.title }}" class="bd-placeholder-img" /> {% endcomment %}
-        {% endif %}
+    </div>
+
+    <div class="col-md-6">
+      <div class="hot-card">
+        <div class="hot-card-content">
+          <div>
+            <span class="sticky-badge" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🔥 热门推荐</span>
+            <div class="article-tags">
+              {% if hot_two.tags.exists %}
+              {% for tag in hot_two.tags.all %}
+              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+              {% endfor %}
+              {% else %}
+              <span class="no-tag">暂无标签</span>
+              {% endif %}
+            </div>
+            <a class="article-title" href="{% url 'article:detail' hot_two.id %}" style="font-size: 18px;">{{ hot_two.title }}</a>
+            <div class="article-info">
+              {% if hot_two.category %}
+              <a href="{% url 'article:category_list' hot_two.category.id %}" style="color: #0066cc;">{{ hot_two.category.name }}</a>
+              {% else %}
+              <span style="color: #6c757d;">暂无分类</span>
+              {% endif %}
+              <span style="margin:0 6px;">|</span>
+              <a href="{% url 'users:user_detail' hot_two.author.id %}" class="article-author">
+                {{ hot_two.author.profile.nickname|default:hot_two.author.username }}
+              </a>
+              <span style="margin:0 6px;">|</span>
+              <span>{{ hot_two.published_time|date:'Y-m-d H:i' }}</span>
+            </div>
+            <p class="article-summary">{{ hot_two.summary|truncatechars:80|default:'暂无摘要' }}</p>
+          </div>
+          <a href="{% url 'article:detail' hot_two.id %}" class="read-more">继续阅读 →</a>
+        </div>
+        <div class="hot-card-img">
+          {% if hot_two.cover %}
+          <img src="{{ hot_two.cover.url }}" alt="{{ hot_two.title }}">
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

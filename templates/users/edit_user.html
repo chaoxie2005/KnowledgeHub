@@ -120,7 +120,7 @@
 <body>
   <div class="d-flex">
     <!-- 侧边栏 -->
-    <div class="sidebar">
+    <!-- <div class="sidebar">
       <nav class="nav flex-column">
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">个人中心</a>
@@ -139,7 +139,7 @@
           </div>
         </div>
       </nav>
-    </div>
+    </div> -->
 
     <!-- 主内容区 -->
     <div class="main-content">
@@ -155,7 +155,8 @@
         <div class="card-body">
           <form id="profileForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}  <!-- Django必须的CSRF令牌 -->
-
+            {% include 'part/errors.html' %}
+            {% include 'part/messages.html' %}
             <!-- 头像上传 -->
             <div class="mb-4">
               <label class="form-label">头像</label>

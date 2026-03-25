@@ -1,0 +1,36 @@
+.card {
+    margin-top: 80px;
+}
+
+.inPutZone {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+input.form-control {
+    padding-left: 30px;
+}
+
+img {
+    position: absolute;
+    top: 11px;
+    left: 8px;
+}
+
+#hide-password {
+    left: 90%;
+    transition: all;
+    cursor: pointer;
+}
+
+#hide-password:hover {
+    transform: scale(1.5);
+    /* 放大1.5倍 */
+}
+
+#gotoregister,
+#reset-password {
+    margin-top: 30px;
+    font-size: 12px;
+    text-align: center;
+}

@@ -6,8 +6,8 @@ from django.core.exceptions import ValidationError
 
 
 def validate_file_size(value):
-    # 限制文件大小为 2MB（2 * 1024 * 1024 字节）
-    max_size = 2 * 1024 * 1024
+    # 限制文件大小为 4MB（4 * 1024 * 1024 字节）
+    max_size = 4 * 1024 * 1024
     if value.size > max_size:
         raise ValidationError(f"文件大小不能超过 {max_size//1024//1024}MB")
 
@@ -54,7 +54,7 @@ class UserProfile(models.Model):
         blank=True,
         null=True,
         verbose_name="头像",
-        help_text="建议上传正方形图片，大小不超过2MB",
+        help_text="建议上传正方形图片，大小不超过4MB",
         validators=[
             FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png", "webp"]),
             validate_file_size,  # 用我们自定义的校验器

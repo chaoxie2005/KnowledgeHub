@@ -1,704 +1,680 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-  {% load static %}
+{% load static %}
 
-  <head>
-    <meta charset="UTF-8" />
-    <title>发布文章 - 用户中心</title>
-    <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
-    <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
-    <style>
-      /* 编辑器样式适配 */
-      .editor-toolbar {
-        border-color: #eee !important;
-        background: #f8f9fa !important;
-      }
-      .editor-toolbar button {
-        color: #333 !important;
-      }
-      .editor-preview {
-        background: #fff !important;
-      }
-      .CodeMirror {
-        border: 1px solid #eee !important;
-        border-radius: 6px !important;
-        padding: 8px !important;
-      }
-      /* 原有样式保留 */
-      .menu-item {
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .sub-menu {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      }
-      .sub-menu.active {
-        max-height: 300px; /* 足够容纳所有子项 */
-      }
-      .menu-item span {
-        transition: transform 0.3s ease;
-      }
-      .menu-item.active span {
-        transform: rotate(180deg);
-      }
-      .publish-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-        padding: 20px;
-      }
-      .publish-card .section-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 15px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #eee;
-      }
-      .form-group {
-        margin-bottom: 18px;
-      }
-      .form-label {
-        display: block;
-        font-size: 14px;
-        color: #333;
-        margin-bottom: 8px;
-        font-weight: 500;
-      }
-      .form-control {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #eee;
-        border-radius: 6px;
-        font-size: 14px;
-        color: #333;
-        transition: border-color 0.2s ease;
-      }
-      .form-control:focus {
-        outline: none;
-        border-color: #0066cc;
-        box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
-      }
-      .form-text {
-        font-size: 12px;
-        color: #6c757d;
-        margin-top: 5px;
-      }
-      .cover-preview {
-        margin-top: 10px;
-        max-width: 200px;
-        max-height: 150px;
-        border-radius: 6px;
-        display: none;
-      }
-      .cover-preview.show {
-        display: block;
-      }
-      .tag-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 8px;
-      }
-      .tag-item {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-      }
-      .tag-item input {
-        margin-right: 5px;
-      }
-      .btn-group {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 20px;
-      }
-      .btn {
-        padding: 8px 18px;
-        border-radius: 6px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: none;
-      }
-      .btn-cancel {
-        background: #f5f5f5;
-        color: #666;
-      }
-      .btn-cancel:hover {
-        background: #eee;
-      }
-      .btn-draft {
-        background: #0066cc;
-        color: #fff;
-      }
-      .btn-draft:hover {
-        background: #0056b3;
-      }
-      .btn-publish {
-        background: #28a745;
-        color: #fff;
-      }
-      .btn-publish:hover {
-        background: #218838;
-      }
-      .count-text {
-        font-size: 12px;
-        color: #6c757d;
-        text-align: right;
-        margin-top: 5px;
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <title>发布文章 - 用户中心</title>
+  <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
+  <style>
+    .editor-toolbar {
+      border-color: #eee !important;
+      background: #f8f9fa !important;
+    }
 
-  <body>
-    <div class="user-center-container">
-      {% include 'part/sweetalert.html' %}
-      <div class="top-nav">
-        <div class="site-name">
-          <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
-        </div>
-        <div class="user-info">
-          {% if user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
-          {% else %}
-            <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
-          {% endif %}
-          <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
-          <div class="dropdown">
-            <button class="dropdown-btn">▼</button>
-            <div class="dropdown-content">
-              <a href="{% url 'users:user_center' %}">账号设置</a>
-              <a href="{% url 'authentication:logout' %}">退出登录</a>
-            </div>
-          </div>
-        </div>
+    .editor-toolbar button {
+      color: #333 !important;
+    }
+
+    .editor-preview {
+      background: #fff !important;
+    }
+
+    .CodeMirror {
+      border: 1px solid #eee !important;
+      border-radius: 6px !important;
+      padding: 8px !important;
+    }
+
+    .summary-editor .CodeMirror {
+      height: auto !important;
+      min-height: 80px !important;
+    }
+
+    .summary-editor .editor-toolbar {
+      padding: 4px 8px !important;
+      font-size: 12px !important;
+    }
+
+    .menu-item {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sub-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .sub-menu.active {
+      max-height: 300px;
+    }
+
+    .menu-item span {
+      transition: transform 0.3s ease;
+    }
+
+    .menu-item.active span {
+      transform: rotate(180deg);
+    }
+
+    .publish-card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      padding: 20px;
+    }
+
+    .publish-card .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+      transition: border-color 0.2s ease;
+      box-sizing: border-box;
+      /* 新增：确保宽度计算正确 */
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    }
+
+    .form-text {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+
+    .cover-preview {
+      margin-top: 10px;
+      max-width: 200px;
+      max-height: 150px;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .cover-preview.show {
+      display: block;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+
+    .btn-cancel:hover {
+      background: #eee;
+    }
+
+    .btn-draft {
+      background: #0066cc;
+      color: #fff;
+    }
+
+    .btn-draft:hover {
+      background: #0056b3;
+    }
+
+    .btn-publish {
+      background: #28a745;
+      color: #fff;
+    }
+
+    .btn-publish:hover {
+      background: #218838;
+    }
+
+    .count-text {
+      font-size: 12px;
+      color: #6c757d;
+      text-align: right;
+      margin-top: 5px;
+    }
+
+    .ai-btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-ai {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid #0066cc;
+      background: #f0f7ff;
+      color: #0066cc;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-ai:hover {
+      background: #e0edff;
+      border-color: #0056b3;
+    }
+
+    .btn-ai:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .ai-loading {
+      display: none;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #e0edff;
+      border-top-color: #0066cc;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ========== 标签样式（核心修复） ========== */
+    /* 给标签容器加相对定位，让下拉框锚定在输入框下方 */
+    .tag-input-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .selected-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      min-height: 32px;
+      /* 新增：防止空状态高度塌陷 */
+    }
+
+    .tag-item {
+      background: #0066cc;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .tag-item button {
+      background: none;
+      border: none;
+      color: #fff;
+      margin-left: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+    }
+
+    /* 下拉框样式：锚定在输入框正下方，不遮挡其他元素 */
+    #tagDropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: none;
+    }
+
+    .tag-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .tag-option:last-child {
+      border-bottom: none;
+    }
+
+    .tag-option:hover {
+      background: #f5f7fa;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="user-center-container">
+    {% include 'part/sweetalert.html' %}
+    <div class="top-nav">
+      <div class="site-name">
+        <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
       </div>
-
-      <div class="main-content">
-        <div class="left-menu">
-          <div class="menu-item" data-target="personal-menu">
-            个人中心
-            <span>▼</span>
+      <div class="user-info">
+        {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+        {% else %}
+        <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+        {% endif %}
+        <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
+        <div class="dropdown">
+          <button class="dropdown-btn">▼</button>
+          <div class="dropdown-content">
+            <a href="{% url 'users:user_center' %}">账号设置</a>
+            <a href="{% url 'authentication:logout' %}">退出登录</a>
           </div>
-          <div class="sub-menu" id="personal-menu">
-            <div class="sub-menu-item">
-              <a href="{% url 'users:user_center' %}" style="text-decoration: none; color: inherit;">个人信息</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
-            </div>
-          </div>
-
-          <div class="menu-item active" data-target="content-menu">
-            内容管理
-            <span>▼</span>
-          </div>
-          <div class="sub-menu active" id="content-menu">
-            <div class="sub-menu-item active">
-              <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="#" style="text-decoration: none; color: inherit;">评论管理</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="right-content">
-          <!-- 🔥 关键1：确认 action 路由正确，method=post + enctype 正确 -->
-          <form method="post" enctype="multipart/form-data" id="publishForm" action="{% url 'article:publish_article' %}">
-            {% csrf_token %}
-
-            <!-- 文章标题 -->
-            <div class="publish-card">
-              <div class="section-title">文章标题</div>
-              <div class="form-group">
-                <input type="text" class="form-control" id="title" name="title" placeholder="请输入文章标题" maxlength="100" required value="{{ values.title }}" />
-                <div class="form-text">标题是文章的核心，建议简洁明了</div>
-              </div>
-            </div>
-
-            <!-- 基础设置 -->
-            <div class="publish-card">
-              <div class="section-title">基础设置</div>
-              <div class="form-group">
-                <label class="form-label">封面图</label>
-                <input type="file" class="form-control" id="cover" name="cover" accept="image/*" />
-                <img src="" alt="封面预览" class="cover-preview" id="coverPreview" />
-                <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 2MB</div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">文章分类</label>
-                <select class="form-control" id="category" name="category" required>
-                  <option value="">请选择分类</option>
-                  {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">文章标签（可多选）</label>
-                <div class="tag-group">
-                  {% for tag in tags %}
-                    <label class="tag-item"><input type="checkbox" name="tags" value="{{ tag.id }}" /> {{ tag.name }}</label>
-                  {% empty %}
-                    <span class="form-text">暂无可用标签，请先创建标签</span>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
-
-            <!-- 文章摘要 -->
-            <div class="publish-card">
-              <div class="section-title">文章摘要</div>
-              <div class="form-group">
-                <textarea class="form-control" id="summary" name="summary" rows="3" placeholder="请输入文章摘要" maxlength="200" required value="{{ values.summary }}" /></textarea>
-                <div class="count-text">
-                  <span id="summaryCount">0</span>/200 字
-                </div>
-              </div>
-            </div>
-
-            <!-- 文章内容 -->
-            <div class="publish-card">
-              <div class="section-title">文章内容（支持 Markdown）</div>
-              <div class="form-group">
-                <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入文章正文内容" required value="{{ values.title }}">{{ article.content|default:'' }}</textarea>
-                <div class="form-text">支持标题、列表、代码块、图片等 Markdown 语法</div>
-              </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="btn-group">
-              <button type="button" class="btn btn-cancel" onclick="history.back()">取消</button>
-              <button type="button" class="btn btn-draft" data-action="draft">存为草稿</button>
-              <button type="button" class="btn btn-publish" data-action="publish">立即发布</button>
-            </div>
-          </form>
         </div>
       </div>
     </div>
 
-    <script>
-      // 基础功能：侧边栏、封面预览、字数统计
-      document.querySelectorAll('.menu-item').forEach((item) => {
-        item.addEventListener('click', () => {
-          const targetId = item.getAttribute('data-target')
-          const subMenu = document.getElementById(targetId)
-          item.classList.toggle('active')
-          subMenu.classList.toggle('active')
-        })
+    <div class="main-content">
+      <div class="left-menu">
+        <div class="menu-item" data-target="personal-menu">
+          个人中心
+          <span>▼</span>
+        </div>
+        <div class="sub-menu" id="personal-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'users:user_center' %}" style="text-decoration: none; color: inherit;">个人信息</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
+          </div>
+        </div>
+
+        <div class="menu-item active" data-target="content-menu">
+          内容管理
+          <span>▼</span>
+        </div>
+        <div class="sub-menu active" id="content-menu">
+          <div class="sub-menu-item active">
+            <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="#" style="text-decoration: none; color: inherit;">评论管理</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-content">
+        <form method="post" enctype="multipart/form-data" id="publishForm" action="{% url 'article:publish_article' %}">
+          {% csrf_token %}
+
+          <!-- 标题 -->
+          <div class="publish-card">
+            <div class="section-title">文章标题</div>
+            <div class="form-group">
+              <input type="text" class="form-control" id="title" name="title" placeholder="请输入文章标题" maxlength="100"
+                required value="{{ values.title }}" />
+              <div class="form-text">标题是文章的核心，建议简洁明了</div>
+              <div class="ai-btn-group">
+                <button type="button" class="btn-ai" id="aiOptimizeTitle">
+                  <span class="ai-loading" id="titleLoading"></span>
+                  🤖 AI 优化标题
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 基础设置 -->
+          <div class="publish-card">
+            <div class="section-title">基础设置</div>
+            <div class="form-group">
+              <label class="form-label">封面图</label>
+              <input type="file" class="form-control" id="cover" name="cover" accept="image/*" />
+              <img src="" alt="封面预览" class="cover-preview" id="coverPreview" />
+              <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 4MB</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">文章分类</label>
+              <select class="form-control" id="category" name="category" required>
+                <option value="">请选择分类</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- ====================== 标签：选择 + 自定义 完整版（位置修复） ====================== -->
+            <div class="form-group">
+              <label class="form-label">文章标签（可多选/可自定义）</label>
+              <!-- 新增：标签输入容器，用于定位下拉框 -->
+              <div class="tag-input-container">
+                <input type="text" id="tagSearch" class="form-control" placeholder="搜索标签 或 输入新标签回车添加">
+                <div id="tagDropdown"></div>
+              </div>
+              <div class="selected-tags" id="selectedTags"></div>
+              <input type="hidden" name="tags" id="tagValues">
+            </div>
+
+          </div>
+
+          <!-- 摘要 -->
+          <div class="publish-card">
+            <div class="section-title">文章摘要（支持 Markdown）</div>
+            <div class="form-group">
+              <textarea class="form-control summary-editor" id="summary" name="summary" rows="3" placeholder="请输入文章摘要"
+                maxlength="200" required>{{ values.summary }}</textarea>
+              <div class="count-text">
+                <span id="summaryCount">0</span>/200 字
+              </div>
+              <div class="ai-btn-group">
+                <button type="button" class="btn-ai" id="aiGenerateSummary">
+                  <span class="ai-loading" id="summaryLoading"></span>
+                  🤖 AI 生成摘要
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 内容 -->
+          <div class="publish-card">
+            <div class="section-title">文章内容（支持 Markdown）</div>
+            <div class="form-group">
+              <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入正文"
+                required>{{ values.content|default:'' }}</textarea>
+              <div class="form-text">支持 Markdown 语法</div>
+            </div>
+          </div>
+
+          <!-- 按钮 -->
+          <div class="btn-group">
+            <button type="button" class="btn btn-cancel" onclick="history.back()">取消</button>
+            <button type="button" class="btn btn-draft" data-action="draft">存为草稿</button>
+            <button type="button" class="btn btn-publish" data-action="publish">立即发布</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 菜单
+    document.querySelectorAll('.menu-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const targetId = item.getAttribute('data-target')
+        const subMenu = document.getElementById(targetId)
+        item.classList.toggle('active')
+        subMenu.classList.toggle('active')
       })
-      const coverInput = document.getElementById('cover')
-      const coverPreview = document.getElementById('coverPreview')
-      coverInput.addEventListener('change', function (e) {
-        const file = e.target.files[0]
-        if (file) {
-          const reader = new FileReader()
-          reader.onload = function (e) {
-            coverPreview.src = e.target.result
-            coverPreview.classList.add('show')
-          }
-          reader.readAsDataURL(file)
-        } else {
-          coverPreview.classList.remove('show')
+    })
+
+    // 封面预览
+    const coverInput = document.getElementById('cover')
+    const coverPreview = document.getElementById('coverPreview')
+    coverInput.addEventListener('change', function (e) {
+      const file = e.target.files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = function (e) {
+          coverPreview.src = e.target.result
+          coverPreview.classList.add('show')
         }
-      })
-      const summaryInput = document.getElementById('summary')
-      const summaryCount = document.getElementById('summaryCount')
-      summaryInput.addEventListener('input', function () {
-        summaryCount.textContent = this.value.length
-      })
-      
-
-      // 初始化 Markdown 编辑器
-      const simplemde = new SimpleMDE({
-
-        element: document.getElementById("content"),
-
-        spellChecker: false,
-
-        placeholder: "请输入文章正文内容，支持 Markdown 格式...",
-
-        autosave: {
-          enabled: true,
-          uniqueId: "blog_editor",
-          delay: 5000,
-        },
-
-        status: [
-          "autosave",
-          "lines",
-          "words",
-          "cursor"
-        ],
-
-        toolbar: [
-
-          {
-            name: "bold",
-            action: SimpleMDE.toggleBold,
-            className: "fa fa-bold",
-            title: "加粗"
-          },
-
-          {
-            name: "italic",
-            action: SimpleMDE.toggleItalic,
-            className: "fa fa-italic",
-            title: "斜体"
-          },
-
-          {
-            name: "strikethrough",
-            action: SimpleMDE.toggleStrikethrough,
-            className: "fa fa-strikethrough",
-            title: "删除线"
-          },
-
-          "|",
-
-          {
-            name: "heading",
-            action: SimpleMDE.toggleHeadingSmaller,
-            className: "fa fa-header",
-            title: "标题"
-          },
-
-          {
-            name: "heading-smaller",
-            action: SimpleMDE.toggleHeadingSmaller,
-            className: "fa fa-header",
-            title: "小标题"
-          },
-
-          {
-            name: "heading-bigger",
-            action: SimpleMDE.toggleHeadingBigger,
-            className: "fa fa-header",
-            title: "大标题"
-          },
-
-          "|",
-
-          {
-            name: "quote",
-            action: SimpleMDE.toggleBlockquote,
-            className: "fa fa-quote-left",
-            title: "引用"
-          },
-
-          {
-            name: "code",
-            action: SimpleMDE.toggleCodeBlock,
-            className: "fa fa-code",
-            title: "代码"
-          },
-
-          {
-            name: "codeblock",
-            action: function(editor){
-
-              const cm = editor.codemirror
-
-              const code = "\n```python\n\n```\n"
-
-              cm.replaceSelection(code)
-
-            },
-            className: "fa fa-file-code-o",
-            title: "插入代码块"
-          },
-
-          "|",
-
-          {
-            name: "unordered-list",
-            action: SimpleMDE.toggleUnorderedList,
-            className: "fa fa-list-ul",
-            title: "无序列表"
-          },
-
-          {
-            name: "ordered-list",
-            action: SimpleMDE.toggleOrderedList,
-            className: "fa fa-list-ol",
-            title: "有序列表"
-          },
-
-          "|",
-
-          {
-            name: "table",
-            action: function(editor){
-
-              const cm = editor.codemirror
-
-              const table = `
-      | 标题1 | 标题2 |
-      |------|------|
-      | 内容 | 内容 |
-      `
-
-              cm.replaceSelection(table)
-
-            },
-            className: "fa fa-table",
-            title: "插入表格"
-          },
-
-          {
-            name: "link",
-            action: function(editor){
-
-              const cm = editor.codemirror
-
-              const link = "[链接文字](https://)"
-
-              cm.replaceSelection(link)
-
-            },
-            className: "fa fa-link",
-            title: "插入链接"
-          },
-
-          "|",
-
-          // 文字颜色
-          {
-            name: "color",
-            action: function(editor){
-
-              const color = prompt("请输入颜色，例如 red 或 #ff0000")
-
-              if(!color) return
-
-              const cm = editor.codemirror
-
-              const text = cm.getSelection() || "彩色文字"
-
-              cm.replaceSelection(`<span style="color:${color}">${text}</span>`)
-
-            },
-            className: "fa fa-paint-brush",
-            title: "设置文字颜色"
-          },
-
-          // 高亮文字
-          {
-            name: "highlight",
-            action: function(editor){
-
-              const cm = editor.codemirror
-
-              const text = cm.getSelection() || "高亮文字"
-
-              cm.replaceSelection(`<mark>${text}</mark>`)
-
-            },
-            className: "fa fa-pencil",
-            title: "高亮文字"
-          },
-
-          // 字体大小
-          {
-            name: "fontsize",
-            action: function(editor){
-
-              const size = prompt("请输入字体大小，例如 18px")
-
-              if(!size) return
-
-              const cm = editor.codemirror
-
-              const text = cm.getSelection() || "大号文字"
-
-              cm.replaceSelection(`<span style="font-size:${size}">${text}</span>`)
-
-            },
-            className: "fa fa-text-height",
-            title: "设置字体大小"
-          },
-
-          "|",
-
-          // 图片上传
-          {
-            name: "image",
-            action: function(editor){
-
-              const input = document.createElement("input")
-
-              input.type = "file"
-              input.accept = "image/*"
-
-              input.onchange = function(){
-
-                const file = input.files[0]
-
-                const formData = new FormData()
-
-                formData.append("image", file)
-
-                fetch("/article/upload_image/", {
-
-                  method: "POST",
-
-                  body: formData,
-
-                  headers: {
-
-                    "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-
-                  }
-
-                })
-
-                .then(res => res.json())
-
-                .then(data => {
-
-                  if(data.success){
-
-                    const url = data.url
-
-                    const cm = editor.codemirror
-
-                    cm.replaceSelection(`\n![](${url})\n`)
-
-                  }
-
-                })
-
-              }
-
-              input.click()
-
-            },
-
-            className: "fa fa-picture-o",
-
-            title: "上传图片"
-
-          },
-
-          "|",
-
-          {
-            name: "preview",
-            action: SimpleMDE.togglePreview,
-            className: "fa fa-eye",
-            title: "预览"
-          },
-
-          {
-            name: "side-by-side",
-            action: SimpleMDE.toggleSideBySide,
-            className: "fa fa-columns",
-            title: "分屏预览"
-          },
-
-          {
-            name: "fullscreen",
-            action: SimpleMDE.toggleFullScreen,
-            className: "fa fa-arrows-alt",
-            title: "全屏编辑"
-          },
-
-          "|",
-
-          {
-            name: "guide",
-            action: "https://www.markdownguide.org/basic-syntax/",
-            className: "fa fa-question-circle",
-            title: "Markdown 语法帮助"
-          }
-
-        ]
-
-      })
-      
-      simplemde.codemirror.on("paste", function(cm, e){
-
-      const items = e.clipboardData.items
-
-      for (let item of items){
-
-        if(item.type.indexOf("image") !== -1){
-
-          const file = item.getAsFile()
-
-          const formData = new FormData()
-          formData.append("image", file)
-
-          fetch("/article/upload_image/", {
-            method:"POST",
-            body:formData,
-            headers:{
-              "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-          })
-          .then(res=>res.json())
-          .then(data=>{
-
-            if(data.success){
-              cm.replaceSelection(`\n![](${data.url})\n`)
-            }
-
-          })
-
-        }
-
+        reader.readAsDataURL(file)
+      } else {
+        coverPreview.classList.remove('show')
+      }
+    })
+
+    // ========================== 标签：选择 + 自定义 完整功能 ==========================
+    let selectedTags = [];
+    const tagSearch = document.getElementById('tagSearch');
+    const tagDropdown = document.getElementById('tagDropdown');
+    const selectedTagsEl = document.getElementById('selectedTags');
+    const tagValuesEl = document.getElementById('tagValues');
+
+    const allTags = [
+      {% for tag in tags %}
+    "{{ tag.name|escapejs }}"{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+    ];
+
+    // 搜索标签
+    tagSearch.addEventListener('input', function () {
+      const val = this.value.trim().toLowerCase();
+      if (!val) {
+        tagDropdown.style.display = 'none';
+        return;
       }
 
-    })
-      // 🔥 核心修复：按钮点击事件（彻底避免冲突）
-      document.querySelectorAll('.btn-draft, .btn-publish').forEach((btn) => {
-        btn.addEventListener('click', function () {
-          // 1. 同步编辑器内容到textarea
-          document.getElementById('content').value = simplemde.value()
-      
-          // 2. 获取提交类型（草稿/发布）
-          const action = this.getAttribute('data-action')
-      
-          // 3. 发布确认弹窗
-          if (action === 'publish' && !confirm('确定要发布这篇文章吗？发布后将公开可见')) {
-            return
-          }
-      
-          // 4. 构建隐藏字段传递action
-          const form = document.getElementById('publishForm')
-          // 移除旧的action字段（避免重复）
-          const oldAction = form.querySelector('input[name="action"]')
-          if (oldAction) oldAction.remove()
-          // 添加新的action字段
-          const actionInput = document.createElement('input')
-          actionInput.type = 'hidden'
-          actionInput.name = 'action'
-          actionInput.value = action
-          form.appendChild(actionInput)
-      
-          // 5. 手动提交表单（100%触发）
-          form.submit()
-        })
-      })
-    </script>
+      const filtered = allTags.filter(t => t.toLowerCase().includes(val) && !selectedTags.includes(t));
+      tagDropdown.innerHTML = '';
 
-    <script src="{% static 'js/sweetalert.min.js' %}"></script>
-    {% include 'part/sweetalert.html' %}
-  </body>
+      if (filtered.length > 0) {
+        filtered.forEach(tag => {
+          const div = document.createElement('div');
+          div.className = 'tag-option';
+          div.innerText = tag;
+          div.onclick = () => {
+            if (!selectedTags.includes(tag)) {
+              selectedTags.push(tag);
+              render();
+            }
+            tagSearch.value = '';
+            tagDropdown.style.display = 'none';
+          };
+          tagDropdown.appendChild(div);
+        });
+        tagDropdown.style.display = 'block';
+      } else {
+        // 无匹配标签时，提示可自定义
+        const tipDiv = document.createElement('div');
+        tipDiv.className = 'tag-option';
+        tipDiv.innerText = '无匹配标签，按回车可自定义添加';
+        tipDiv.style.color = '#999';
+        tagDropdown.appendChild(tipDiv);
+        tagDropdown.style.display = 'block';
+      }
+    });
+
+    // 回车添加自定义标签
+    tagSearch.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const tag = this.value.trim();
+        if (!tag) return;
+        if (!selectedTags.includes(tag)) {
+          selectedTags.push(tag);
+          render();
+        }
+        this.value = '';
+        tagDropdown.style.display = 'none';
+      }
+    });
+
+    // 渲染标签
+    function render() {
+      selectedTagsEl.innerHTML = '';
+      selectedTags.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.className = 'tag-item';
+        item.innerHTML = `${t}<button onclick="removeTag(${i})">×</button>`;
+        selectedTagsEl.appendChild(item);
+      });
+      tagValuesEl.value = selectedTags.join(',');
+    }
+
+    // 删除标签
+    window.removeTag = function (index) {
+      selectedTags.splice(index, 1);
+      render();
+    }
+
+    // 点击外部关闭下拉
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.tag-input-container')) {
+        tagDropdown.style.display = 'none';
+      }
+    });
+
+    // ========================== 编辑器 ==========================
+    const summaryMDE = new SimpleMDE({
+      element: document.getElementById("summary"),
+      spellChecker: false,
+      toolbar: ["bold", "italic", "strikethrough", "|", "link", "preview"],
+      status: false,
+      autosave: false
+    });
+
+    const contentMDE = new SimpleMDE({
+      element: document.getElementById("content"),
+      spellChecker: false,
+      autosave: { enabled: true, uniqueId: "blog_editor", delay: 5000 },
+    });
+
+    // 字数统计
+    const summaryCount = document.getElementById('summaryCount');
+    summaryMDE.codemirror.on('change', () => {
+      const c = summaryMDE.value();
+      summaryCount.innerText = c.length;
+      if (c.length > 200) {
+        summaryMDE.value(c.substring(0, 200));
+        summaryCount.innerText = 200;
+      }
+    });
+
+    // ========================== AI 功能 ==========================
+    document.getElementById('aiOptimizeTitle').addEventListener('click', async () => {
+      const title = document.getElementById('title').value.trim();
+      if (!title) { alert('请输入标题'); return; }
+      const btn = event.currentTarget;
+      const load = document.getElementById('titleLoading');
+      btn.disabled = true; load.style.display = 'inline-block';
+      try {
+        const res = await fetch('/article/ai/optimize-title/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify({ title })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('title').value = data.optimized_title;
+          alert('优化成功！');
+        } else {
+          alert('失败：' + data.error);
+        }
+      } catch (e) {
+        alert('网络异常');
+      } finally {
+        btn.disabled = false; load.style.display = 'none';
+      }
+    });
+
+    document.getElementById('aiGenerateSummary').addEventListener('click', async () => {
+      const content = contentMDE.value();
+      if (!content) { alert('请输入内容'); return; }
+      const btn = event.currentTarget;
+      const load = document.getElementById('summaryLoading');
+      btn.disabled = true; load.style.display = 'inline-block';
+      try {
+        const res = await fetch('/article/ai/generate-summary/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify({ content })
+        });
+        const data = await res.json();
+        if (data.success) {
+          summaryMDE.value(data.summary);
+          summaryCount.innerText = data.summary.length;
+          alert('摘要生成成功！');
+        } else {
+          alert('失败：' + data.error);
+        }
+      } catch (e) {
+        alert('网络异常');
+      } finally {
+        btn.disabled = false; load.style.display = 'none';
+      }
+    });
+
+    // 提交
+    document.querySelectorAll('.btn-draft, .btn-publish').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.getElementById('summary').value = summaryMDE.value();
+        document.getElementById('content').value = contentMDE.value();
+
+        const action = this.dataset.action;
+        if (action === 'publish' && !confirm('确定发布？')) return;
+
+        const form = document.getElementById('publishForm');
+        let inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = 'action';
+        inp.value = action;
+        form.appendChild(inp);
+        form.submit();
+      });
+    });
+  </script>
+
+  <script src="{% static 'js/sweetalert.min.js' %}"></script>
+  {% include 'part/sweetalert.html' %}
+</body>
+
 </html>

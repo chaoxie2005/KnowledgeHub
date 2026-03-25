@@ -4,40 +4,46 @@
     margin: 0;
     align-items: center;
   }
+
   .blog-header .col-4 {
     padding: 0;
   }
-  
+
   /* 响应式布局优化：解决移动端换行问题 */
   @media (max-width: 768px) {
-    .blog-header > .row {
+    .blog-header>.row {
       flex-wrap: wrap !important;
       gap: 10px;
     }
+
     .blog-header .col-4 {
       flex: 1 0 30%;
       min-width: 120px;
     }
+
     .blog-header .col-4.text-center {
       order: -1;
       flex: 1 0 100%;
       margin-bottom: 10px;
     }
+
     /* 移动端分类导航自适应 */
     .blog-nav .nav {
       flex-wrap: wrap !important;
       gap: 8px !important;
     }
+
     /* 移动端头像适配 */
     .user-avatar-wrapper {
       flex-shrink: 0;
     }
+
     .user-avatar {
       width: 28px !important;
       height: 28px !important;
     }
   }
-  
+
   /* 左侧导航文字：提升对比度，明确层级 */
   .blog-header .col-4 a.text-muted {
     color: #424242 !important;
@@ -45,10 +51,11 @@
     text-decoration: none;
     transition: color 0.2s ease;
   }
+
   .blog-header .col-4 a.text-muted:hover {
     color: #0066cc !important;
   }
-  
+
   /* 中间标题：强化视觉核心 */
   .blog-header .blog-header-logo {
     color: #212121 !important;
@@ -57,7 +64,7 @@
     text-decoration: none;
     letter-spacing: 0.5px;
   }
-  
+
   /* 搜索框样式：优化颜色和交互 */
   .blog-header input[name='keyword'] {
     padding: 6px 12px;
@@ -70,15 +77,17 @@
     border-right: 0;
     color: #424242;
   }
+
   .blog-header input[name='keyword']::placeholder {
     color: #6c757d;
     opacity: 1;
   }
+
   .blog-header input[name='keyword']:focus {
     border-color: #0066cc;
     box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
   }
-  
+
   /* 搜索按钮：优化默认/hover样式 */
   .blog-header .search-btn {
     border-radius: 0 6px 6px 0;
@@ -91,12 +100,13 @@
     cursor: pointer;
     transition: all 0.3s ease;
   }
+
   .blog-header .search-btn:hover {
     background-color: #0066cc;
     border-color: #0066cc;
     color: #fff !important;
   }
-  
+
   /* 登录按钮：优化默认样式，强化hover */
   .blog-header .login-btn {
     color: #0066cc !important;
@@ -107,6 +117,7 @@
     border-radius: 6px;
     transition: all 0.3s ease;
   }
+
   .blog-header .login-btn:hover {
     background-color: #0056b3 !important;
     border-color: #0056b3 !important;
@@ -114,7 +125,7 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
-  
+
   /* 右侧容器：强制不换行，元素紧凑排列 */
   .blog-header .right-col {
     display: flex;
@@ -123,7 +134,7 @@
     gap: 10px;
     flex-shrink: 0;
   }
-  
+
   /* 搜索组：强制一行显示 */
   .blog-header .search-group {
     display: flex;
@@ -140,49 +151,65 @@
     cursor: pointer;
     transition: all 0.2s ease;
   }
+
   .user-avatar:hover {
     transform: scale(1.05);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
+
   .user-info-wrapper {
     display: flex;
     align-items: center;
     gap: 6px;
     cursor: pointer;
   }
+
   .user-nickname {
     font-size: 0.9rem;
     color: #424242;
     white-space: nowrap;
   }
-  
+
   /* ========== 核心修改：分类导航样式 ========== */
   /* 解决分类少导致的空荡问题：均匀分布 + 补充功能入口 */
   .blog-nav {
     margin-bottom: 1.8rem;
     padding-bottom: 0.8rem;
-    border-bottom: 1px solid #e9ecef; /* 改成浅灰，更柔和 */
+    border-bottom: 1px solid #e9ecef;
+    /* 改成浅灰，更柔和 */
   }
+
   .blog-nav .nav {
     display: flex;
-    justify-content: space-around !important; /* 均匀分布，不再挤在一起 */
-    width: 100%; /* 占满整行 */
-    gap: 10px; /* 小间距，避免拥挤 */
+    justify-content: space-around !important;
+    /* 均匀分布，不再挤在一起 */
+    width: 100%;
+    /* 占满整行 */
+    gap: 10px;
+    /* 小间距，避免拥挤 */
   }
+
   .blog-nav .nav a {
-    flex: 1; /* 每个项占等宽，自动填充 */
-    text-align: center; /* 文字居中 */
+    flex: 1;
+    /* 每个项占等宽，自动填充 */
+    text-align: center;
+    /* 文字居中 */
     color: #6c757d;
     font-size: 0.95rem;
     text-decoration: none;
-    padding: 4px 0 !important; /* 减少上下padding，更精致 */
-    border-radius: 4px; /* 轻微圆角，hover更友好 */
+    padding: 4px 0 !important;
+    /* 减少上下padding，更精致 */
+    border-radius: 4px;
+    /* 轻微圆角，hover更友好 */
     transition: all 0.2s ease;
   }
+
   .blog-nav .nav a:hover {
     color: #0066cc;
-    background-color: #f0f7ff; /* 增加hover背景，更明显 */
+    background-color: #f0f7ff;
+    /* 增加hover背景，更明显 */
   }
+
   /* 活跃状态（可选，当前页高亮） */
   .blog-nav .nav a.active {
     color: #0066cc !important;
@@ -196,61 +223,70 @@
     <!-- 左侧：个人中心（登录后保留，未登录隐藏） -->
     <div class="col-4">
       {% if user.is_authenticated %}
-        <a class="btn btn-sm login-btn" href="{% url 'users:user_center' %}" style="font-size: 1rem;">个人中心</a>
+      <a class="btn btn-sm login-btn" href="{% url 'article:publish_article' %}" style="font-size: 1rem;">发布文章</a>
       {% endif %}
     </div>
 
     <!-- 中间：博客标题 -->
     <div class="col-4 text-center">
-      <a class="blog-header-logo text-dark" href="/" style="font-size: 1.5rem; font-weight: 600;">超凡博客</a>
+      <a class="blog-header-logo text-dark" href="/" style="font-size: 1.5rem; font-weight: 600;">知文汇</a>
     </div>
 
     <!-- 右侧：搜索 + 登录/用户信息 -->
     <div class="col-4 right-col">
-      <form action="{% url 'core:index' %}" method="get" class="d-flex">
-        <div class="search-group">
-          <input type="text" name="keyword" class="form-control" placeholder="搜索文章..." value="{{ keyword|default:'' }}" />
-          <button class="search-btn" type="submit">搜索</button>
-        </div>
-      </form>
-      
-      {# 核心逻辑：判断用户登录状态 #}
-      {% if user.is_authenticated %}
+      {% if request.path == '/juejin_hot/' or 'juejin_hot' in request.path %}
+      {# 掘金快讯页面：提交到掘金热文搜索 #}
+      <form action="{% url 'article:juejin_hot' %}" method="get" class="d-flex">
+        {% else %}
+        <form action="{% url 'core:index' %}" method="get" class="d-flex">
+          {% endif %}
+          <div class="search-group">
+            <input type="text" name="keyword" class="form-control" placeholder="搜索文章..."
+              value="{{ keyword|default:'' }}" />
+            <button class="search-btn" type="submit">搜索</button>
+          </div>
+        </form>
+
+        {# 核心逻辑：判断用户登录状态 #}
+        {% if user.is_authenticated %}
         {# 已登录：显示头像 + 昵称（下拉菜单版） #}
         <div class="dropdown user-info-wrapper">
-          <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+          <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+            style="text-decoration: none;">
             {% if user.profile.avatar %}
-              <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar">
+            <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar">
             {% else %}
-              <img src="/media/avatars/default_avatar.png" alt="默认头像" class="user-avatar">
+            <img src="/media/avatars/default_avatar.png" alt="默认头像" class="user-avatar">
             {% endif %}
             <span class="user-nickname">{{ user.profile.nickname|default:user.username|truncatechars:6 }}</span>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="{% url 'users:user_center' %}">个人中心</a></li>
-            <li><a class="dropdown-item" href="{% url 'users:edit_user' %}">修改信息</a></li>
-            <li><hr class="dropdown-divider"></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
             <li><a class="dropdown-item text-danger" href="{% url 'authentication:logout' %}">退出登录</a></li>
           </ul>
         </div>
-      {% else %}
+        {% else %}
         {# 未登录：显示登录/注册按钮 #}
         <a class="btn btn-sm login-btn" href="{% url 'authentication:login' %}">登录 / 注册</a>
-      {% endif %}
+        {% endif %}
     </div>
   </div>
 </header>
 
-<!-- 分类导航区：补充功能入口 + 均匀分布 -->
+<!-- 分类导航区-->
 <nav class="blog-nav">
   <div class="nav d-flex justify-content-between">
-    <!-- 固定入口：首页 + 功能入口，解决分类少的问题 -->
+    <!-- 固定入口 -->
     <a class="p-2 text-muted {% if request.path == '/' %}active{% endif %}" href="/">首页</a>
+    <a class="p-2 text-muted {% if request.path == 'juejin_hot' %}active{% endif %}"
+      href="{% url 'article:juejin_hot' %}">掘金快讯</a>
     <!-- 动态分类 -->
     {% for category in categories %}
-      <a class="p-2 text-muted" href="{% url 'article:category_list' category.id %}">{{ category.name }}</a>
+    <a class="p-2 text-muted" href="{% url 'article:category_list' category.id %}">{{ category.name }}</a>
     {% endfor %}
-    <!-- 补充功能入口，填满导航栏 -->
   </div>
 </nav>
 

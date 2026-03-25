@@ -1,47 +1,172 @@
 {% extends 'base.html' %}
 
 {% block post %}
-  <div class="row mb-2">
-    {% if not articles %}
-      <div class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;">暂无文章，快来发布你的第一篇文章吧～</div>
-    {% else %}
-      {% for article in articles %}
-        <div class="col-mb-6">
-          <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative" style="max-width: 100%; padding: 0;">
-            <div class="col p-4 d-flex flex-column position-static" style="width: 100%;">
-              <div class="article-tags">
-                {% if article.tags.exists %}
-                  {% for tag in article.tags.all %}
-                    <span class="article-tag"><a href="#" style="color: #212529;">{{ tag.name }}</a></span>
-                  {% endfor %}
-                {% else %}
-                  <span class="no-tag">暂无标签</span>
-                {% endif %}
-              </div>
-              <h3 class="mb-0" style="color: #212529;">{{ article.title }}</h3>
 
-              <div class="mb-1 text-muted" style="position: relative;">
-                {% if article.category %}
-                  <a href="#" style="color: #0066cc; text-decoration: none;">{{ article.category.name }}</a>
-                {% else %}
-                  <span style="color: #6c757d;">暂无分类</span>
-                {% endif %}
-                <span style="margin:0 6px;">|</span>
-                <!-- 关键：提升作者链接的层级，避免被 stretched-link 覆盖 -->
-                <a href="{% url 'users:user_detail' article.author.id %}" class="article-author" style="color: purple; position: relative; z-index: 2;">{{ article.author.profile.nickname|default:article.author.username }}</a>
-                <span class="article-time">| {{ article.published_time|date:'Y年m月d日 H:i' }}</span>
-              </div>
+<style>
+  /* 文章卡片 —— 高级质感版（微调阴影+圆角+内边距） */
+  .article-item {
+    background: #ffffff;
+    border-radius: 12px; /* 微调圆角，更柔和不突兀 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* 微调阴影，更轻更透 */
+    margin-bottom: 16px; /* 微调间距，更紧凑协调 */
+    transition: all 0.25s ease; /* 微调动画，更丝滑 */
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
 
-              <p class="card-text mb-auto article-summary">{{ article.summary|truncatechars:100 }}</p>
+  .article-item:hover {
+    transform: translateY(-2px); /* 微调上浮幅度，更克制 */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
 
-              <a href="{% url 'article:detail' article.id %}" class="stretched-link read-more">继续阅读</a>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    {% endif %}
+  /* 标签样式（微调背景+圆角，和整体更统一） */
+  .article-tags {
+    margin-bottom: 8px;
+  }
+
+  .article-tag {
+    display: inline-block;
+    background: #f5f7fa;
+    color: #555;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 12px; /* 微调字号，更精致 */
+    margin-right: 6px;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+
+  .article-tag a {
+    color: #555 !important;
+    text-decoration: none;
+  }
+
+  .article-tag:hover {
+    background: #e9ecef;
+  }
+
+  .no-tag {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* 标题（微调字号+行高，更舒适） */
+  .article-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 限制2行，避免超长标题破坏布局 */
+    -webkit-box-orient: vertical;
+  }
+
+  /* 信息栏（微调分隔符+字号，和截图完全统一） */
+  .article-info {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .article-info a {
+    text-decoration: none;
+  }
+
+  .article-author {
+    color: #722ed1 !important;
+    font-weight: 500;
+  }
+
+  /* 摘要（微调字号+行高，阅读更舒适） */
+  .article-summary {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* 限制3行，统一卡片高度 */
+    -webkit-box-orient: vertical;
+  }
+
+  /* 阅读更多（微调样式，和整体更统一） */
+  .read-more {
+    font-size: 14px;
+    color: #0066cc !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: padding 0.2s;
+    position: relative;
+  }
+
+  .read-more:hover {
+    padding-left: 3px;
+    color: #0056b3 !important;
+  }
+
+  /* 响应式微调（小屏幕更友好） */
+  @media (max-width: 768px) {
+    .article-item {
+      margin-bottom: 12px;
+      border-radius: 10px;
+    }
+    .article-title {
+      font-size: 16px;
+    }
+  }
+</style>
+
+<div class="row mb-4">
+  {% if not articles %}
+  <div class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;">
+    暂无文章，快来发布你的第一篇文章吧～
+  </div>
+  {% else %}
+  {% for article in articles %}
+
+  <div class="col-12">
+    <div class="article-item p-4">
+      <div class="article-tags">
+        {% if article.tags.exists %}
+        {% for tag in article.tags.all %}
+        <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+        {% endfor %}
+        {% else %}
+        <span class="no-tag">暂无标签</span>
+        {% endif %}
+      </div>
+
+      <a class="article-title" href="{% url 'article:detail' article.id %}">{{ article.title }}</a>
+
+      <div class="article-info">
+        {% if article.category %}
+        <a href="{% url 'article:category_list' article.category.id %}" style="color: #0066cc;">{{ article.category.name }}</a>
+        {% else %}
+        <span style="color: #6c757d;">暂无分类</span>
+        {% endif %}
+        <span style="margin:0 6px;">•</span>
+        <a href="{% url 'users:user_detail' article.author.id %}" class="article-author">
+          {{ article.author.profile.nickname|default:article.author.username }}
+        </a>
+        <span style="margin:0 6px;">•</span>
+        <span>{{ article.published_time|date:'Y-m-d H:i' }}</span>
+        {% if article.views %}
+        <span style="margin:0 6px;">•</span>
+        <span>👁️ {{ article.views }} 阅读</span>
+        {% endif %}
+      </div>
+
+      <p class="article-summary">{{ article.summary|truncatechars:120|default:'暂无摘要' }}</p>
+
+      <a href="{% url 'article:detail' article.id %}" class="read-more">继续阅读 →</a>
+    </div>
   </div>
 
-  {# 分页导航栏 #}
-  {% include 'part/paginator.html' %}
+  {% endfor %}
+  {% endif %}
+</div>
+
+{% include 'part/paginator.html' %}
 {% endblock %}

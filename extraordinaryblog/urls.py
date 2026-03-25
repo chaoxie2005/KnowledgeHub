@@ -3,7 +3,6 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from rest_framework.documentation import include_docs_urls
 from article.views import ArticleViewSet, CategoryViewSet, CommentViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,  # 获取 access_token + refresh_token
@@ -25,7 +24,6 @@ urlpatterns = [
     # 2. DRF API 根路由
     path("api/", include(router.urls)),
     # 3. DRF 可视化 API 文档（可选，超实用）
-    path("api/docs/", include_docs_urls(title="博客 API 文档")),
     # 4. DRF 登录/注销（用于 API 页面登录）
     path("api-auth/", include("rest_framework.urls")),
     # JWT令牌接口

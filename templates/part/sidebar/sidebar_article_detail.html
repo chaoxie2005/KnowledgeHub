@@ -1,52 +1,57 @@
-<div class="p-4 mb-3 bg-light rounded">
-  <h4 class="font-italic">最新文章</h4>
-  <ol class="list-unstyled mb-0">
+{% load static %}
+<!-- 引入侧边栏样式文件 -->
+<link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+
+<!-- 1. 最新文章 -->
+<div class="sidebar-widget">
+  <h4 class="widget-title font-italic">最新文章</h4>
+  <ol class="article-list mb-0">
     {% block latest-articles %}
       {% for article in last_articles %}
         <li>
-          <a href="{% url 'article:detail' article.id %}" style="color: #212529;" class="text-decoration-none">{{ article.title|truncatechars:18 }}</a>
+          <a href="{% url 'article:detail' article.id %}" class="link-item">
+            {{ article.title|truncatechars:18 }}
+          </a>
         </li>
+      {% empty %}
+        <li class="empty-tip">暂无最新文章</li>
       {% endfor %}
     {% endblock %}
   </ol>
 </div>
 
-<div class="p-4 mb-3 bg-light rounded">
-  <h4 class="font-italic">热门文章</h4>
-  <ol class="list-unstyled mb-0">
+<!-- 2. 热门文章 -->
+<div class="sidebar-widget">
+  <h4 class="widget-title font-italic">热门文章</h4>
+  <ol class="article-list mb-0">
     {% block hot-articles %}
       {% for article in hot_list %}
-          <li>
-            <a href="{% url 'article:detail' article.id %}" style="color: #212529;" class="text-decoration-none">{{ article.title|truncatechars:18 }}</a>
-          </li>
-        {% endfor %}
+        <li>
+          <a href="{% url 'article:detail' article.id %}" class="link-item">
+            {{ article.title|truncatechars:18 }}
+          </a>
+        </li>
+      {% empty %}
+        <li class="empty-tip">暂无热门文章</li>
+      {% endfor %}
     {% endblock %}
   </ol>
 </div>
 
-<div class="p-4 bg-light mb-3">
-  <h4 class="font-italic">推荐文章</h4>
-  <ol class="list-unstyled mb-0">
+<!-- 3. 推荐文章 -->
+<div class="sidebar-widget">
+  <h4 class="widget-title font-italic">推荐文章</h4>
+  <ol class="article-list mb-0">
     {% block article-archive %}
-    {% for article in articles %}
-      <li>
-        <a href="{% url 'article:detail' article.id %}" style="color: #212529;" class="text-decoration-none">{{ article.title|truncatechars:18 }}</a>
-      </li>
-    {% endfor %}
-    
+      {% for article in articles %}
+        <li>
+          <a href="{% url 'article:detail' article.id %}" class="link-item">
+            {{ article.title|truncatechars:18 }}
+          </a>
+        </li>
+      {% empty %}
+        <li class="empty-tip">暂无推荐文章</li>
+      {% endfor %}
     {% endblock %}
   </ol>
 </div>
-
-<div class="p-4 bg-light mb-3">
-  <h4 class="font-italic">社交链接</h4>
-  <ol class="list-unstyled mb-0">
-    {% block elsewhere %}
-      <li>
-        <a href="#" class="text-decoration-none">邮箱：{{ article.author.profile.email|default:"未填写" }}</a>
-        <br>
-        <a href="#" class="text-decoration-none">手机号：{{ article.author.profile.phone|default:"未填写"  }}</a>
-      </li>
-    {% endblock %}
-  </ol>
-</div> 

@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>草稿箱 - 用户中心</title>
+  <title>已发布- 用户中心</title>
   <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
   <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
   <style>
@@ -171,7 +171,7 @@
 
     <!-- 主体内容 -->
     <div class="main-content">
-      <!-- 左侧菜单（和个人中心一致，默认展开内容管理并高亮草稿箱） -->
+      <!-- 左侧菜单 -->
       <div class="left-menu">
         <div class="menu-item" data-target="personal-menu">
           个人中心
@@ -214,7 +214,8 @@
           {% for published in publisheds %}
             <div class="draft-card">
               <div class="draft-header">
-                <a href="{% url 'article:detail' published.id %}" class="draft-title">{{ published.title|default:'无标题发布' }}</a>
+                <a href="{% url 'article:detail' published.id %}" class="draft-title">
+                  {{ published.title|default:'无标题发布' }}</a>
               </div>
               <div class="draft-meta">
                 发布于 {{ published.published_time|date:'Y-m-d H:i' }} | 分类：{{ draft.category.name|default:'未分类' }}

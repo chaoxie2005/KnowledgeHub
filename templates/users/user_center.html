@@ -79,7 +79,6 @@
           <div class="dropdown">
             <button class="dropdown-btn">▼</button>
             <div class="dropdown-content">
-              <a href="{% url 'users:user_center' %}">账号设置</a>
               <a href="{% url 'authentication:logout' %}">退出登录</a>
             </div>
           </div>
@@ -189,7 +188,7 @@
               <div class="info-label">所在地区</div>
               <div class="info-value">
                 {% if user.profile.city or user.profile.state %}
-                  {{ user.profile.state }} {{ user.profile.city }}
+                  {{ user.profile.state|default:'中国' }} {{ user.profile.city|default:'北京' }}
                 {% else %}
                   暂未设置
                 {% endif %}

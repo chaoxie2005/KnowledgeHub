@@ -18,8 +18,8 @@ from email_validator import (
     EmailUndeliverableError,
 )
 from django.core.mail import send_mail
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth.tokens import default_token_generator  # django内置的生成token
+from django.contrib.auth.tokens import default_token_generator  
+from django.contrib.sites.shortcuts import get_current_site     
 
 
 def register(request):
@@ -41,9 +41,10 @@ def register(request):
             user.is_active = False
             user.save()
 
+            current_site = get_current_site(request)  # 动态获取域名
             content = f"""
             请点击下方链接，激活账号：
-            http://127.0.0.1:8000/authentication/verify_account/{user.username}
+            http://{current_site}/authentication/verify_account/{user.username}
             """
 
             t = Thread(
@@ -244,17 +245,17 @@ def change_password(request):
         new_password = request.POST.get("new_password")
         re_password = request.POST.get("re_password")
 
-        # 2. 第一步：非空校验（兜底）
+        
         if not all([old_password, new_password, re_password]):
             messages.error(request, "所有密码字段都不能为空！")
             return render(request, "authentication/change_password.html")
 
-        # 3. 第二步：优先检查旧密码是否正确（核心！）
+
         if not request.user.check_password(old_password):
             messages.error(request, "旧密码错误！")
             return render(request, "authentication/change_password.html")
 
-        # 4. 第三步：旧密码和新密码不能相同
+
         if old_password == new_password:
             messages.error(request, "旧密码不能与新密码相同！")
             return render(request, "authentication/change_password.html")

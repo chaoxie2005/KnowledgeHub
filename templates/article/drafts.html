@@ -15,17 +15,21 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .sub-menu {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
     }
+
     .sub-menu.active {
       max-height: 300px;
     }
+
     .menu-item span {
       transition: transform 0.3s ease;
     }
+
     .menu-item.active span {
       transform: rotate(180deg);
     }
@@ -34,34 +38,40 @@
     .draft-card {
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       margin-bottom: 20px;
       padding: 20px;
       transition: box-shadow 0.2s ease;
     }
+
     .draft-card:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
+
     .draft-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
     }
+
     .draft-title {
       font-size: 18px;
       font-weight: 600;
       color: #222;
       text-decoration: none;
     }
+
     .draft-title:hover {
       color: #0066cc;
     }
+
     .draft-meta {
       font-size: 13px;
       color: #6c757d;
       margin-bottom: 10px;
     }
+
     .draft-summary {
       font-size: 14px;
       color: #333;
@@ -72,12 +82,14 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+
     .draft-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
       margin-bottom: 15px;
     }
+
     .draft-tag {
       font-size: 12px;
       color: #0066cc;
@@ -86,10 +98,12 @@
       border-radius: 4px;
       border: 1px solid #d0e8ff;
     }
+
     .draft-actions {
       display: flex;
       gap: 10px;
     }
+
     .draft-btn {
       padding: 6px 12px;
       border-radius: 4px;
@@ -99,46 +113,57 @@
       border: none;
       text-decoration: none;
     }
+
     .btn-edit {
       background: #f0f7ff;
       color: #0066cc;
     }
+
     .btn-edit:hover {
       background: #e0edff;
     }
+
     .btn-publish {
       background: #28a745;
       color: #fff;
     }
+
     .btn-publish:hover {
       background: #218838;
     }
+
     .btn-delete {
       background: #dc3545;
       color: #fff;
     }
+
     .btn-delete:hover {
       background: #c82333;
     }
+
     .empty-state {
       text-align: center;
       padding: 60px 20px;
       color: #6c757d;
     }
+
     .empty-state svg {
       width: 80px;
       height: 80px;
       margin-bottom: 15px;
       fill: #ccc;
     }
+
     .empty-state p {
       font-size: 14px;
       margin-bottom: 20px;
     }
+
     .empty-state a {
       color: #0066cc;
       text-decoration: none;
     }
+
     .empty-state a:hover {
       text-decoration: underline;
     }
@@ -154,9 +179,9 @@
       </div>
       <div class="user-info">
         {% if user.profile.avatar %}
-          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+        <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
         {% else %}
-          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+        <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
         {% endif %}
         <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
         <div class="dropdown">
@@ -212,33 +237,34 @@
 
         {% if drafts %}
           {% for draft in drafts %}
-            <div class="draft-card">
-              <div class="draft-header">
-                <a href="#" class="draft-title">{{ draft.title|default:'无标题草稿' }}</a>
-              </div>
-              <div class="draft-meta">
-                更新于 {{ draft.updated_time|date:'Y-m-d H:i' }} | 分类：{{ draft.category.name|default:'未分类' }}
-              </div>
-              <div class="draft-summary">
-                {{ draft.summary|default:'暂无摘要' }}
-              </div>
-              <div class="draft-tags">
-                {% for tag in draft.tags.all %}
-                  <span class="draft-tag">{{ tag.name }}</span>
-                {% empty %}
-                  <span class="draft-tag" style="color:#6c757d; background:transparent; border:none;">无标签</span>
-                {% endfor %}
-              </div>
-              <div class="draft-actions">
-                <a href="{% url 'article:edit_draft' draft.id %}" class="draft-btn btn-edit">编辑</a>
-                <button class="draft-btn btn-delete deleteBtn" draftID="{{ draft.id }}">删除</button>
-              </div>
+          <div class="draft-card">
+            <div class="draft-header">
+              <a href="#" class="draft-title">{{ draft.title|default:'无标题草稿' }}</a>
             </div>
+            <div class="draft-meta">
+              更新于 {{ draft.updated_time|date:'Y-m-d H:i' }} | 分类：{{ draft.category.name|default:'未分类' }}
+            </div>
+            <div class="draft-summary">
+              {{ draft.summary|default:'暂无摘要' }}
+            </div>
+            <div class="draft-tags">
+              {% for tag in draft.tags.all %}
+              <span class="draft-tag">{{ tag.name }}</span>
+              {% empty %}
+              <span class="draft-tag" style="color:#6c757d; background:transparent; border:none;">无标签</span>
+              {% endfor %}
+            </div>
+            <div class="draft-actions">
+              <a href="{% url 'article:edit_draft' draft.id %}" class="draft-btn btn-edit">编辑</a>
+              <button class="draft-btn btn-delete deleteBtn" draftID="{{ draft.id }}">删除</button>
+            </div>
+          </div>
           {% endfor %}
         {% else %}
           <div class="empty-state">
             <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-              <path d="M832 128H192c-35.2 0-64 28.8-64 64v640c0 35.2 28.8 64 64 64h640c35.2 0 64-28.8 64-64V192c0-35.2-28.8-64-64-64zM512 704c-35.2 0-64-28.8-64-64s28.8-64 64-64 64 28.8 64 64-28.8 64-64 64zm160-160c-35.2 0-64-28.8-64-64s28.8-64 64-64 64 28.8 64 64-28.8 64-64 64zm-320 0c-35.2 0-64-28.8-64-64s28.8-64 64-64 64 28.8 64 64-28.8 64-64 64z"/>
+              <path
+                d="M832 128H192c-35.2 0-64 28.8-64 64v640c0 35.2 28.8 64 64 64h640c35.2 0 64-28.8 64-64V192c0-35.2-28.8-64-64-64zM512 704c-35.2 0-64-28.8-64-64s28.8-64 64-64 64 28.8 64 64-28.8 64-64 64zm160-160c-35.2 0-64-28.8-64-64s28.8-64 64-64 64 28.8 64 64-28.8 64-64 64zm-320 0c-35.2 0-64-28.8-64-64s28.8-64 64-64 64 28.8 64 64-28.8 64-64 64z" />
             </svg>
             <p>暂无草稿，快去写一篇新文章吧~</p>
             <a href="{% url 'article:publish_article' %}">去发布文章</a>
@@ -272,6 +298,7 @@
   <script src="{% static 'js/sweetalert.min.js'%}"></script>
   <script src="{% static 'js/article/delete_draft.js'%}"></script>
   {% include 'part/sweetalert.html' %}
-  
+
 </body>
+
 </html>

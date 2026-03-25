@@ -142,8 +142,6 @@ def edit_user(request):
             # 其他未知错误（如数据库错误）
             messages.error(request, f"系统错误：{str(e)}")
 
-        # ========== 关键修复：只有失败时才执行以下逻辑 ==========
-        # 校验失败：返回原页面并携带用户已填数据（而不是直接跳转）
         context = {
             "profile": profile,
             "gender_choices": UserProfile.USER_GENDER_TYPE,

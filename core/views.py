@@ -30,6 +30,7 @@ def index(request):
             Q(title__icontains=keyword)
             | Q(summary__icontains=keyword)
             | Q(content__icontains=keyword)
+            | Q(category__name__icontains=keyword)
         )
 
     # 6. 分页处理：优化异常捕获，统一变量名

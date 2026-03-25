@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  {% load static %}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap core CSS -->
+    <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      {% include 'part/messages.html' %}
+      {# 头部分 #}
+      {% include 'part/header.html' %}
+    </div>
+
+    <main role="main" class="container">
+      <div class="row">
+        <div class="col-md-8 blog-main">
+          {% block post %}
+            文章列表页
+          {% endblock %}
+        </div>
+
+        {# 侧边栏 #}
+        <aside class="col-md-4 blog-sidebar">
+          {% include 'part/sidebar/juejin_hot_sidebar.html' %}
+        </aside>
+      </div>
+    </main>
+
+    {# 博客底部 #}
+    <footer class="blog-footer">
+      {% comment %} {% include 'part/bottom.html' %} {% endcomment %}
+    </footer>
+  </body>
+</html>

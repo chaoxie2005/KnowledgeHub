@@ -13,24 +13,22 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from django.contrib import messages
 import os
+from dotenv import load_dotenv
+import pymysql
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+pymysql.install_as_MySQLdb()
+
+# 加载环境
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a2&a6h8l(4uj9w8pl9jprkwf(m5gbl17-^ipr28bx3+v@svfb#'
+DEBUG = False
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -45,6 +43,7 @@ INSTALLED_APPS = [
     "users",  # 用户个人信息模块
     "rest_framework",  # 新增：注册 DRF
     "django_filters",  # 可选：用于 API 过滤
+    'markdownify', # markdown
 ]
 
 MIDDLEWARE = [
@@ -55,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'extraordinaryblog.urls'
@@ -77,20 +77,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'extraordinaryblog.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',  
+        
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -107,32 +101,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = "zh-hans"
+LANGUAGE_CODE = "zh-Hans"
 TIME_ZONE = "Asia/Shanghai"
 USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 # 静态文件配置
-
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+STATIC_ROOT = os.path.join(BASE_DIR, 'collectstatic')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 MESSAGE_TAGS = {
     messages.ERROR: "danger",
@@ -142,8 +126,8 @@ MESSAGE_TAGS = {
 EMAIL_BACKEND = "extraordinaryblog.email_backend.CustomEmailBackend"
 EMAIL_HOST = "smtp.qq.com"
 EMAIL_PORT = 465  # 使用 SSL 加密的标准端口
-EMAIL_HOST_USER = "3320841884@qq.com"
-EMAIL_HOST_PASSWORD = "pigcapvpbktgcjhj"  # 确保这里是 QQ 邮箱生成的有效授权码
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # 确保这里是 QQ 邮箱生成的有效授权码
 EMAIL_USE_SSL = True  # 明确启用 SSL
 EMAIL_USE_TLS = False  # 明确禁用 TLS，避免与 SSL 冲突
 
@@ -184,3 +168,16 @@ SIMPLE_JWT = {
     # 刷新 token 后，旧的 refresh_token 失效
     "BLACKLIST_AFTER_ROTATION": True,
 }
+
+
+# Redis 配置
+REDIS_CONFIG = {
+    "host": "127.0.0.1",  # 本地 Redis 地址，固定
+    "port": 6379,  # Redis 默认端口，固定
+    "db": 0,  # 使用第0个数据库，固定
+    "decode_responses": True,  # 自动把 Redis 返回的字节转成字符串，新手必加
+    "password": "",  # 本地 Redis 无密码，留空
+}
+
+# 启用压缩和缓存
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

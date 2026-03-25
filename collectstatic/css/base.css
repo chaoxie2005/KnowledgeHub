@@ -1,0 +1,115 @@
+/* 通栏卡片宽度对齐 */
+.col-mb-6 {
+    width: 100%;
+    max-width: calc(100% - 16px);
+    /* 对齐上面卡片的左右边距 */
+    margin: 0 auto;
+    /* 居中显示 */
+}
+
+/* hover交互优化（保留颜色变化，无下划线） */
+.stretched-link:hover {
+    color: #0066cc !important;
+    text-decoration: none !important;
+}
+
+/* 作者名样式 */
+.article-author {
+    color: #999;
+    /* 浅灰色，不抢风头 */
+    text-decoration: none;
+    /* 取消下划线 */
+    font-size: 0.85rem;
+}
+
+.article-author:hover {
+    color: #666;
+    /* hover时稍深 */
+    text-decoration: none;
+}
+
+/* 时间样式 */
+.article-time {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+/* 摘要样式 */
+.article-summary {
+    color: #6c757d;
+    /* 柔和中灰色 */
+    font-size: 0.9rem;
+    line-height: 1.6;
+    /* 舒适行距 */
+    margin-bottom: 10px !important;
+    /* 和按钮拉开间距 */
+}
+
+/* 继续阅读按钮 */
+.read-more {
+    color: #0066cc;
+    /* 沉稳蓝色 */
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.read-more:hover {
+    color: #003366;
+    /* hover加深 */
+    text-decoration: none;
+}
+
+/* 标签样式优化 */
+.article-tag {
+    font-size: 0.85rem;
+}
+
+.article-tags {
+    display: flex;
+    gap: 8px;
+    /* 标签之间的间距 */
+    margin-bottom: 10px;
+    /* 和标题的间距 */
+    flex-wrap: wrap;
+    /* 标签多的时候自动换行，不会溢出 */
+}
+
+/* 单个标签样式 */
+.article-tag {
+    background-color: #f0f7ff;
+    /* 浅蓝底色，极简不刺眼 */
+    border-radius: 4px;
+    /* 轻微圆角，更精致 */
+    padding: 2px 8px;
+    /* 内边距，让标签有「按钮感」 */
+    font-size: 0.8rem;
+    /* 字号稍小，不抢标题风头 */
+    font-weight: normal;
+    /* 取消粗体，更柔和 */
+}
+
+/* 标签文字样式 */
+.article-tag a {
+    color: #0066cc !important;
+    /* 主题蓝，和「继续阅读」颜色统一 */
+    text-decoration: none !important;
+    /* 取消下划线 */
+}
+
+/* hover交互：底色加深，有反馈感 */
+.article-tag:hover {
+    background-color: #e0edff;
+    cursor: pointer;
+}
+
+/* 暂无标签样式（和普通标签保持一致） */
+.no-tag {
+    background-color: #f8f9fa;
+    /* 浅灰底色，区分有内容的标签 */
+    color: #6c757d;
+    /* 灰色文字 */
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}

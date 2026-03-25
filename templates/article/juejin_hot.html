@@ -1,0 +1,140 @@
+{% extends 'juejin_hot_base.html' %}
+
+{% block post %}
+
+<style>
+  /* 掘金热文卡片 —— 全站完全统一风格 */
+  .juejin-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    margin-bottom: 16px;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    padding: 24px;
+  }
+
+  .juejin-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 标签样式统一 */
+  .article-tags {
+    margin-bottom: 8px;
+  }
+
+  .article-tag {
+    display: inline-block;
+    background: #f5f7fa;
+    color: #555;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+
+  .article-tag a {
+    color: #2385bb !important;
+    text-decoration: none;
+  }
+
+  .no-tag {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* 标题统一 */
+  .article-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  /* 信息栏统一（小圆点分隔） */
+  .article-info {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .article-info a {
+    text-decoration: none;
+  }
+
+  .article-author {
+    color: #722ed1 !important;
+    font-weight: 500;
+  }
+
+  /* 摘要统一 */
+  .article-summary {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  /* 阅读更多统一 */
+  .read-more {
+    font-size: 14px;
+    color: #0066cc !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: padding 0.2s;
+  }
+
+  .read-more:hover {
+    padding-left: 3px;
+  }
+</style>
+
+<div class="row mb-4">
+  {% if not articles %}
+  <a class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;"
+    href="{% url 'article:publish_article' %}">
+    暂无文章，快来发布你的第一篇文章吧～
+  </a>
+  {% else %}
+  {% for article in articles %}
+  <div class="col-12 mb-3">
+    <div class="juejin-card">
+      <div class="article-tags">
+        {% if article.tags.exists %}
+        {% for tag in article.tags.all %}
+        <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+        {% endfor %}
+        {% else %}
+        <span class="no-tag">暂无标签</span>
+        {% endif %}
+      </div>
+
+      <a class="article-title" href="{{ article.original_url }}">{{ article.title }}</a>
+
+      <div class="article-info">
+        {% if article.category %}
+        <a href="#" style="color: #0066cc;">{{ article.category.name }}</a>
+        {% else %}
+        <span style="color: #6c757d;">暂无分类</span>
+        {% endif %}
+        <span style="margin:0 6px;">•</span>
+        <a href="#" class="article-author">{{ article.author }}</a>
+        <span style="margin:0 6px;">•</span>
+        <span>{{ article.published_time|date:'Y-m-d H:i' }}</span>
+      </div>
+
+      <p class="article-summary">{{ article.summary|truncatechars:120|default:'暂无摘要' }}</p>
+
+      <a href="{{ article.original_url }}" class="read-more" target="_blank">阅读掘金原文 →</a>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+
+{% include 'part/paginator.html' %}
+{% endblock %}

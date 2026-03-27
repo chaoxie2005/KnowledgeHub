@@ -1,0 +1,17 @@
+* [33m349f334[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m 点赞功能实现
+* [33m05f48f8[m[33m ([m[1;31morigin/main[m[33m)[m 彻底删除本地总结文档
+* [33mc2fbb38[m merge remote README
+* [33m9e2f2b6[m remove local summary docx file
+* [33ma3ce585[m remove sensitive/local files: .venv, cron_jobs.py, data.json
+* [33mb4cb389[m 基于大模型 API 的内容创作与热榜聚合平台
+* [33me7ce625[m add git lfs config
+* [33m44d0b47[m first commit: 内容创作与热榜聚合平台 Django + AI + LangChain
+* [33m62651ad[m 博客项目完成
+* [33m36268ac[m 博客项目基本完成
+* [33me4fd796[m 编辑发布删除草稿箱已发布功能已完成
+* [33m1461074[m 个人用户信息展示和修改功能完成，待完成发布文章功能了
+* [33m7ec9990[m 个人中心 修改密码功能完成
+* [33m37e69e5[m 分类列表页 文章详情页完成
+* [33m355ba83[m 首页骨架搭建完成，分页和搜索功能完成
+* [33m8c22e53[m 用户认证功能模块完成
+* [33m95fcad6[m 注册和登录功能初步完成，待完成注册时激活账户

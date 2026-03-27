@@ -1,18 +1,34 @@
-# utils/rag_chain.py
 import os
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
-# 加载环境变量（和你 ai_utils.py 完全一致）
 load_dotenv()
 
-# 豆包模型（和你标题/摘要接口用同一个，100% 兼容）
-llm = ChatOpenAI(
-    api_key=os.getenv("DOUBAO_API_KEY"),
-    base_url=os.getenv("DOUBAO_BASE_URL"),
-    model="doubao-seed-2-0-lite-260215",
-    temperature=0.1,
-)
+_LLM = None
+
+
+def _get_llm():
+    global _LLM
+    if _LLM is not None:
+        return _LLM, None
+
+    try:
+        from langchain_openai import ChatOpenAI
+    except ModuleNotFoundError:
+        return None, "未安装 langchain-openai，请在虚拟环境中执行：pip install langchain-openai"
+
+    api_key = os.getenv("DOUBAO_API_KEY")
+    base_url = os.getenv("DOUBAO_BASE_URL")
+    if not api_key or not base_url:
+        return None, "未配置 DOUBAO_API_KEY / DOUBAO_BASE_URL，AI 问答暂不可用"
+
+    _LLM = ChatOpenAI(
+        api_key=api_key,
+        base_url=base_url,
+        model="doubao-seed-2-0-lite-260215",
+        temperature=0.1,
+    )
+    return _LLM, None
+
 
 def simple_rag_qa(article_content: str, question: str) -> str:
     """
@@ -21,6 +37,10 @@ def simple_rag_qa(article_content: str, question: str) -> str:
     """
     if not article_content or not question:
         return "请输入有效问题"
+
+    llm, error = _get_llm()
+    if error:
+        return error
 
     try:
         # 截取文章长度，避免 token 超限

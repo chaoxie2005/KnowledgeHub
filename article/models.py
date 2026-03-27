@@ -125,6 +125,9 @@ class Comment(models.Model):
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
     updated_time = models.DateTimeField(auto_now=True, verbose_name="更新时间")
 
+    # 点赞数字段，用于性能优化
+    like_count = models.PositiveIntegerField(default=0, verbose_name="点赞数", db_index=True)
+
     class Meta:
         verbose_name = "评论"
         verbose_name_plural = "评论"
@@ -151,11 +154,6 @@ class Comment(models.Model):
         """判断是否是一级评论"""
         return self.parent is None
 
-    @property
-    def like_count(self):
-        """获取评论点赞数"""
-        return self.comment_likes.count()
-
 
 class CommentLike(models.Model):
     """评论点赞模型（防止重复点赞）"""
@@ -172,6 +170,7 @@ class CommentLike(models.Model):
         related_name="comment_likes",
         verbose_name="点赞用户",
     )
+    
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="点赞时间")
 
     class Meta:

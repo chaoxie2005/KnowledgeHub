@@ -1,7 +1,6 @@
 {% extends 'list_base.html' %}
 
-{% block post %}
-
+{% block style%}
 <style>
   /* 分类页卡片 —— 完全和首页统一 */
   .category-card {
@@ -92,7 +91,10 @@
     transition: padding 0.2s;
   }
 </style>
+{% endblock %}
 
+
+{% block post %}
 <div class="row mb-4">
   {% if not articles %}
   <a class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;"

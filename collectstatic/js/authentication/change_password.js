@@ -11,10 +11,10 @@ const eyeIcon3 = document.getElementById('hide-password_3');
 function togglePassword(input, icon) {
     if (input.type === 'password') {
         input.setAttribute('type', 'text');
-        icon.setAttribute('src', '/static/img/authentication/eye.svg')
+        icon.setAttribute('src', '/static/img/authentication/eye_off.svg')
     } else {
         input.setAttribute('type', 'password');
-        icon.setAttribute('src', '/static/img/authentication/eye_off.svg')
+        icon.setAttribute('src', '/static/img/authentication/eye.svg')
     }
 }
 

@@ -4,11 +4,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-
+    <title>知文汇-首页</title>
     <!-- Bootstrap core CSS -->
     <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block style%}
+    {% endblock%}
     
     
 
@@ -36,13 +38,12 @@
       </div>
     </main>
 
-    {# 博客底部 #}
-    <footer class="blog-footer">
-      {% comment %} {% include 'part/bottom.html' %} {% endcomment %}
-    </footer>
+  <script src='{% static ' js/sweetalert.min.js'%}'></script>
+  {% block js%}
+  {% endblock %}
   </body>
 </html>
 
 
-<script src='{% static 'js/sweetalert.min.js'%}'></script>
+
 {% include 'part/sweetalert.html' %}

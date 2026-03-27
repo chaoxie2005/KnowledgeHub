@@ -1,7 +1,6 @@
 {% extends 'juejin_hot_base.html' %}
 
-{% block post %}
-
+{% block style%}
 <style>
   /* 掘金热文卡片 —— 全站完全统一风格 */
   .juejin-card {
@@ -92,7 +91,10 @@
     padding-left: 3px;
   }
 </style>
+{% endblock %}
 
+
+{% block post %}
 <div class="row mb-4">
   {% if not articles %}
   <a class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;"

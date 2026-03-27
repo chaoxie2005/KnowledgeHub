@@ -257,9 +257,9 @@
       </div>
       <div class="user-info">
         {% if user.profile.avatar %}
-          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" loading="lazy"/>
         {% else %}
-          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" loading="lazy"/>
         {% endif %}
         <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
         <div class="dropdown">
@@ -341,7 +341,7 @@
             <div class="form-group">
               <label class="form-label">封面图</label>
               <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
-              <img src="{{ article.cover.url }}" alt="当前封面" class="cover-preview" id="coverPreview">
+              <img src="{{ article.cover.url }}" alt="当前封面" class="cover-preview" id="coverPreview" loading="lazy">
               <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 4MB</div>
             </div>
 

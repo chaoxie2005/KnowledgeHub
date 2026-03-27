@@ -1,7 +1,7 @@
 {% extends 'article_detail_base.html' %}
 {% load static %}
 
-{% block post %}
+{% block style %}
 <style>
   /* 全局容器 */
   .article-detail-container {
@@ -407,6 +407,23 @@
     background: #0052a3 !important;
   }
 
+  .comment-cancel-btn {
+    background: #f3f4f6 !important;
+    color: #6b7280 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 4px 12px !important;
+    font-size: 0.85rem !important;
+    cursor: pointer !important;
+    margin-left: 8px !important;
+    transition: all 0.2s;
+  }
+
+  .comment-cancel-btn:hover {
+    background: #e5e7eb !important;
+    color: #374151 !important;
+  }
+
   .comment-login-tip {
     background: #f9fafb !important;
     border: 1px solid #e5e7eb !important;
@@ -506,12 +523,26 @@
   .comment-action {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 6px !important;
     cursor: pointer !important;
     transition: color 0.2s;
   }
 
   .comment-action:hover {
+    color: #0066cc !important;
+  }
+
+  .comment-action.delete-btn:hover {
+    color: #ef4444 !important;
+  }
+
+  .comment-action.like-btn.active {
+    color: #0066cc !important;
+  }
+
+  .comment-action.like-btn.active i,
+  .comment-action.like-btn.active .like-text,
+  .comment-action.like-btn.active .like-count {
     color: #0066cc !important;
   }
 
@@ -580,13 +611,27 @@
   }
 </style>
 
+<!-- 评论区表情包功能 -->
+<!-- <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/emojione/2.2.7/assets/css/emojione.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/emojione/2.2.7/lib/js/emojione.min.js"></script>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/emojionearea/3.4.2/emojionearea.min.css">
+<script src="https://cdn.bootcdn.net/ajax/libs/emojionearea/3.4.2/emojionearea.min.js"></script> -->
+
+<!-- 引入和草稿箱相同的弹窗插件 -->
+<script src="{% static 'js/sweetalert.min.js' %}"></script>
+{% include 'part/sweetalert.html' %}
+{% endblock %}
+
+
+{% block post %}
 <div class="article-detail-container">
   <h1 class="article-title">{{ article.title }}</h1>
 
   <div class="article-meta-info">
     <span>{{ article.published_time|date:'Y-m-d H:i' }}</span>
     <span class="read-count">
-      <img src="{% static 'img/authentication/eye.svg' %}" alt="阅读" class="read-count-icon" />
+      <img src="{% static 'img/authentication/eye.svg' %}" alt="阅读" class="read-count-icon" loading="lazy" />
       {{ article.read_count }}
     </span>
     {% if article.category_id %}
@@ -620,7 +665,7 @@
   <!-- 封面图 -->
   {% if article.cover and article.cover != '/media/avatars/default_cover.png' %}
   <div class="article-cover">
-    <img src="{{ article.cover }}" alt="{{ article.title }}" />
+    <img src="{{ article.cover }}" alt="{{ article.title }}" loading="lazy" />
   </div>
   {% endif %}
 
@@ -695,7 +740,7 @@
     <div class="comment-input-wrapper">
       <form method="post" action="{% url 'article:detail' article.id %}">
         {% csrf_token %}
-        <textarea name="content" class="comment-input" placeholder="平等表达，友善交流" rows="3"></textarea>
+        <textarea name="content" id="comment_content" class="comment-input" placeholder="平等表达，友善交流" rows="3"></textarea>
         <div class="comment-input-footer">
           <button type="submit" class="comment-submit-btn">发送评论</button>
         </div>
@@ -711,13 +756,13 @@
       {% if comments %}
       {% for comment in comments %}
       <div class="comment-item" id="comment-{{ comment.id }}">
-        <div class="comment-main">
+        <div class="comment-main" id="comment-main-{{ comment.id }}">
           <div class="comment-avatar">
             {% if comment.user.profile.avatar %}
-            <img src="{{ comment.user.profile.avatar.url }}" alt="{{ comment.user.username }}" />
+            <img src="{{ comment.user.profile.avatar.url }}" alt="{{ comment.user.username }}" loading="lazy" />
             {% else %}
             <img src="https://p3-passport.byteimg.com/avatar/aweme_100/avatar-{{ comment.user.id }}~100x100.png"
-              alt="默认头像" />
+              alt="默认头像" loading="lazy" />
             {% endif %}
           </div>
           <div class="comment-content">
@@ -732,13 +777,21 @@
             </div>
             <div class="comment-text">{{ comment.content|linebreaksbr }}</div>
             <div class="comment-actions">
-              <div class="comment-action like-btn" data-comment-id="{{ comment.id }}">
-                <i class="bi bi-hand-thumbs-up"></i>
-                <span>点赞</span>
+              <div class="comment-action like-btn {% if comment.id in liked_comment_ids %}active{% endif %}"
+                data-comment-id="{{ comment.id }}">
+                <i class="bi bi-hand-thumbs-up{% if comment.id in liked_comment_ids %}-fill{% endif %}"></i>
+                <span class="like-text">点赞</span>
+                <span class="like-count">{{ comment.like_count|default:"0" }}</span>
               </div>
               <div class="comment-action" onclick="toggleReplyForm('{{ comment.id }}')">
                 <i class="bi bi-chat-dots"></i>
                 <span>回复</span>
+              </div>
+              <div class="comment-action delete-btn"
+                style="display: {% if user.is_authenticated and user.id == comment.user_id or user.id == article.author_id or user.is_superuser %}flex{% else %}none{% endif %} !important;"
+                onclick="deleteComment('{{ comment.id }}', 'comment-{{ comment.id }}')">
+                <i class="bi bi-trash"></i>
+                <span>删除</span>
               </div>
             </div>
 
@@ -751,6 +804,8 @@
                 <div class="comment-input-footer">
                   <button type="submit" class="comment-submit-btn"
                     style="padding: 4px 12px; font-size: 0.85rem;">发送回复</button>
+                  <button type="button" class="comment-cancel-btn"
+                    onclick="toggleReplyForm('{{ comment.id }}')">取消</button>
                 </div>
               </form>
             </div>
@@ -764,10 +819,10 @@
             <div class="comment-main">
               <div class="comment-avatar">
                 {% if reply.user.profile.avatar %}
-                <img src="{{ reply.user.profile.avatar.url }}" alt="{{ reply.user.username }}" />
+                <img src="{{ reply.user.profile.avatar.url }}" alt="{{ reply.user.username }}" loading="lazy" />
                 {% else %}
                 <img src="https://p3-passport.byteimg.com/avatar/aweme_100/avatar-{{ reply.user.id }}~100x100.png"
-                  alt="默认头像" />
+                  alt="默认头像" loading="lazy" />
                 {% endif %}
               </div>
               <div class="comment-content">
@@ -787,13 +842,21 @@
                   {{ reply.content|linebreaksbr }}
                 </div>
                 <div class="comment-actions">
-                  <div class="comment-action like-btn" data-comment-id="{{ reply.id }}">
-                    <i class="bi bi-hand-thumbs-up"></i>
-                    <span>点赞</span>
+                  <div class="comment-action like-btn {% if reply.id in liked_comment_ids %}active{% endif %}"
+                    data-comment-id="{{ reply.id }}">
+                    <i class="bi bi-hand-thumbs-up{% if reply.id in liked_comment_ids %}-fill{% endif %}"></i>
+                    <span class="like-text">点赞</span>
+                    <span class="like-count">{{ reply.like_count|default:"0" }}</span>
                   </div>
-                  <div class="comment-action" onclick="toggleReplyForm('reply-{{ reply.id }}')">
+                  <div class="comment-action" onclick="toggleReplyForm('{{ comment.id }}')">
                     <i class="bi bi-chat-dots"></i>
                     <span>回复</span>
+                  </div>
+                  <div class="comment-action delete-btn"
+                    style="display: {% if user.is_authenticated and user.id == reply.user_id or user.id == article.author_id or user.is_superuser %}flex{% else %}none{% endif %} !important;"
+                    onclick="deleteComment('{{ reply.id }}', 'reply-{{ reply.id }}')">
+                    <i class="bi bi-trash"></i>
+                    <span>删除</span>
                   </div>
                 </div>
               </div>
@@ -819,9 +882,11 @@
 
 <!-- 图片放大遮罩DOM - 直接写死在页面，避免JS动态创建问题 -->
 <div class="article-img-viewer" id="articleImgViewer">
-  <img src="" alt="图片预览" id="articlePreviewImg">
+  <img src="" alt="图片预览" id="articlePreviewImg" loading="lazy">
 </div>
+{% endblock %}
 
+{% block js %}
 <script>
   // 页面加载完成后立即执行
   (function () {
@@ -886,22 +951,127 @@
     }
   })();
 
-  // 回复框
+  // 回复框切换函数 (移出立即执行函数，确保全局可用)
   function toggleReplyForm(commentId) {
     const replyForm = document.getElementById(`reply-form-${commentId}`);
     if (!replyForm) return;
-    document.querySelectorAll('.comment-reply-form').forEach(f => f.style.display = 'none');
-    replyForm.style.display = replyForm.style.display === 'block' ? 'none' : 'block';
+
+    const isCurrentlyVisible = replyForm.style.display === 'block';
+
+    // 1. 先隐藏所有其他的回复框
+    document.querySelectorAll('.comment-reply-form').forEach(f => {
+      if (f.id !== `reply-form-${commentId}`) {
+        f.style.display = 'none';
+      }
+    });
+
+    // 2. 切换当前回复框的状态
+    replyForm.style.display = isCurrentlyVisible ? 'none' : 'block';
   }
 
   // 点赞
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.like-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        console.log('点赞:', this.dataset.commentId);
+      btn.addEventListener('click', async function () {
+        const commentId = this.dataset.commentId;
+        const likeCountEl = this.querySelector('.like-count');
+        const icon = this.querySelector('i');
+
+        {% if user.is_authenticated %}
+        try {
+          // 使用正确的 URL 路径
+          const res = await fetch(`/article/comment/like/${commentId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}'
+            }
+          });
+
+          // 如果后端返回 401 (nologin)，跳转到登录页
+          if (res.status === 401) {
+            window.location.href = "{% url 'authentication:login' %}?next={{ request.path }}";
+            return;
+          }
+
+          const data = await res.json();
+          if (data.status === 'success') {
+            // 更新点赞数显示逻辑：始终显示数字
+            likeCountEl.textContent = data.like_count;
+
+            if (data.action === 'liked') {
+              // 图标切换为实心
+              icon.classList.remove('bi-hand-thumbs-up');
+              icon.classList.add('bi-hand-thumbs-up-fill');
+              this.classList.add('active');
+            } else {
+              // 图标切换为空心
+              icon.classList.remove('bi-hand-thumbs-up-fill');
+              icon.classList.add('bi-hand-thumbs-up');
+              this.classList.remove('active');
+            }
+          }
+        } catch (e) {
+          console.error('点赞请求失败', e);
+        }
+        {% else %}
+        window.location.href = "{% url 'authentication:login' %}?next={{ request.path }}";
+        {% endif %}
       });
     });
   });
+
+  // 删除评论
+  async function deleteComment(commentId, elementId) {
+    Swal.fire({
+      title: "你确定要删除这条评论吗?",
+      text: "删除后将无法恢复!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "确定删除",
+      cancelButtonText: "取消"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`/article/comment/delete/${commentId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}'
+            }
+          });
+
+          const data = await res.json();
+          if (data.status === 'success') {
+            const element = document.getElementById(elementId);
+            if (element) {
+              // 增加平滑消失动画
+              element.style.transition = 'all 0.4s ease';
+              element.style.opacity = '0';
+              element.style.transform = 'translateX(20px)';
+              setTimeout(() => {
+                element.remove();
+                // 成功提示
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: '评论已删除',
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+              }, 400);
+            }
+          } else {
+            Swal.fire("错误", data.msg || '删除失败', "error");
+          }
+        } catch (e) {
+          console.error('删除请求失败', e);
+          Swal.fire("错误", "网络异常，请重试", "error");
+        }
+      }
+    });
+  }
 
   // 平滑滚动
   if (window.location.hash) {
@@ -940,6 +1110,15 @@
       btn.disabled = false;
       btn.textContent = '发送问题';
     }
+  });
+</script>
+<script>
+  $(function () {
+    $("#comment_content").emojioneArea({
+      pickerPosition: "top",
+      search: true,
+      recentEmojis: true
+    });
   });
 </script>
 {% endblock %}

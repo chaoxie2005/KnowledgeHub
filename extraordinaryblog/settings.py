@@ -14,9 +14,6 @@ from pathlib import Path
 from django.contrib import messages
 import os
 from dotenv import load_dotenv
-import pymysql
-
-pymysql.install_as_MySQLdb()
 
 # 加载环境
 load_dotenv()
@@ -48,13 +45,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "authentication.middlewares.IPRateLimitMiddleware",
 ]
 
 ROOT_URLCONF = 'extraordinaryblog.urls'
@@ -81,7 +79,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',  
-        
+        'OPTIONS': {
+            'timeout': 20, # 增加超时时间到20秒，防止爬虫写入时前端报错
+        }
     }
 }
 

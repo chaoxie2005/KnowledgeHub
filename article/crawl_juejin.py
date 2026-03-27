@@ -4,10 +4,23 @@ import json
 import datetime
 from django.utils import timezone
 from django.db import IntegrityError
-from .models import JuejinHotArticle, Tag
+import sys
+import os
+import django
+
+# 获取项目根目录并加入 sys.path，以便独立运行脚本时能找到 article 模块
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# 在导入 Django 模型之前必须先配置环境并调用 setup()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "extraordinaryblog.settings")
+django.setup()
+
+from article.models import JuejinHotArticle, Tag
 
 # 新增：导入AI工具函数
-from .ai_utils import generate_article_summary, optimize_article_title
+from article.ai_utils import generate_article_summary, optimize_article_title
 
 """爬取稀土掘金的掘金热榜（集成AI摘要和标题优化）"""
 
@@ -144,6 +157,9 @@ def get_content(url):
             url, cookies=cookies, headers=headers, timeout=REQUEST_TIMEOUT
         )
         response.raise_for_status()
+        if "Please wait..." in response.text or "访问过于频繁" in response.text:
+            print(f"警告：被 WAF 拦截或访问频繁: {url}")
+            return ""
         return response.text
     except requests.exceptions.RequestException as e:
         print(f"获取文章详情失败 {url}: {e}")

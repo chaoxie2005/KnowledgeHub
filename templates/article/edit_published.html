@@ -358,7 +358,7 @@
               <label class="form-label">封面图</label>
               <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
               <img src="{% if article.cover and article.cover.name %}{{ article.cover.url }}{% else %}{{ article.cover }}{% endif %}" 
-              alt="当前封面" class="cover-preview" id="coverPreview">
+              alt="当前封面" class="cover-preview" id="coverPreview" loading="lazy">
               <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 4MB</div>
             </div>
 

@@ -154,9 +154,9 @@
       </div>
       <div class="user-info">
         {% if user.profile.avatar %}
-          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" loading="lazy"/>
         {% else %}
-          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" loading="lazy"/>
         {% endif %}
         <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
         <div class="dropdown">

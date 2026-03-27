@@ -1,98 +1,100 @@
 {% extends 'list_base.html' %}
 
+{% block style%}
+  <style>
+    /* 分类页卡片 —— 完全和首页统一 */
+    .category-card {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      margin-bottom: 16px;
+      transition: all 0.25s ease;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      padding: 24px;
+    }
+  
+    .category-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+  
+    /* 标签样式统一 */
+    .article-tags {
+      margin-bottom: 8px;
+    }
+  
+    .article-tag {
+      display: inline-block;
+      background: #f5f7fa;
+      color: #555;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+  
+    .article-tag a {
+      color: #2385bb !important;
+      text-decoration: none;
+    }
+  
+    .no-tag {
+      font-size: 12px;
+      color: #999;
+    }
+  
+    /* 标题统一 */
+    .article-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #212529;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+  
+    /* 信息栏统一（小圆点分隔符） */
+    .article-info {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+  
+    .article-info a {
+      text-decoration: none;
+    }
+  
+    .article-author {
+      color: #722ed1 !important;
+      font-weight: 500;
+    }
+  
+    /* 摘要统一 */
+    .article-summary {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+  
+    /* 阅读更多统一 */
+    .read-more {
+      font-size: 14px;
+      color: #0066cc !important;
+      font-weight: 500;
+      text-decoration: none;
+    }
+  
+    .read-more:hover {
+      padding-left: 3px;
+      transition: padding 0.2s;
+    }
+  </style>
+{% endblock %}
+
+
 {% block post %}
-
-<style>
-  /* 分类页卡片 —— 完全和首页统一 */
-  .category-card {
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    margin-bottom: 16px;
-    transition: all 0.25s ease;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    overflow: hidden;
-    padding: 24px;
-  }
-
-  .category-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  }
-
-  /* 标签样式统一 */
-  .article-tags {
-    margin-bottom: 8px;
-  }
-
-  .article-tag {
-    display: inline-block;
-    background: #f5f7fa;
-    color: #555;
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 12px;
-    margin-right: 6px;
-    margin-bottom: 4px;
-  }
-
-  .article-tag a {
-    color: #2385bb !important;
-    text-decoration: none;
-  }
-
-  .no-tag {
-    font-size: 12px;
-    color: #999;
-  }
-
-  /* 标题统一 */
-  .article-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #212529;
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-
-  /* 信息栏统一（小圆点分隔符） */
-  .article-info {
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 10px;
-  }
-
-  .article-info a {
-    text-decoration: none;
-  }
-
-  .article-author {
-    color: #722ed1 !important;
-    font-weight: 500;
-  }
-
-  /* 摘要统一 */
-  .article-summary {
-    font-size: 14px;
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 12px;
-  }
-
-  /* 阅读更多统一 */
-  .read-more {
-    font-size: 14px;
-    color: #0066cc !important;
-    font-weight: 500;
-    text-decoration: none;
-  }
-
-  .read-more:hover {
-    padding-left: 3px;
-    transition: padding 0.2s;
-  }
-</style>
-
 <div class="row mb-4">
   {% if not articles %}
   <a class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;"
@@ -137,6 +139,5 @@
   {% endfor %}
   {% endif %}
 </div>
-
 {% include 'part/paginator.html' %}
 {% endblock %}

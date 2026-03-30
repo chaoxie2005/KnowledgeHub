@@ -109,6 +109,24 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title  # 后台显示文章标题
+    
+    def save(self, *args, **kwargs):
+        """保存文章时自动更新向量库"""
+        # 调用父类的 save 方法
+        super().save(*args, **kwargs)
+        
+        # 只有当文章状态为 published 时才更新向量库
+        if self.status == "published":
+            try:
+                # 导入重建向量库的函数
+                from utils.rag_chain import update_vector_store
+                # 异步更新向量库，避免阻塞保存操作
+                import threading
+                threading.Thread(target=update_vector_store).start()
+            except Exception as e:
+                # 记录错误但不影响文章保存
+                import logging
+                logging.error(f"更新向量库失败: {str(e)}")
 
 
 # ========== 新增：评论/点赞相关模型 ==========

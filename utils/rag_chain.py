@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# 模型初始化
 _LLM = None
 
 
@@ -12,28 +13,42 @@ def _get_llm():
         return _LLM, None
 
     try:
-        from langchain_openai import ChatOpenAI
+        from langchain_community.chat_models.tongyi import ChatTongyi
     except ModuleNotFoundError:
-        return None, "未安装 langchain-openai，请在虚拟环境中执行：pip install langchain-openai"
+        return (
+            None,
+            "未安装 langchain-community/langchain-core，请在虚拟环境中执行：pip install langchain-community langchain-core",
+        )
 
-    api_key = os.getenv("DOUBAO_API_KEY")
-    base_url = os.getenv("DOUBAO_BASE_URL")
+    api_key = os.getenv("QWEN_API_KEY")
+    base_url = os.getenv("QWEN_BASE_URL")
     if not api_key or not base_url:
-        return None, "未配置 DOUBAO_API_KEY / DOUBAO_BASE_URL，AI 问答暂不可用"
+        return None, "未配置 QWEN_API_KEY / QWEN_BASE_URL，AI 问答暂不可用"
 
-    _LLM = ChatOpenAI(
-        api_key=api_key,
-        base_url=base_url,
-        model="doubao-seed-2-0-lite-260215",
-        temperature=0.1,
-    )
+    try:
+        _LLM = ChatTongyi(
+            api_key=api_key,
+            base_url=base_url,
+            model="qwen3-max",
+            temperature=0.1,
+            streaming=True,
+        )
+    except TypeError:
+        _LLM = ChatTongyi(
+            api_key=api_key,
+            base_url=base_url,
+            model="qwen3-max",
+            temperature=0.1,
+        )
+
     return _LLM, None
 
 
 def simple_rag_qa(article_content: str, question: str) -> str:
     """
+    非链式输出（暂无用处）
     LangChain 实现的 RAG 文章问答
-    只根据文章内容回答，不编造，完全兼容豆包
+    只根据文章内容回答，不编造 
     """
     if not article_content or not question:
         return "请输入有效问题"
@@ -43,23 +58,98 @@ def simple_rag_qa(article_content: str, question: str) -> str:
         return error
 
     try:
-        # 截取文章长度，避免 token 超限
-        content = article_content[:6000]
+        from langchain_core.prompts import ChatPromptTemplate
+    except ModuleNotFoundError:
+        return "未安装 langchain-core，请在虚拟环境中执行：pip install langchain-core"
 
-        prompt = f"""
-你是文章智能问答助手，必须严格遵守以下规则：
-1. 只根据下面的【文章内容】回答问题，绝对不能编造信息
-2. 尽量根据读者的问题，在不偏离文章原意的前提下回答内容
-3. 回答简洁、专业、有条理，符合技术博客读者的阅读习惯
-4. 如果不是技术博客内容的，回答符合偏文章内容风格的阅读习惯 
+    try:
+        content = (article_content or "").strip()[:6000]
 
+        system_text = """角色定位：你是专业、严谨、只基于原文作答的文章智能问答助手，严格遵循用户提供的文章内容，不添加任何外部信息、不主观臆断、不编造内容。
+        核心规则（必须 100% 遵守）
+        1. 只依据给定文章内容回答，无原文依据的问题直接回复「文章中未提及相关内容」，绝不编造
+        2. 回答不偏离原文原意，忠实还原作者观点、数据、逻辑
+        3. 回答风格：简洁、专业、条理清晰
+        - 技术类文章：适配技术博客读者，语言精炼、重点突出
+        - 非技术类文章：贴合原文文风，简洁通顺
+        4. 结构优先：能用分点则分点，不冗余、不啰嗦
+        输出要求
+        1. 不添加无关解释、不拓展延伸
+        2. 不使用情绪化、口语化表达
+        3. 技术问题优先使用术语，保持专业度
+        4. 答案严格来源于文章，一字不杜撰"""
 
-文章内容：
-{content}
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_text),
+                ("human", "文章内容：\n{content}\n\n用户问题：{question}"),
+            ]
+        )
 
-用户问题：{question}
-"""
-        response = llm.invoke(prompt)
-        return response.content.strip()
+        chain = prompt | llm
+        response = chain.invoke({"content": content, "question": question.strip()})
+        return (response.content or "").strip()
     except Exception as e:
         return f"AI 服务异常：{str(e)}"
+
+
+
+def simple_rag_qa_stream(article_content: str, question: str):
+    """
+    链式输出内容（正在用）
+    LangChain 实现的 RAG 文章问答
+    只根据文章内容回答，不编造
+    """
+    try:
+        if not article_content or not question:
+            yield "请输入有效问题"
+            return
+
+        llm, error = _get_llm()
+        if error:
+            yield error
+            return
+
+        try:
+            from langchain_core.prompts import ChatPromptTemplate
+        except ModuleNotFoundError:
+            yield "未安装 langchain-core，请在虚拟环境中执行：pip install langchain-core"
+            return
+
+        content = (article_content or "").strip()[:6000]
+
+        system_text = """角色定位：你是专业、严谨、只基于原文作答的文章智能问答助手，严格遵循用户提供的文章内容，不添加任何外部信息、不主观臆断、不编造内容。
+        核心规则（必须 100% 遵守）
+        1. 只依据给定文章内容回答，无原文依据的问题直接回复「文章中未提及相关内容」，绝不编造
+        2. 回答不偏离原文原意，忠实还原作者观点、数据、逻辑
+        3. 回答风格：简洁、专业、条理清晰
+        - 技术类文章：适配技术博客读者，语言精炼、重点突出
+        - 非技术类文章：贴合原文文风，简洁通顺
+        4. 结构优先：能用分点则分点，不冗余、不啰嗦
+        输出要求
+        1. 不添加无关解释、不拓展延伸
+        2. 不使用情绪化、口语化表达
+        3. 技术问题优先使用术语，保持专业度
+        4. 答案严格来源于文章，一字不杜撰"""
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", system_text),
+                ("human", "文章内容：\n{content}\n\n用户问题：{question}"),
+            ]
+        )
+
+        chain = prompt | llm
+
+        try:
+            for chunk in chain.stream({"content": content, "question": question.strip()}):
+                if isinstance(chunk, str):
+                    text = chunk
+                else:
+                    text = getattr(chunk, "content", "")
+                if text:
+                    yield text
+        except Exception as e:
+            yield f"\n\nAI 服务异常：{str(e)}"
+    except Exception as e:
+        yield f"AI 服务异常：{str(e)}"

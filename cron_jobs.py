@@ -1,5 +1,7 @@
 import os
 import django
+import fcntl
+import atexit
 
 # 配置Django环境（必须）
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "extraordinaryblog.settings")
@@ -9,6 +11,43 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from article.crawl_juejin import crawl_and_save_juejin_hot  # 导入爬虫核心函数
 import logging
+
+_lock_fh = None
+
+
+def _release_lock():
+    global _lock_fh
+    if _lock_fh is None:
+        return
+    try:
+        fcntl.flock(_lock_fh.fileno(), fcntl.LOCK_UN)
+    except Exception:
+        pass
+    try:
+        _lock_fh.close()
+    except Exception:
+        pass
+    _lock_fh = None
+
+
+def _acquire_lock(lock_path: str) -> bool:
+    global _lock_fh
+    if _lock_fh is not None:
+        return True
+
+    fh = open(lock_path, "w")
+    try:
+        fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        try:
+            fh.close()
+        except Exception:
+            pass
+        return False
+
+    _lock_fh = fh
+    atexit.register(_release_lock)
+    return True
 
 # 配置日志（可选，方便查看定时任务执行情况）
 logging.basicConfig(
@@ -21,6 +60,11 @@ logger = logging.getLogger("掘金爬虫定时任务")
 
 def start_scheduler():
     """启动定时任务调度器"""
+    if not _acquire_lock("/tmp/extraordinaryblog_juejin_scheduler.lock"):
+        logger.warning("定时任务已在其他进程中运行，当前进程跳过启动")
+        print("定时任务已在其他进程中运行，当前进程跳过启动")
+        return
+
     # 创建后台调度器（不阻塞Django运行）
     scheduler = BackgroundScheduler(timezone="Asia/Shanghai")  # 用北京时间
 
@@ -28,7 +72,7 @@ def start_scheduler():
     # Cron表达式说明：分 时 日 月 周（*表示任意）
     scheduler.add_job(
         func=crawl_and_save_juejin_hot,  # 要执行的爬虫函数
-        trigger=CronTrigger(hour="9,15", minute="0"),  # 每天9:00、15:00执行
+        trigger=CronTrigger(hour="17", minute="50"),  # 每天9:00、15:00执行
         id="juejin_hot_crawl",  # 任务唯一ID（方便管理）
         replace_existing=True,  # 重复启动时替换原有任务
         misfire_grace_time=300,  # 任务错过执行时，允许延迟5分钟

@@ -1079,20 +1079,24 @@
     if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 100);
   }
 
-  // AI 问答
+  // AI 问答（流式输出）
   document.getElementById('aiAskBtn').addEventListener('click', async () => {
     const btn = document.getElementById('aiAskBtn');
-    const question = document.getElementById('aiQuestion').value.trim();
+    const questionEl = document.getElementById('aiQuestion');
+    const question = (questionEl.value || '').trim();
     const answerBox = document.getElementById('aiAnswer');
 
     if (!question) { alert('请输入问题'); return; }
 
     btn.disabled = true;
-    btn.textContent = 'AI 思考中...';
-    answerBox.style.display = 'none';
+    btn.textContent = 'AI 输出中...';
+    answerBox.innerText = '';
+    answerBox.style.display = 'block';
+
+    questionEl.value = '';
 
     try {
-      const res = await fetch("{% url 'article:article_ai_qa' article.id %}", {
+      const res = await fetch("{% url 'article:article_ai_qa' article.id %}?stream=1", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -1100,15 +1104,38 @@
         },
         body: 'question=' + encodeURIComponent(question)
       });
-      const data = await res.json();
-      answerBox.innerText = data.code === 200 ? data.answer : (data.msg || '请求失败');
-      answerBox.style.display = 'block';
+
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      if (!res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        answerBox.innerText = data.msg || data.error || '请求失败';
+        return;
+      }
+
+      if (!res.body) {
+        answerBox.innerText = await res.text();
+        questionEl.value = '';
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let out = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        out += decoder.decode(value, { stream: true });
+        answerBox.innerText = out;
+      }
+
+      questionEl.value = '';
     } catch (e) {
       answerBox.innerText = '网络异常，请重试';
-      answerBox.style.display = 'block';
     } finally {
       btn.disabled = false;
       btn.textContent = '发送问题';
+      questionEl.value = '';
     }
   });
 </script>

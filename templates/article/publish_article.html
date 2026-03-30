@@ -350,7 +350,7 @@
             <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
           </div>
           <div class="sub-menu-item">
-            <a href="#" style="text-decoration: none; color: inherit;">评论管理</a>
+            <a href="{% url 'article:comment_management' %}" style="text-decoration: none; color: inherit;">评论管理</a>
           </div>
         </div>
       </div>
@@ -576,10 +576,13 @@
       autosave: false
     });
 
+    try {
+      localStorage.removeItem('smde_blog_editor');
+    } catch (e) {}
+
     const contentMDE = new SimpleMDE({
       element: document.getElementById("content"),
       spellChecker: false,
-      autosave: { enabled: true, uniqueId: "blog_editor", delay: 5000 },
     });
 
     // 字数统计

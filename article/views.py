@@ -13,7 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import ArticleSerializer, CategorySerializer, CommentSerializer
 import os
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import markdown
@@ -26,7 +26,7 @@ import sys
 from utils.redis_client import redis_client
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Prefetch
-from utils.rag_chain import simple_rag_qa
+from utils.rag_chain import simple_rag_qa, simple_rag_qa_stream
 
 
 def time_it(func):
@@ -934,15 +934,21 @@ def ai_generate_summary(request):
 def article_ai_qa(request, article_id):
     """LangChain RAG 文章问答接口"""
     try:
-        # 从数据库直接获取文章（不走缓存，保证拿到原始内容）
         article = Article.objects.get(id=article_id, status="published")
-        
-        # 获取用户问题
+
         question = request.POST.get("question", "").strip()
         if not question:
             return JsonResponse({"code": 400, "msg": "请输入问题"})
 
-        # 调用 RAG 函数（导入正确后不会再报错）
+        if request.GET.get("stream") == "1":
+            response = StreamingHttpResponse(
+                simple_rag_qa_stream(article.content, question),
+                content_type="text/plain; charset=utf-8",
+            )
+            response["Cache-Control"] = "no-cache"
+            response["X-Accel-Buffering"] = "no"
+            return response
+
         answer = simple_rag_qa(article.content, question)
         return JsonResponse({
             "code": 200,
@@ -952,7 +958,6 @@ def article_ai_qa(request, article_id):
     except Article.DoesNotExist:
         return JsonResponse({"code": 404, "msg": "文章不存在"})
     except Exception as e:
-        # 打印详细日志，方便排查
         import traceback
         traceback.print_exc()
         return JsonResponse({"code": 500, "msg": f"服务异常：{str(e)}"})
@@ -1054,3 +1059,7 @@ def delete_comment(request, comment_id):
     except Exception as e:
         return JsonResponse({"status": "error", "msg": str(e)}, status=500)
 
+
+
+def comment_management(request):
+    return render(request, 'article/comment_management.html')

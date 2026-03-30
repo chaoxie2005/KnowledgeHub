@@ -7,6 +7,8 @@ from django.db import IntegrityError
 import sys
 import os
 import django
+import random
+import time
 
 # 获取项目根目录并加入 sys.path，以便独立运行脚本时能找到 article 模块
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,7 +28,7 @@ from article.ai_utils import generate_article_summary, optimize_article_title
 
 # 配置项
 REQUEST_TIMEOUT = 10  # 请求超时时间
-MAX_ARTICLES_TO_CRAWL = 20  # 每次爬取的最大文章数
+MAX_ARTICLES_TO_CRAWL = 10  # 每次爬取的最大文章数
 
 def get_or_create_tags(tag_names):
     """批量获取或创建标签"""
@@ -109,6 +111,8 @@ def spider():
 
 def get_content(url):
     """获取文章详情页HTML"""
+    # 加1-2秒随机延时，避免固定间隔被反爬识别
+    time.sleep(random.uniform(2.5, 4.5)) 
     cookies = {
         "_tea_utm_cache_2608": "undefined",
         "__tea_cookie_tokens_2608": "%257B%2522web_id%2522%253A%25227495787047023838760%2522%252C%2522user_unique_id%2522%253A%25227495787047023838760%2522%252C%2522timestamp%2522%253A1745248943786%257D",
@@ -186,8 +190,7 @@ def parse_article_detail(html_content):
         r'<meta\s+itemprop="keywords".*?content="([^"]+)"[^>]*>', html_content
     )
 
-    # 新增：匹配文章完整内容（掘金的文章内容在特定div中）
-    content_pattern = r'<div class="article-content-container[\s\S]*?>([\s\S]*?)</div>'
+    content_pattern = r'<div class="article-content"[\s\S]*?>([\s\S]*?)</div>'
     content_match = re.search(content_pattern, html_content)
     if content_match:
         # 清理HTML标签，提取纯文本内容

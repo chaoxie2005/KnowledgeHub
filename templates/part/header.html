@@ -1,4 +1,15 @@
 <style>
+  /* 头部容器样式 */
+  .blog-header {
+    padding: 16px 0;
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1);
+    z-index: 100;
+  }
+
   /* 全局重置：避免 Bootstrap 默认样式干扰 */
   .blog-header .row {
     margin: 0;
@@ -9,11 +20,335 @@
     padding: 0;
   }
 
+  /* 左侧导航文字：提升对比度，明确层级 */
+  .blog-header .col-4 .publish-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    border: none;
+    border-radius: 16px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    display: inline-block;
+  }
+
+  .blog-header .col-4 .publish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  /* Logo样式 */
+  .blog-header-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #2d3748 !important;
+    font-size: 2rem;
+    font-weight: 800 !important;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .blog-header-logo:hover {
+    color: #667eea !important;
+  }
+
+  .blog-header-logo .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .blog-header-logo:hover .logo-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+  }
+
+  /* 右侧容器：强制不换行，元素紧凑排列 */
+  .blog-header .right-col {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  /* 搜索组：强制一行显示 */
+  .blog-header .search-group {
+    display: flex;
+    flex-shrink: 0;
+    background: #f7fafc;
+    border-radius: 25px;
+    padding: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .blog-header .search-group:focus-within {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+  }
+
+  /* 搜索框样式：优化颜色和交互 */
+  .blog-header input[name='keyword'] {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    width: 220px;
+    outline: none;
+    transition: all 0.3s ease;
+    color: #4a5568;
+    background: transparent;
+  }
+
+  .blog-header input[name='keyword']::placeholder {
+    color: #a0aec0;
+    opacity: 1;
+  }
+
+  .blog-header input[name='keyword']:focus {
+    width: 280px;
+  }
+
+  /* 搜索按钮：优化默认/hover样式 */
+  .blog-header .search-btn {
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .blog-header .search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  }
+
+  /* 登录按钮：优化默认样式，强化hover */
+  .blog-header .login-btn {
+    color: #667eea !important;
+    border-color: #667eea !important;
+    background: white !important;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .blog-header .login-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-color: #667eea !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  /* 新增：用户头像样式 */
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #f7fafc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .user-avatar:hover {
+    transform: scale(1.1);
+    border-color: #667eea;
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .user-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    background: #f7fafc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 105;
+  }
+
+  .user-info-wrapper:hover {
+    background: white;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .user-nickname {
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ========== 导航栏样式优化 ========== */
+  .blog-nav {
+    margin: 24px 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 20px;
+    border: none;
+    box-shadow: none;
+    position: relative;
+    z-index: 50;
+  }
+
+  .blog-nav .nav {
+    display: flex;
+    justify-content: center !important;
+    width: 100%;
+    gap: 16px;
+    background: white;
+    padding: 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+  }
+
+  .blog-nav .nav a {
+    text-align: center;
+    color: #4a5568;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 12px 28px !important;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  /* Hover效果：背景色 + 文字颜色变化 + 轻微上浮 */
+  .blog-nav .nav a:hover {
+    color: #667eea;
+    background: #f7fafc;
+    transform: translateY(-2px);
+  }
+
+  /* 活跃状态 */
+  .blog-nav .nav a.active {
+    color: white !important;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .blog-nav .nav a.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  /* 下拉按钮样式 */
+  .blog-nav .nav .dropdown-toggle {
+    padding: 12px 28px !important;
+  }
+
+  /* 下拉菜单样式 */
+  .blog-nav .dropdown .dropdown-menu {
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    padding: 12px;
+    margin-top: 12px !important;
+    background: white;
+    z-index: 110;
+  }
+
+  /* 用户下拉菜单样式 */
+  .user-info-wrapper .dropdown-menu {
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    padding: 12px;
+    margin-top: 12px !important;
+    background: white;
+    z-index: 110;
+  }
+
+  .blog-nav .dropdown .dropdown-item {
+    padding: 12px 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: #4a5568;
+    font-weight: 500;
+  }
+
+  .blog-nav .dropdown .dropdown-item:hover {
+    color: #667eea;
+    background: #f7fafc;
+    transform: translateX(6px);
+  }
+
   /* 响应式布局优化：解决移动端换行问题 */
+  @media (max-width: 992px) {
+    .blog-header-logo {
+      font-size: 1.6rem;
+    }
+
+    .blog-header-logo .logo-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    .blog-header input[name='keyword'] {
+      width: 180px;
+    }
+
+    .blog-header input[name='keyword']:focus {
+      width: 220px;
+    }
+
+    .blog-nav .nav a {
+      padding: 10px 20px !important;
+      font-size: 14px;
+    }
+  }
+
   @media (max-width: 768px) {
-    .blog-header>.row {
+    .blog-header {
+      padding: 12px 0;
+    }
+
+    .blog-header .row {
       flex-wrap: wrap !important;
-      gap: 10px;
+      gap: 15px;
     }
 
     .blog-header .col-4 {
@@ -27,219 +362,85 @@
       margin-bottom: 10px;
     }
 
+    .blog-header-logo {
+      font-size: 1.4rem;
+    }
+
+    .blog-header-logo .logo-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+
+    .blog-header input[name='keyword'] {
+      width: 140px;
+      padding: 8px 16px;
+    }
+
+    .blog-header input[name='keyword']:focus {
+      width: 180px;
+    }
+
+    .blog-header .search-btn {
+      padding: 6px 16px;
+    }
+
+    .blog-header .login-btn {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+    }
+
+    .user-nickname {
+      font-size: 0.85rem;
+    }
+
     /* 移动端分类导航自适应 */
     .blog-nav .nav {
       flex-wrap: wrap !important;
       gap: 8px !important;
+      padding: 8px;
     }
 
-    /* 移动端头像适配 */
-    .user-avatar-wrapper {
-      flex-shrink: 0;
+    .blog-nav .nav a {
+      padding: 8px 16px !important;
+      font-size: 13px;
+      min-height: 40px;
     }
 
-    .user-avatar {
-      width: 28px !important;
-      height: 28px !important;
+    .blog-header .right-col {
+      gap: 12px;
     }
   }
 
-  /* 左侧导航文字：提升对比度，明确层级 */
-  .blog-header .col-4 a.text-muted {
-    color: #424242 !important;
-    font-size: 1rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
+  @media (max-width: 576px) {
+    .blog-header-logo {
+      font-size: 1.2rem;
+      gap: 8px;
+    }
 
-  .blog-header .col-4 a.text-muted:hover {
-    color: #0066cc !important;
-  }
+    .blog-header-logo .logo-icon {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
 
-  /* 中间标题：强化视觉核心 */
-  .blog-header .blog-header-logo {
-    color: #212121 !important;
-    font-size: 1.5rem;
-    font-weight: 700 !important;
-    text-decoration: none;
-    letter-spacing: 0.5px;
-  }
+    .blog-header input[name='keyword'] {
+      width: 120px;
+    }
 
-  /* 搜索框样式：优化颜色和交互 */
-  .blog-header input[name='keyword'] {
-    padding: 6px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 6px 0 0 6px;
-    font-size: 0.9rem;
-    width: 140px;
-    outline: none;
-    transition: all 0.3s ease;
-    border-right: 0;
-    color: #424242;
-  }
+    .blog-header input[name='keyword']:focus {
+      width: 150px;
+    }
 
-  .blog-header input[name='keyword']::placeholder {
-    color: #6c757d;
-    opacity: 1;
-  }
-
-  .blog-header input[name='keyword']:focus {
-    border-color: #0066cc;
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
-  }
-
-  /* 搜索按钮：优化默认/hover样式 */
-  .blog-header .search-btn {
-    border-radius: 0 6px 6px 0;
-    font-size: 0.9rem;
-    border: 1px solid #ced4da;
-    background-color: #f8f9fa;
-    padding: 6px 12px;
-    margin-left: -1px;
-    color: #495057;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .blog-header .search-btn:hover {
-    background-color: #0066cc;
-    border-color: #0066cc;
-    color: #fff !important;
-  }
-
-  /* 登录按钮：优化默认样式，强化hover */
-  .blog-header .login-btn {
-    color: #0066cc !important;
-    border-color: #0066cc !important;
-    background-color: #fff !important;
-    font-size: 0.9rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-  }
-
-  .blog-header .login-btn:hover {
-    background-color: #0056b3 !important;
-    border-color: #0056b3 !important;
-    color: #fff !important;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  /* 右侧容器：强制不换行，元素紧凑排列 */
-  .blog-header .right-col {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  /* 搜索组：强制一行显示 */
-  .blog-header .search-group {
-    display: flex;
-    flex-shrink: 0;
-  }
-
-  /* 新增：用户头像样式 */
-  .user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid #eee;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .user-avatar:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .user-info-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-  }
-
-  .user-nickname {
-    font-size: 0.9rem;
-    color: #424242;
-    white-space: nowrap;
-  }
-
-  /* ========== 核心修改：分类导航样式 ========== */
-  /* 解决分类少导致的空荡问题：均匀分布 + 补充功能入口 */
-  .blog-nav {
-    margin-bottom: 1.8rem;
-    padding-bottom: 0.8rem;
-    border-bottom: 1px solid #e9ecef;
-    /* 改成浅灰，更柔和 */
-  }
-
-  .blog-nav .nav {
-    display: flex;
-    justify-content: center !important;
-    /* 居中对齐 */
-    width: 100%;
-    /* 占满整行 */
-    gap: 30px;
-    /* 适当间距，避免拥挤 */
-  }
-
-  .blog-nav .nav a {
-    text-align: center;
-    /* 文字居中 */
-    color: #6c757d;
-    font-size: 1rem;
-    text-decoration: none;
-    padding: 8px 16px !important;
-    /* 适当padding，更舒适 */
-    border-radius: 4px;
-    /* 轻微圆角，hover更友好 */
-    transition: all 0.2s ease;
-    min-height: 36px;
-    /* 固定最小高度，确保一致 */
-    display: inline-block;
-    /* 确保padding生效 */
-  }
-
-  .blog-nav .nav a:hover {
-    color: #0066cc;
-    background-color: #f0f7ff;
-    /* 增加hover背景，更明显 */
-  }
-
-  /* 活跃状态（可选，当前页高亮） */
-  .blog-nav .nav a.active {
-    color: #0066cc !important;
-    font-weight: 600;
-    background-color: #f0f7ff;
-    /* 保持与其他按钮相同的padding */
-  }
-
-  /* 下拉按钮样式 */
-  .blog-nav .nav .dropdown-toggle {
-    padding: 8px 16px !important;
-    /* 与其他按钮保持一致 */
-  }
-
-  /* 下拉菜单样式 */
-  .blog-nav .dropdown .dropdown-menu {
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .blog-nav .dropdown .dropdown-item {
-    padding: 8px 16px;
-    transition: all 0.2s ease;
-  }
-
-  .blog-nav .dropdown .dropdown-item:hover {
-    color: #0066cc;
-    background-color: #f0f7ff;
+    .blog-nav .nav a {
+      padding: 6px 12px !important;
+      font-size: 12px;
+    }
   }
 </style>
 
@@ -249,13 +450,16 @@
     <!-- 左侧：个人中心（登录后保留，未登录隐藏） -->
     <div class="col-4">
       {% if user.is_authenticated %}
-      <a class="btn btn-sm login-btn" href="{% url 'article:publish_article' %}" style="font-size: 1rem;">发布文章</a>
+      <a class="publish-btn" href="{% url 'article:publish_article' %}">发布文章</a>
       {% endif %}
     </div>
 
-    <!-- 中间：博客标题 -->
+    <!-- 中间：博客标题 + Logo -->
     <div class="col-4 text-center">
-      <a class="blog-header-logo text-dark" href="/" style="font-size: 1.5rem; font-weight: 600;">知文汇</a>
+      <span class="blog-header-logo">
+        <span class="logo-icon">知</span>
+        <span>知文汇</span>
+      </span>
     </div>
 
     <!-- 右侧：搜索 + 登录/用户信息 -->
@@ -267,8 +471,8 @@
         <form action="{% url 'core:index' %}" method="get" class="d-flex">
           {% endif %}
           <div class="search-group">
-            <input type="text" name="keyword" class="form-control" placeholder="搜索文章..."
-              value="{{ keyword|default:'' }}" autocomplete="off" />
+            <input type="text" name="keyword" placeholder="搜索文章..." value="{{ keyword|default:'' }}"
+              autocomplete="off" />
             <button class="search-btn" type="submit">搜索</button>
           </div>
         </form>
@@ -306,14 +510,17 @@
 <nav class="blog-nav">
   <div class="nav d-flex justify-content-between">
     <!-- 固定入口 -->
-    <a class="p-2 text-muted {% if request.path == '/' %}active{% endif %}" href="/">首页</a>
-    <a class="p-2 text-muted {% if 'juejin_hot' in request.path %}active{% endif %}"
-      href="{% url 'article:juejin_hot' %}">掘金快讯</a>
+    <a class="{% if request.path == '/' %}active{% endif %}" href="/">
+      <span>🏠</span> 首页
+    </a>
+    <a class="{% if 'juejin_hot' in request.path %}active{% endif %}" href="{% url 'article:juejin_hot' %}">
+      <span>🔥</span> 掘金快讯
+    </a>
     <!-- 分类下拉菜单 -->
     {% if categories %}
     <div class="dropdown">
-      <a class="p-2 text-muted dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        更多
+      <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span>📂</span> 更多
       </a>
       <ul class="dropdown-menu">
         {% for category in categories %}

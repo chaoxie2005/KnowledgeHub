@@ -358,27 +358,16 @@
               </select>
             </div>
 
-            <!-- 文章标签：替换为搜索多选格式 + 回显选中状态 -->
+            <!-- 文章标签：选择 + 自定义 完整版 -->
             <div class="form-group">
-              <label class="form-label">文章标签（可多选）</label>
-              <div class="tag-search-container">
-                <input type="text" class="form-control" id="tagSearch" placeholder="搜索标签（如 Vue、Python、AI）" />
-                <div class="tag-dropdown" id="tagDropdown">
-                  <div class="tag-list">
-                    {% for tag in tags %}
-                      <label class="tag-item" data-tag="{{ tag.name|lower }}">
-                        <input type="checkbox" name="tags" value="{{ tag.id }}" 
-                               {% if tag in article.tags.all %}checked{% endif %}> {{ tag.name }}
-                      </label>
-                    {% empty %}
-                      <span class="form-text">暂无可用标签，请先创建标签</span>
-                    {% endfor %}
-                  </div>
-                </div>
+              <label class="form-label">文章标签（可多选/可自定义）</label>
+              <!-- 标签输入容器，用于定位下拉框 -->
+              <div class="tag-input-container">
+                <input type="text" id="tagSearch" class="form-control" placeholder="搜索标签 或 输入新标签回车添加">
+                <div id="tagDropdown"></div>
               </div>
-              <div class="selected-tags" id="selectedTags">
-                <!-- 已选标签会动态渲染在这里 -->
-              </div>
+              <div class="selected-tags" id="selectedTags"></div>
+              <input type="hidden" name="tags" id="tagValues">
             </div>
           </div>
 

@@ -176,7 +176,6 @@ def detail(request, article_id):
         )
 
         # 性能进阶：为每条评论同步 Redis 点赞数
-        # 在比赛演示中，这体现了对分布式数据一致性的考虑
         for c in comments:
             redis_count = redis_client.get(f"comment:like_count:{c.id}")
             if redis_count is not None:
@@ -198,9 +197,9 @@ def detail(request, article_id):
         liked_comment_ids = []
         if request.user.is_authenticated:
             user_id = request.user.id
-            # 性能进阶：检查 Redis Set 以获取最新点赞状态
-            # 这里我们采用“懒加载”策略：点赞动作会触发 Redis 写入
-            # 页面加载时我们仍以数据库为准，但优先合并 Redis 中的实时变化
+            # 检查 Redis Set 以获取最新点赞状态
+            # 采用“懒加载”策略：点赞动作会触发 Redis 写入
+            # 页面加载时以数据库为准，但优先合并 Redis 中的实时变化
             liked_comment_ids = list(CommentLike.objects.filter(
                 user=request.user,
                 comment__article_id=article_id
@@ -220,7 +219,6 @@ def detail(request, article_id):
         return render(request, "article/article_detail.html", context)
 
     # 缓存不存在 → 查数据库 
-    
     # 渲染Markdown为HTML
     rendered_content = markdown.markdown(
         article.content,

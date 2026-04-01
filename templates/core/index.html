@@ -3,46 +3,63 @@
 {% block post %}
 
 <style>
-  /* 文章卡片 —— 高级质感版（微调阴影+圆角+内边距） */
+  /* 文章卡片 —— 高级质感版（增强卡片感+阴影+圆角） */
   .article-item {
     background: #ffffff;
-    border-radius: 12px; /* 微调圆角，更柔和不突兀 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* 微调阴影，更轻更透 */
-    margin-bottom: 16px; /* 微调间距，更紧凑协调 */
-    transition: all 0.25s ease; /* 微调动画，更丝滑 */
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 16px;
+    /* 更大的圆角 */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    /* 双层阴影，更有层次感 */
+    margin-bottom: 24px;
+    /* 增加间距 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 更流畅的动画 */
+    border: 1px solid rgba(0, 0, 0, 0.06);
     overflow: hidden;
+    padding: 28px;
+    /* 增加内边距 */
   }
 
   .article-item:hover {
-    transform: translateY(-2px); /* 微调上浮幅度，更克制 */
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px);
+    /* 更大的上浮效果 */
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
   }
 
-  /* 标签样式（微调背景+圆角，和整体更统一） */
+  /* 标签样式（优化背景+圆角） */
   .article-tags {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
 
   .article-tag {
     display: inline-block;
-    background: #f5f7fa;
-    color: #555;
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 12px; /* 微调字号，更精致 */
-    margin-right: 6px;
-    margin-bottom: 4px;
-    transition: background 0.2s;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+    /* 渐变背景 */
+    color: #0066cc;
+    padding: 4px 12px;
+    border-radius: 20px;
+    /* 胶囊形圆角 */
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 8px;
+    margin-bottom: 6px;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 102, 204, 0.1);
   }
 
   .article-tag a {
-    color: #555 !important;
+    color: #0066cc !important;
     text-decoration: none;
   }
 
   .article-tag:hover {
-    background: #e9ecef;
+    background: linear-gradient(135deg, #0066cc 0%, #0056b3 100%);
+    color: #fff;
+    transform: scale(1.05);
+  }
+
+  .article-tag:hover a {
+    color: #fff !important;
   }
 
   .no-tag {
@@ -50,70 +67,110 @@
     color: #999;
   }
 
-  /* 标题（微调字号+行高，更舒适） */
+  /* 标题（加大+加粗，提升层次） */
   .article-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #222;
-    margin-bottom: 10px;
+    font-size: 22px;
+    /* 加大字号 */
+    font-weight: 700;
+    /* 加粗 */
+    color: #1a1a1a;
+    margin-bottom: 14px;
     line-height: 1.4;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* 限制2行，避免超长标题破坏布局 */
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    transition: color 0.2s ease;
+    letter-spacing: -0.3px;
+    /* 微调字间距 */
   }
 
-  /* 信息栏（微调分隔符+字号，和截图完全统一） */
+  .article-title:hover {
+    color: #0066cc;
+  }
+
+  /* 信息栏（优化分隔符+字号） */
   .article-info {
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 10px;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
   }
 
   .article-info a {
     text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .article-info a:hover {
+    color: #0066cc;
   }
 
   .article-author {
-    color: #722ed1 !important;
-    font-weight: 500;
+    color: #0066cc !important;
+    font-weight: 600;
   }
 
-  /* 摘要（微调字号+行高，阅读更舒适） */
+  .article-info .divider {
+    color: #ccc;
+    margin: 0 4px;
+  }
+
+  /* 摘要（优化字号+行高+间距） */
   .article-summary {
-    font-size: 14px;
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 12px;
+    font-size: 15px;
+    color: #555;
+    line-height: 1.7;
+    margin-bottom: 18px;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* 限制3行，统一卡片高度 */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
   }
 
-  /* 阅读更多（微调样式，和整体更统一） */
+  /* 阅读更多（优化样式） */
   .read-more {
     font-size: 14px;
     color: #0066cc !important;
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
-    transition: padding 0.2s;
-    position: relative;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .read-more:hover {
-    padding-left: 3px;
+    gap: 8px;
     color: #0056b3 !important;
   }
 
-  /* 响应式微调（小屏幕更友好） */
+  .read-more::after {
+    content: '→';
+    transition: transform 0.2s ease;
+  }
+
+  .read-more:hover::after {
+    transform: translateX(4px);
+  }
+
+  /* 响应式优化 */
   @media (max-width: 768px) {
     .article-item {
-      margin-bottom: 12px;
-      border-radius: 10px;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      padding: 20px;
     }
+
     .article-title {
-      font-size: 16px;
+      font-size: 18px;
+    }
+
+    .article-summary {
+      font-size: 14px;
     }
   }
 </style>
@@ -142,18 +199,18 @@
 
       <div class="article-info">
         {% if article.category %}
-        <a href="{% url 'article:category_list' article.category.id %}" style="color: #0066cc;">{{ article.category.name }}</a>
+        <a href="{% url 'article:category_list' article.category.id %}">{{ article.category.name }}</a>
         {% else %}
         <span style="color: #6c757d;">暂无分类</span>
         {% endif %}
-        <span style="margin:0 6px;">•</span>
+        <span class="divider">•</span>
         <a href="{% url 'users:user_detail' article.author.id %}" class="article-author">
           {{ article.author.profile.nickname|default:article.author.username }}
         </a>
-        <span style="margin:0 6px;">•</span>
+        <span class="divider">•</span>
         <span>{{ article.published_time|date:'Y-m-d H:i' }}</span>
         {% if article.views %}
-        <span style="margin:0 6px;">•</span>
+        <span class="divider">•</span>
         <span>👁️ {{ article.views }} 阅读</span>
         {% endif %}
       </div>

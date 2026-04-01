@@ -62,7 +62,7 @@ class Article(models.Model):
         blank=True,
         null=True,
         verbose_name="封面图",
-        default="avatars/default_cover.png",
+        # default="avatars/default_cover.png", # 如果没有上传封面，使用默认封面
     )
 
     # 关联字段

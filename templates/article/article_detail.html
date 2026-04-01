@@ -663,11 +663,14 @@
   </div>
 
   <!-- 封面图 -->
-  {% if article.cover and article.cover != '/media/avatars/default_cover.png' %}
   <div class="article-cover">
+    {% if article.cover %}
     <img src="{{ article.cover }}" alt="{{ article.title }}" loading="lazy" />
+    {% else %}
+    <img src="https://picsum.photos/seed/{{ article.id }}/200/300?random=1000" alt="{{ article.title }}" loading="lazy" />
+    {% endif %}
   </div>
-  {% endif %}
+  
 
   <!--使用渲染后的HTML -->
   <div class="article-content markdown-body">

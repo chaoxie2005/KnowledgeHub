@@ -23,6 +23,7 @@ from .ai_utils import optimize_article_title, generate_article_summary
 import redis
 import time
 import sys
+import random
 from utils.redis_client import redis_client
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Prefetch
@@ -181,8 +182,8 @@ def detail(request, article_id):
             if redis_count is not None:
                 c.like_count = int(redis_count)
             else:
-                # 缓存预热 7天小时过期时间
-                redis_client.set(f"comment:like_count:{c.id}", c.like_count, ex=86400)
+                # 缓存预热 1天小时过期时间
+                redis_client.set(f"comment:like_count:{c.id}", c.like_count, ex=86400 + random.randint(0, 3600))
             
             # 对子评论也进行同步
             if hasattr(c, 'sorted_replies'):
@@ -191,7 +192,7 @@ def detail(request, article_id):
                     if r_redis_count is not None:
                         r.like_count = int(r_redis_count)
                     else:
-                        redis_client.set(f"comment:like_count:{r.id}", r.like_count, ex=86400)
+                        redis_client.set(f"comment:like_count:{r.id}", r.like_count, ex=86400 + random.randint(0, 3600))
 
         # 获取当前用户已点赞的评论ID列表，解决 N+1 问题
         liked_comment_ids = []
@@ -259,15 +260,15 @@ def detail(request, article_id):
         if redis_count is not None:
             c.like_count = int(redis_count)
         else:
-            redis_client.set(f"comment:like_count:{c.id}", c.like_count, ex=86400)
-        
+            redis_client.set(f"comment:like_count:{c.id}", c.like_count, ex=86400 + random.randint(0, 3600))
+            
         if hasattr(c, 'sorted_replies'):
             for r in c.sorted_replies:
                 r_redis_count = redis_client.get(f"comment:like_count:{r.id}")
                 if r_redis_count is not None:
                     r.like_count = int(r_redis_count)
                 else:
-                    redis_client.set(f"comment:like_count:{r.id}", r.like_count, ex=86400) # 缓存24小时
+                    redis_client.set(f"comment:like_count:{r.id}", r.like_count, ex=86400 + random.randint(0, 3600)) # 缓存24小时
 
     # 获取当前用户已点赞的评论ID列表
     liked_comment_ids = []
@@ -308,7 +309,7 @@ def detail(request, article_id):
         "cover": article.cover.url if article.cover else "",  # 可选：补充封面图路径
     }
     
-    redis_client.set(cache_key, json.dumps(article_data), ex=86400) # 缓存24小时
+    redis_client.set(cache_key, json.dumps(article_data), ex=86400 + random.randint(0, 3600))  # 缓存24小时
     
     context = {
         "article": article_data,
@@ -471,9 +472,9 @@ def publish_article(request):
             if file_ext not in allowed_extensions:
                 messages.error(request, f"仅支持 {('/').join(allowed_extensions)}")
                 return render(request, "article/publish_article.html", {"categories": categories, "tags": tags})
-            max_size = 2 * 1024 * 1024
+            max_size = 4 * 1024 * 1024
             if cover.size > max_size:
-                messages.error(request, "封面不能超过2MB！")
+                messages.error(request, "封面不能超过4MB！")
                 return render(request, "article/publish_article.html", {"categories": categories, "tags": tags})
             article.cover = cover
 
@@ -600,7 +601,7 @@ def juejin_hot(request):
         # 写入缓存（仅存 ID 列表）
         try:
             current_ids = [art.id for art in articles.object_list]
-            redis_client.set(cache_key, json.dumps(current_ids), ex=600)
+            redis_client.set(cache_key, json.dumps(current_ids), ex=600 + random.randint(0, 3600))
         except Exception:
             pass
 
@@ -616,7 +617,7 @@ def juejin_hot(request):
     else:
         categories = list(Category.objects.all().values('id', 'name'))
         try:
-            redis_client.set(category_cache_key, json.dumps(categories), ex=3600)
+            redis_client.set(category_cache_key, json.dumps(categories), ex=3600 + random.randint(0, 3600))
         except Exception:
             pass
 
@@ -631,7 +632,7 @@ def juejin_hot(request):
     else:
         last_articles = list(JuejinHotArticle.objects.all().order_by('-published_time').values('title', 'original_url')[:10])
         try:
-            redis_client.set(last_articles_cache_key, json.dumps(last_articles), ex=600)
+            redis_client.set(last_articles_cache_key, json.dumps(last_articles), ex=600 + random.randint(0, 3600))
         except Exception:
             pass
 
@@ -712,7 +713,7 @@ def edit_draft(request, draft_id):
             # 封面格式/大小校验（复用发布文章的逻辑）
             allowed_extensions = ["jpg", "jpeg", "png", "webp"]
             file_ext = cover.name.split(".")[-1].lower() if "." in cover.name else ""
-            max_size = 2 * 1024 * 1024  # 2MB
+            max_size = 4 * 1024 * 1024  # 4MB
             if file_ext in allowed_extensions and cover.size <= max_size:
                 article.cover = cover
             else:
@@ -763,7 +764,7 @@ def delete_draft(request, draft_id):
 
 @login_required(login_url="authentication:login")
 def published(request):
-    """已发布文章（修复版，稳定不炸）""" 
+    """已发布文章""" 
     # 1. 强制从数据库拿真实数据（保证一定能显示）
     publisheds = Article.objects.filter(
         author=request.user, 
@@ -829,7 +830,7 @@ def edit_published(request, published_id):
             # 封面格式/大小校验
             allowed_extensions = ["jpg", "jpeg", "png", "webp"]
             file_ext = cover.name.split(".")[-1].lower() if "." in cover.name else ""
-            max_size = 2 * 1024 * 1024  # 2MB
+            max_size = 4 * 1024 * 1024  # 4MB
             if file_ext in allowed_extensions and cover.size <= max_size:
                 article.cover = cover
             else:
@@ -964,70 +965,6 @@ def article_ai_qa(request, article_id):
     
 
 @require_POST
-def rag_qa_full_site(request):
-    """全站内容的 RAG 智能问答"""
-    question = request.POST.get("question", "").strip()
-    if not question:
-        return JsonResponse({"code": 400, "msg": "请输入问题"})
-
-    try:
-        from utils.rag_chain import _build_vector_store_from_db
-        from langchain_core.prompts import ChatPromptTemplate
-        from utils.rag_chain import _get_llm
-
-        # 获取LLM
-        llm, error = _get_llm()
-        if error:
-            return JsonResponse({"code": 500, "msg": error})
-
-        # 构建向量库
-        vs = _build_vector_store_from_db()
-        
-        # 检索相关文档（增加k值确保所有文章都被检索到）
-        retrieved_docs = vs.similarity_search(question, k=50)
-        
-        # 去重
-        seen_ids = set()
-        unique_docs = []
-        for d in retrieved_docs:
-            aid = d.metadata.get("article_id")
-            if aid not in seen_ids:
-                seen_ids.add(aid)
-                unique_docs.append(d)
-
-        # 构建检索内容
-        retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
-        
-        # 构建prompt
-        system_text = """角色定位：你是专业、严谨、只基于原文作答的全站内容智能问答助手。
-        核心规则：
-        1. 只依据提供的检索内容回答，无依据则回复「未找到相关内容」
-        2. 不编造、不拓展
-        3. 简洁专业、条理清晰
-        4. 当用户问「全站文章」时，列出所有文章的标题、作者和发布时间
-        """
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", system_text),
-            ("human", "用户问题：{question}"),
-            ("human", "相关检索内容：\n{retrieved_docs}"),
-        ])
-        
-        # 执行问答
-        chain = prompt | llm
-        response = chain.invoke({"question": question, "retrieved_docs": retrieved_text})
-        
-        return JsonResponse({
-            "code": 200,
-            "answer": (response.content or "").strip()
-        })
-
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({"code": 500, "msg": f"服务异常：{str(e)}"})
-
-
-@require_POST
 def comment_like(request, comment_id):
     """评论点赞/取消点赞：使用 Redis 事务 (Pipeline) 保证原子性"""
     if not request.user.is_authenticated:
@@ -1074,7 +1011,7 @@ def comment_like(request, comment_id):
         if new_like_count is None:
             comment.refresh_from_db()
             new_like_count = comment.like_count
-            redis_client.set(like_count_key, new_like_count, ex=86400) # 缓存24小时
+            redis_client.set(like_count_key, new_like_count, ex=86400 + random.randint(0, 3600)) # 缓存24小时
         else:
             new_like_count = int(new_like_count)
             # 如果 Redis 里的数是负的（极端并发错误），重置为0
@@ -1126,4 +1063,5 @@ def delete_comment(request, comment_id):
 
 
 def comment_management(request):
+    """评论管理"""
     return render(request, 'article/comment_management.html')

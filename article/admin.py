@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.conf import settings
-from .models import Article, Category, Tag, Comment, JuejinHotArticle
+from .models import Article, Category, Tag, Comment, JuejinHotArticle, CSDNArticle
 from .ai_utils import optimize_article_title
 
 @admin.register(Article)
@@ -42,6 +42,14 @@ class JuejinHotArticleAdmin(admin.ModelAdmin):
         if "optimize_title" in request.POST:
             obj.title = optimize_article_title(obj.title)
         super().save_model(request, obj, form, change)
+
+
+@admin.register(CSDNArticle)
+class CSDNArticleAdmin(admin.ModelAdmin):
+    list_display = ["title", "author", "source", "crawl_time", "csdn_article_id"]
+    list_filter = ["source"]
+    search_fields = ["title", "author", "csdn_article_id"]
+    date_hierarchy = "crawl_time"
 
 
 # 保留原有注册

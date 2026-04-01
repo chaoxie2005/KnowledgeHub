@@ -244,3 +244,42 @@ class JuejinHotArticle(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.juejin_article_id})"
+
+
+class CSDNArticle(models.Model):
+    """CSDN文章模型（爬虫专用）"""
+    # CSDN唯一标识（核心去重字段）
+    csdn_article_id = models.CharField(
+        max_length=50, unique=True, verbose_name="CSDN文章ID"
+    )
+    # 核心信息
+    title = models.CharField(max_length=200, verbose_name="文章标题")
+    summary = models.CharField(
+        max_length=1000, blank=True, null=True, verbose_name="文章摘要"
+    )
+    original_url = models.URLField(max_length=500, verbose_name="CSDN原文链接")
+    author = models.CharField(
+        max_length=100, blank=True, null=True, verbose_name="CSDN作者"
+    )
+    source = models.CharField(max_length=50, blank=True, null=True, verbose_name='文章来源', default='CSDN')
+    # 时间字段
+    crawl_time = models.DateTimeField(
+        auto_now_add=True, verbose_name="爬取时间"
+    )  # 记录爬取时间
+
+    class Meta:
+        verbose_name = "CSDN文章"
+        verbose_name_plural = "CSDN文章"
+        ordering = ["-crawl_time"]  # 按爬取时间倒序
+
+        # ========== 索引优化 ==========
+        indexes = [
+            # 1. 核心：按爬取时间排序
+            models.Index(fields=["-crawl_time"], name="idx_csdn_crawl_time"),
+            # 2. 优化：按作者/来源查询
+            models.Index(fields=["author"], name="idx_csdn_author"),
+            models.Index(fields=["source"], name="idx_csdn_source"),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.csdn_article_id})"

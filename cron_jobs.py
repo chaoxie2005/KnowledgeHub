@@ -9,7 +9,8 @@ django.setup()
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from article.crawl_juejin import crawl_and_save_juejin_hot  # 导入爬虫核心函数
+from article.crawl_juejin import crawl_and_save_juejin_hot  # 导入掘金爬虫核心函数
+from article.crawl_csdn import crawl_and_save_csdn  # 导入CSDN爬虫核心函数
 from utils.rag_chain import _build_vector_store_from_db  # 导入向量库更新函数
 import logging
 
@@ -57,6 +58,7 @@ logging.basicConfig(
     filename="crawl_juejin.log",  # 日志保存到项目根目录
 )
 logger = logging.getLogger("掘金爬虫定时任务")
+csdn_logger = logging.getLogger("CSDN爬虫定时任务")
 
 
 def start_scheduler():
@@ -79,6 +81,15 @@ def start_scheduler():
         misfire_grace_time=300,  # 任务错过执行时，允许延迟5分钟
     )
 
+    # 添加定时任务：CSDN爬虫，每天上午10点和下午4点各爬取一次
+    scheduler.add_job(
+        func=crawl_and_save_csdn,  # 要执行的CSDN爬虫函数
+        trigger=CronTrigger(hour="10, 16", minute="0"),  # 每天10:00、16:00执行
+        id="csdn_hot_crawl",  # 任务唯一ID（方便管理）
+        replace_existing=True,  # 重复启动时替换原有任务
+        misfire_grace_time=300,  # 任务错过执行时，允许延迟5分钟
+    )
+
     # 添加定时任务：每小时更新一次向量库
     scheduler.add_job(
         func=_build_vector_store_from_db,  # 要执行的向量库更新函数
@@ -91,8 +102,8 @@ def start_scheduler():
     # 启动调度器
     try:
         scheduler.start()
-        logger.info("定时任务已启动：掘金爬虫(每天9:00、15:00)，向量库更新(每小时)")
-        print("定时任务已启动：掘金爬虫(每天9:00、15:00)，向量库更新(每小时)")
+        logger.info("定时任务已启动：掘金爬虫(每天9:00、15:00)，CSDN爬虫(每天10:00、16:00)，向量库更新(每小时)")
+        print("定时任务已启动：掘金爬虫(每天9:00、15:00)，CSDN爬虫(每天10:00、16:00)，向量库更新(每小时)")
     except Exception as e:
         logger.error(f"定时任务启动失败：{str(e)}")
         scheduler.shutdown()  # 启动失败则关闭调度器

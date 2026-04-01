@@ -516,6 +516,9 @@
     <a class="{% if 'juejin_hot' in request.path %}active{% endif %}" href="{% url 'article:juejin_hot' %}">
       <span>🔥</span> 掘金快讯
     </a>
+    <a class="{% if 'csdn_hot' in request.path %}active{% endif %}" href="{% url 'article:csdn_hot' %}">
+      <span>📱</span> CSDN快讯
+    </a>
     <!-- 分类下拉菜单 -->
     {% if categories %}
     <div class="dropdown">

@@ -181,27 +181,29 @@
 
   .blog-nav .nav {
     display: flex;
-    justify-content: space-around !important;
-    /* 均匀分布，不再挤在一起 */
+    justify-content: center !important;
+    /* 居中对齐 */
     width: 100%;
     /* 占满整行 */
-    gap: 10px;
-    /* 小间距，避免拥挤 */
+    gap: 30px;
+    /* 适当间距，避免拥挤 */
   }
 
   .blog-nav .nav a {
-    flex: 1;
-    /* 每个项占等宽，自动填充 */
     text-align: center;
     /* 文字居中 */
     color: #6c757d;
-    font-size: 0.95rem;
+    font-size: 1rem;
     text-decoration: none;
-    padding: 4px 0 !important;
-    /* 减少上下padding，更精致 */
+    padding: 8px 16px !important;
+    /* 适当padding，更舒适 */
     border-radius: 4px;
     /* 轻微圆角，hover更友好 */
     transition: all 0.2s ease;
+    min-height: 36px;
+    /* 固定最小高度，确保一致 */
+    display: inline-block;
+    /* 确保padding生效 */
   }
 
   .blog-nav .nav a:hover {
@@ -214,6 +216,30 @@
   .blog-nav .nav a.active {
     color: #0066cc !important;
     font-weight: 600;
+    background-color: #f0f7ff;
+    /* 保持与其他按钮相同的padding */
+  }
+
+  /* 下拉按钮样式 */
+  .blog-nav .nav .dropdown-toggle {
+    padding: 8px 16px !important;
+    /* 与其他按钮保持一致 */
+  }
+
+  /* 下拉菜单样式 */
+  .blog-nav .dropdown .dropdown-menu {
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .blog-nav .dropdown .dropdown-item {
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+  }
+
+  .blog-nav .dropdown .dropdown-item:hover {
+    color: #0066cc;
+    background-color: #f0f7ff;
   }
 </style>
 
@@ -242,7 +268,7 @@
           {% endif %}
           <div class="search-group">
             <input type="text" name="keyword" class="form-control" placeholder="搜索文章..."
-              value="{{ keyword|default:'' }}" autocomplete="off"/>
+              value="{{ keyword|default:'' }}" autocomplete="off" />
             <button class="search-btn" type="submit">搜索</button>
           </div>
         </form>
@@ -281,12 +307,21 @@
   <div class="nav d-flex justify-content-between">
     <!-- 固定入口 -->
     <a class="p-2 text-muted {% if request.path == '/' %}active{% endif %}" href="/">首页</a>
-    <a class="p-2 text-muted {% if request.path == 'juejin_hot' %}active{% endif %}"
+    <a class="p-2 text-muted {% if 'juejin_hot' in request.path %}active{% endif %}"
       href="{% url 'article:juejin_hot' %}">掘金快讯</a>
-    <!-- 动态分类 -->
-    {% for category in categories %}
-    <a class="p-2 text-muted" href="{% url 'article:category_list' category.id %}">{{ category.name }}</a>
-    {% endfor %}
+    <!-- 分类下拉菜单 -->
+    {% if categories %}
+    <div class="dropdown">
+      <a class="p-2 text-muted dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        更多
+      </a>
+      <ul class="dropdown-menu">
+        {% for category in categories %}
+        <li><a class="dropdown-item" href="{% url 'article:category_list' category.id %}">{{ category.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
   </div>
 </nav>
 

@@ -219,6 +219,8 @@
         <div class="sticky-card-img">
           {% if latest_articles.cover %}
           <img src="{{ latest_articles.cover.url }}" alt="{{ latest_articles.title }}">
+          {% else %}
+          <img src="https://picsum.photos/seed/{{ latest_articles.id }}/200" alt="{{ latest_articles.title }}">
           {% endif %}
         </div>
         <div class="sticky-card-content">
@@ -234,10 +236,12 @@
               <span class="no-tag">暂无标签</span>
               {% endif %}
             </div>
-            <a class="article-title" href="{% url 'article:detail' latest_articles.id %}">{{ latest_articles.title }}</a>
+            <a class="article-title" href="{% url 'article:detail' latest_articles.id %}">
+              {{ latest_articles.title }}</a>
             <div class="article-info">
               {% if latest_articles.category %}
-              <a href="{% url 'article:category_list' latest_articles.category.id %}" style="color: #0066cc;">{{ latest_articles.category.name }}</a>
+              <a href="{% url 'article:category_list' latest_articles.category.id %}" style="color: #0066cc;">
+                {{ latest_articles.category.name }}</a>
               {% else %}
               <span style="color: #6c757d;">暂无分类</span>
               {% endif %}
@@ -272,10 +276,12 @@
               <span class="no-tag">暂无标签</span>
               {% endif %}
             </div>
-            <a class="article-title" href="{% url 'article:detail' hot_one.id %}" style="font-size: 18px;">{{ hot_one.title }}</a>
+            <a class="article-title" href="{% url 'article:detail' hot_one.id %}" style="font-size: 18px;">
+              {{ hot_one.title }}</a>
             <div class="article-info">
               {% if hot_one.category %}
-              <a href="{% url 'article:category_list' hot_one.category.id %}"  style="color: #0066cc;">{{ hot_one.category.name }}</a>
+              <a href="{% url 'article:category_list' hot_one.category.id %}" style="color: #0066cc;">
+                {{ hot_one.category.name }}</a>
               {% else %}
               <span style="color: #6c757d;">暂无分类</span>
               {% endif %}
@@ -293,6 +299,8 @@
         <div class="hot-card-img">
           {% if hot_one.cover %}
           <img src="{{ hot_one.cover.url }}" alt="{{ hot_one.title }}">
+          {% else %}
+          <img src="https://picsum.photos/seed/{{ hot_one.id }}/200" alt="{{ hot_one.title }}">
           {% endif %}
         </div>
       </div>
@@ -312,10 +320,12 @@
               <span class="no-tag">暂无标签</span>
               {% endif %}
             </div>
-            <a class="article-title" href="{% url 'article:detail' hot_two.id %}" style="font-size: 18px;">{{ hot_two.title }}</a>
+            <a class="article-title" href="{% url 'article:detail' hot_two.id %}" style="font-size: 18px;">
+              {{ hot_two.title }}</a>
             <div class="article-info">
               {% if hot_two.category %}
-              <a href="{% url 'article:category_list' hot_two.category.id %}" style="color: #0066cc;">{{ hot_two.category.name }}</a>
+              <a href="{% url 'article:category_list' hot_two.category.id %}" style="color: #0066cc;">
+                {{ hot_two.category.name }}</a>
               {% else %}
               <span style="color: #6c757d;">暂无分类</span>
               {% endif %}
@@ -333,6 +343,8 @@
         <div class="hot-card-img">
           {% if hot_two.cover %}
           <img src="{{ hot_two.cover.url }}" alt="{{ hot_two.title }}">
+          {% else %}
+          <img src="https://picsum.photos/seed/{{ hot_two.id }}/200" alt="{{ hot_two.title }}">
           {% endif %}
         </div>
       </div>

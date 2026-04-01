@@ -964,6 +964,70 @@ def article_ai_qa(request, article_id):
     
 
 @require_POST
+def rag_qa_full_site(request):
+    """全站内容的 RAG 智能问答"""
+    question = request.POST.get("question", "").strip()
+    if not question:
+        return JsonResponse({"code": 400, "msg": "请输入问题"})
+
+    try:
+        from utils.rag_chain import _build_vector_store_from_db
+        from langchain_core.prompts import ChatPromptTemplate
+        from utils.rag_chain import _get_llm
+
+        # 获取LLM
+        llm, error = _get_llm()
+        if error:
+            return JsonResponse({"code": 500, "msg": error})
+
+        # 构建向量库
+        vs = _build_vector_store_from_db()
+        
+        # 检索相关文档（增加k值确保所有文章都被检索到）
+        retrieved_docs = vs.similarity_search(question, k=50)
+        
+        # 去重
+        seen_ids = set()
+        unique_docs = []
+        for d in retrieved_docs:
+            aid = d.metadata.get("article_id")
+            if aid not in seen_ids:
+                seen_ids.add(aid)
+                unique_docs.append(d)
+
+        # 构建检索内容
+        retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
+        
+        # 构建prompt
+        system_text = """角色定位：你是专业、严谨、只基于原文作答的全站内容智能问答助手。
+        核心规则：
+        1. 只依据提供的检索内容回答，无依据则回复「未找到相关内容」
+        2. 不编造、不拓展
+        3. 简洁专业、条理清晰
+        4. 当用户问「全站文章」时，列出所有文章的标题、作者和发布时间
+        """
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_text),
+            ("human", "用户问题：{question}"),
+            ("human", "相关检索内容：\n{retrieved_docs}"),
+        ])
+        
+        # 执行问答
+        chain = prompt | llm
+        response = chain.invoke({"question": question, "retrieved_docs": retrieved_text})
+        
+        return JsonResponse({
+            "code": 200,
+            "answer": (response.content or "").strip()
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"code": 500, "msg": f"服务异常：{str(e)}"})
+
+
+@require_POST
 def comment_like(request, comment_id):
     """评论点赞/取消点赞：使用 Redis 事务 (Pipeline) 保证原子性"""
     if not request.user.is_authenticated:

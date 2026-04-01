@@ -38,4 +38,5 @@ urlpatterns = [
     path("comment/like/<int:comment_id>/", views.comment_like, name="comment_like"),
     path("comment/delete/<int:comment_id>/", views.delete_comment, name="delete_comment"),
     path('comment_management/', views.comment_management, name='comment_management'), # 评论管理
+    path('ai-qa/full-site/', views.rag_qa_full_site, name='rag_qa_full_site'), # 全站内容智能问答
 ]

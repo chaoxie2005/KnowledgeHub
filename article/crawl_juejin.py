@@ -220,11 +220,20 @@ def save_juejin_article(article_data, juejin_article_id):
             )
             return None
 
-        optimized_title = optimize_article_title(article_data["title"])
+        # AI优化降级处理
+        try:
+            optimized_title = optimize_article_title(article_data["title"])
+        except Exception as e:
+            print(f"AI标题优化失败，使用原始标题: {e}")
+            optimized_title = article_data["title"]
 
-        ai_summary = generate_article_summary(
-            article_data.get("content") or article_data.get("summary", "")
-        )
+        try:
+            ai_summary = generate_article_summary(
+                article_data.get("content") or article_data.get("summary", "")
+            )
+        except Exception as e:
+            print(f"AI摘要生成失败，使用原始摘要: {e}")
+            ai_summary = article_data.get("summary", "")
 
         article = JuejinHotArticle(
             juejin_article_id=juejin_article_id,

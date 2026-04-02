@@ -110,7 +110,7 @@ def _build_vector_store_from_db():
         chroma_db_path = os.path.join(CHROMA_DIR, "chroma.sqlite3")
         if os.path.exists(chroma_db_path):
             mtime = os.path.getmtime(chroma_db_path)
-            if time.time() - mtime > 3600:  # 超过1小时自动重建
+            if time.time() - mtime > 3600 * 24:  # 超过1天自动重建
                 rebuild = True
         else:
             rebuild = True

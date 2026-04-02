@@ -142,16 +142,16 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",  # 可选：token 认证（移动端用）
         "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT认证
     ],
-    # 权限：未登录只读，登录可写（符合博客逻辑）
+    # 权限：未登录只读，登录可写
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
-    # 可选：过滤、排序
+    # 过滤、排序
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.OrderingFilter",
     ],
-    # 可选：API 文档美化
+    # API 文档美化
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
 }
 

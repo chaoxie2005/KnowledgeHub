@@ -982,20 +982,9 @@ def csdn_hot(request):
         except Exception:
             pass
 
-    # 5.2 最新 10 篇热榜缓存
-    try:
-        cached_last = redis_client.get(last_articles_cache_key)
-    except Exception:
-        cached_last = None
-
-    if cached_last:
-        last_articles = json.loads(cached_last)
-    else:
-        last_articles = list(CSDNArticle.objects.all().order_by('-crawl_time').values('title', 'original_url')[:10])
-        try:
-            redis_client.set(last_articles_cache_key, json.dumps(last_articles), ex=600 + random.randint(0, 3600))
-        except Exception:
-            pass
+    # 最新 10 篇热榜
+    # 直接从数据库获取最新数据，确保显示最新的CSDN快讯
+    last_articles = list(CSDNArticle.objects.all().order_by('-crawl_time').values('title', 'original_url')[:10])
 
     context = {
         "articles": articles,

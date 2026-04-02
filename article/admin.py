@@ -18,7 +18,7 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ["title", "content"]  # 搜索字段
     date_hierarchy = "created_time"  # 按时间筛选
 
-    # 新增：添加AI优化按钮
+    # 添加AI优化按钮
     change_form_template = "admin/article/change_form.html"
 
     def save_model(self, request, obj, form, change):

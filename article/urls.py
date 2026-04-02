@@ -36,6 +36,7 @@ urlpatterns = [
     path("ai/optimize-title/", views.ai_optimize_title, name="ai_optimize_title"),
     path("ai/generate-summary/", views.ai_generate_summary, name="ai_generate_summary"),
     path("ai-qa/<int:article_id>/", views.article_ai_qa, name="article_ai_qa"),
+    path("ai-qa/global/", views.global_ai_qa, name="global_ai_qa"),
     path("comment/like/<int:comment_id>/", views.comment_like, name="comment_like"),
     path("comment/delete/<int:comment_id>/", views.delete_comment, name="delete_comment"),
     path('comment_management/', views.comment_management, name='comment_management'), # 评论管理

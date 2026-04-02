@@ -1066,6 +1066,38 @@ def article_ai_qa(request, article_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({"code": 500, "msg": f"服务异常：{str(e)}"})
+
+
+def global_ai_qa(request):
+    """LangChain RAG 全局问答接口（基于所有文章内容）"""
+    try:
+        question = request.POST.get("question", "").strip()
+        if not question:
+            return JsonResponse({"code": 400, "msg": "请输入问题"})
+
+        # 获取所有已发布文章的内容
+        articles = Article.objects.filter(status="published").values_list('content', flat=True)
+        all_content = "\n\n".join(articles)
+
+        if request.GET.get("stream") == "1":
+            response = StreamingHttpResponse(
+                simple_rag_qa_stream(all_content, question),
+                content_type="text/plain; charset=utf-8",
+            )
+            response["Cache-Control"] = "no-cache"
+            response["X-Accel-Buffering"] = "no"
+            return response
+
+        answer = simple_rag_qa(all_content, question)
+        return JsonResponse({
+            "code": 200,
+            "answer": answer
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"code": 500, "msg": f"服务异常：{str(e)}"})
     
 
 @require_POST

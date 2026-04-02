@@ -66,10 +66,17 @@
     {% if archive_data %}
     {% for data in archive_data %}
     <li class="archive-item py-1">
+      {% if data.year and data.month %}
       <a href="{% url 'article:archive_list' data.year data.month %}" class="link-item">
         <i class="bi bi-calendar-event text-primary me-2"></i>
         {{ data.year }}年{{ data.month }}月
       </a>
+      {% else %}
+      <span class="link-item">
+        <i class="bi bi-calendar-event text-primary me-2"></i>
+        {{ data.year|default:'未知' }}年{{ data.month|default:'未知' }}月
+      </span>
+      {% endif %}
       <small class="archive-count">({{ data.article_count }}篇)</small>
     </li>
     {% endfor %}

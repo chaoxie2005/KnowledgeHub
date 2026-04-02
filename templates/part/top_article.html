@@ -213,6 +213,7 @@
 
 <!-- 置顶头条区（带明确置顶标识） -->
 <div class="top-banner">
+  {% if latest_articles %}
   <div class="row mb-4">
     <div class="col-12">
       <div class="sticky-card">
@@ -259,9 +260,12 @@
       </div>
     </div>
   </div>
+  {% endif %}
 
   <!-- 热门推荐区（和置顶+列表完全统一） -->
+  {% if hot_one or hot_two %}
   <div class="row mb-4">
+    {% if hot_one %}
     <div class="col-md-6 mb-4 mb-md-0">
       <div class="hot-card">
         <div class="hot-card-content">
@@ -305,7 +309,9 @@
         </div>
       </div>
     </div>
+    {% endif %}
 
+    {% if hot_two %}
     <div class="col-md-6">
       <div class="hot-card">
         <div class="hot-card-content">
@@ -349,5 +355,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
   </div>
+  {% endif %}
 </div>

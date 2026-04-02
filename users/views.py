@@ -96,9 +96,9 @@ def edit_user(request):
                     raise ValidationError(_("头像仅支持jpg/jpeg/png/webp格式"))
 
                 # 校验文件大小（2MB）
-                max_size = 2 * 1024 * 1024
+                max_size = 4 * 1024 * 1024
                 if avatar_file.size > max_size:
-                    raise ValidationError(_("头像大小不能超过2MB"))
+                    raise ValidationError(_("头像大小不能超过4MB"))
 
             # ========== 3. 赋值并保存数据 ==========
             # 基础信息赋值

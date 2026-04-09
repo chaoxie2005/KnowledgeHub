@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 {% load static %}
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,223 +9,748 @@
   <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
   <style>
     /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      background-color: #f5f5f5;
+      background-color: #f5f7fa;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-
-    /* 侧边栏 */
-    .sidebar {
-      width: 160px;
-      background-color: #fff;
-      min-height: 100vh;
-      padding-top: 20px;
-      border-right: 1px solid #eee;
-    }
-    .sidebar .nav-link {
       color: #333;
-      padding: 10px 20px;
-    }
-    .sidebar .nav-link:hover {
-      background-color: #f8f9fa;
-    }
-    .sidebar .dropdown-toggle::after {
-      float: right;
-      margin-top: 8px;
+      line-height: 1.6;
     }
 
-    /* 主内容区 */
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+
+    /* 全局链接样式 */
+    a {
+      color: #007bff;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: #0056b3;
+    }
+
+    /* 主容器 */
+    .edit-user-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航栏 */
+    .top-nav {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .site-name a {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e0e0e0;
+      transition: all 0.3s ease;
+    }
+
+    .user-avatar:hover {
+      border-color: #007bff;
+      transform: scale(1.05);
+    }
+
+    .user-nickname {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      color: #666;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .dropdown-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 8px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 120px;
+      z-index: 9999;
+      overflow: hidden;
+      display: none;
+    }
+
+    .dropdown-content.show {
+      display: block;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #333;
+      transition: background-color 0.3s ease;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f5f5f5;
+      color: #007bff;
+    }
+
+    /* 主体内容 */
     .main-content {
       flex: 1;
-      padding: 20px;
+      display: flex;
+      padding: 24px;
+      gap: 24px;
     }
-    .card {
-      background-color: #fff;
-      border-radius: 8px;
+
+    /* 左侧菜单 */
+    .left-menu {
+      width: 200px;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      padding: 0;
+      transition: width 0.3s ease;
+    }
+
+    /* 收起/展开按钮 */
+    .menu-toggle {
+      display: block;
+      width: 100%;
+      background: none;
       border: none;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.3s ease;
     }
-    .card-header {
-      padding: 15px 20px;
-      border-bottom: 1px solid #eee;
-      font-size: 18px;
+
+    .menu-toggle:hover {
+      background-color: #f5f5f5;
+      color: #007bff;
+    }
+
+    /* 菜单项 */
+    .menu-item {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      font-size: 14px;
       font-weight: 500;
       color: #333;
+      transition: all 0.3s ease;
+      position: relative;
+      border-left: 4px solid transparent;
     }
-    .card-body {
-      padding: 20px;
+
+    .menu-item:hover {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .menu-item span {
+      font-size: 10px;
+      transition: transform 0.3s ease;
+      color: #999;
+    }
+
+    /* 子菜单 */
+    .sub-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .sub-menu.active {
+      max-height: 300px;
+    }
+
+    .sub-menu-item {
+      padding: 10px 16px 10px 32px;
+      font-size: 13px;
+      color: #666;
+      transition: all 0.3s ease;
+      position: relative;
+      border-left: 4px solid transparent;
+    }
+
+    .sub-menu-item:hover {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .sub-menu-item a {
+      color: #333 !important;
+    }
+
+    /* 侧边栏收起时的样式 */
+    .left-menu.collapsed {
+      position: relative;
+      overflow: hidden !important;
+    }
+
+    .left-menu.collapsed .sub-menu {
+      display: none !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    .left-menu.collapsed .sub-menu-item {
+      display: none !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    /* 右侧内容 */
+    .right-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 页面标题 */
+    .page-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .back-link {
+      font-size: 14px;
+      color: #666;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+      color: #007bff;
+    }
+
+    /* 卡片样式 */
+    .content-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+      padding: 24px;
+      width: 100%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .content-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
     }
 
     /* 表单样式 */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
     .form-label {
       font-weight: 500;
       color: #333;
       margin-bottom: 8px;
+      display: block;
     }
-    .form-control, .form-select {
-      border: none;
-      border-bottom: 1px solid #eee;
-      border-radius: 0;
-      padding: 8px 0;
-      box-shadow: none;
+
+    .form-label.required::after {
+      content: " *";
+      color: #dc3545;
     }
-    .form-control:focus, .form-select:focus {
-      border-bottom: 1px solid #007bff;
-      box-shadow: none;
+
+    .form-label.optional::after {
+      content: " (选填)";
+      font-weight: 400;
+      font-size: 12px;
+      color: #666;
     }
-    /* 头像预览样式 */
+
+    .form-control,
+    .form-select,
+    textarea.form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background-color: #fff;
+    }
+
+    .form-control:focus,
+    .form-select:focus,
+    textarea.form-control:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1), 0 2px 8px rgba(0, 123, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .form-control:hover,
+    .form-select:hover,
+    textarea.form-control:hover {
+      border-color: #c0c0c0;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* 头像上传区域 */
+    .avatar-upload-section {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .avatar-container {
+      position: relative;
+    }
+
     .avatar-preview {
       width: 100px;
       height: 100px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid #eee;
-      margin-bottom: 10px;
+      border: 2px solid #e0e0e0;
+      transition: all 0.3s ease;
     }
-    /* 按钮样式 */
-    .btn-save {
+
+    .avatar-preview:hover {
+      border-color: #007bff;
+      transform: scale(1.05);
+    }
+
+    .avatar-upload-btn {
       background-color: #007bff;
       color: #fff;
       border: none;
-      border-radius: 4px;
-      padding: 8px 20px;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
-    .btn-save:hover {
+
+    .avatar-upload-btn:hover {
       background-color: #0069d9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
     }
-    .btn-cancel {
+
+    .avatar-upload-input {
+      display: none;
+    }
+
+    .avatar-hint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    /* 头像预览遮罩层 */
+    .avatar-preview-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .avatar-preview-overlay.show {
+      display: flex;
+    }
+
+    .avatar-preview-img {
+      max-width: 80%;
+      max-height: 80%;
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      border: 4px solid #fff;
+    }
+
+    /* 字数统计 */
+    .word-count {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    .word-count.exceeded {
+      color: #dc3545;
+    }
+
+    /* 按钮样式 */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0069d9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-secondary {
       background-color: #e9ecef;
       color: #333;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 20px;
-      margin-left: 10px;
     }
-    .btn-cancel:hover {
+
+    .btn-secondary:hover {
       background-color: #dee2e6;
+      transform: translateY(-1px);
     }
-    /* 新增：返回链接样式 */
-    .back-link {
-      font-size: 0.9rem;
-      color: #007bff;
-      text-decoration: none;
-      margin-left: 15px;
+
+    .btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
     }
-    .back-link:hover {
-      color: #0056b3;
-      text-decoration: underline;
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .left-menu {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .left-menu.collapsed {
+        width: 100%;
+      }
+
+      .avatar-upload-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .form-row.full-width {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="d-flex">
-    <!-- 主内容区 -->
+  <div class="edit-user-container">
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+      <div class="site-name">
+        <a href="/">非凡博客</a>
+      </div>
+      <div class="user-info">
+        <img
+          src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}/media/avatars/default_avatar.png{% endif %}"
+          alt="用户头像" class="user-avatar">
+        <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
+        <div class="dropdown">
+          <button class="dropdown-btn">▼</button>
+          <div class="dropdown-content">
+            <a href="{% url 'authentication:logout' %}">退出登录</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主体内容 -->
     <div class="main-content">
-      <!-- 标题 + 返回链接（核心修改） -->
-      <div class="d-flex align-items-center mb-4">
-        <h4 class="mb-0">修改个人信息</h4>
-        <a href="{% url 'users:user_center' %}" class="back-link">← 返回个人中心</a>
+      <!-- 左侧菜单（可折叠） -->
+      <div class="left-menu" id="leftMenu">
+        <!-- 收起/展开按钮 -->
+        <button class="menu-toggle" id="menuToggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="menu-item" data-target="personal-menu">
+          个人中心
+          <span>▼</span>
+        </div>
+        <div class="sub-menu" id="personal-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'users:user_center' %}" style="text-decoration: none; color: inherit;">个人信息</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
+          </div>
+        </div>
+
+        <div class="menu-item" data-target="content-menu">
+          内容管理
+          <span>▼</span>
+        </div>
+        <div class="sub-menu" id="content-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:comment_management' %}" style="text-decoration: none; color: inherit;">评论管理</a>
+          </div>
+        </div>
       </div>
 
-      <!-- 个人信息表单卡片 -->
-      <div class="card">
-        <div class="card-header">基本信息</div>
-        <div class="card-body">
+      <!-- 右侧内容 -->
+      <div class="right-content">
+        <!-- 页面标题 -->
+        <div class="page-header">
+          <h1 class="page-title">修改个人信息</h1>
+          <a href="{% url 'users:user_center' %}" class="back-link">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            返回个人中心
+          </a>
+        </div>
+
+        <!-- 基本信息卡片 -->
+        <div class="content-card">
+          <h2 class="section-title">基本信息</h2>
+
           <form id="profileForm" method="post" enctype="multipart/form-data">
-            {% csrf_token %}  <!-- Django必须的CSRF令牌 -->
+            {% csrf_token %} <!-- Django必须的CSRF令牌 -->
             {% include 'part/errors.html' %}
             {% include 'part/messages.html' %}
+
             <!-- 头像上传 -->
-            <div class="mb-4">
-              <label class="form-label">头像</label>
-              <br>
-              <!-- 回显用户当前头像 -->
-              {% if profile.avatar %}
-                <img src="{{ profile.avatar.url }}" alt="头像预览" class="avatar-preview" id="avatarPreview">
-              {% else %}
-                <img src="/media/avatars/default_avatar.png" alt="头像预览" class="avatar-preview" id="avatarPreview">
-              {% endif %}
-              <br>
-              <input type="file" class="form-control-sm" id="avatar" name="avatar" accept="image/*" onchange="previewAvatar(this)">
-              <div class="form-text">建议上传正方形图片，大小不超过4MB</div>
+            <div class="avatar-upload-section">
+              <div class="avatar-container">
+                <!-- 回显用户当前头像 -->
+                <img
+                  src="{% if profile.avatar %}{{ profile.avatar.url }}{% else %}/media/avatars/default_avatar.png{% endif %}"
+                  alt="头像预览" class="avatar-preview" id="avatarPreview">
+              </div>
+              <div>
+                <button type="button" class="avatar-upload-btn"
+                  onclick="document.getElementById('avatar').click()">更换头像</button>
+                <input type="file" class="avatar-upload-input" id="avatar" name="avatar" accept="image/*"
+                  onchange="previewAvatar(this)">
+                <div class="avatar-hint">建议上传正方形图片，大小不超过4MB</div>
+              </div>
             </div>
 
-            <!-- 昵称（回显当前值） -->
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="nickname" class="form-label">昵称</label>
-                <input type="text" class="form-control" id="nickname" name="nickname" maxlength="50" 
-                       value="{{ profile.nickname|default:'' }}" placeholder="请输入昵称">
+            <!-- 基础信息两列布局 -->
+            <div class="form-row">
+              <!-- 昵称 -->
+              <div class="form-group">
+                <label for="nickname" class="form-label required">昵称</label>
+                <input type="text" class="form-control" id="nickname" name="nickname" maxlength="50"
+                  value="{{ profile.nickname|default:'' }}" placeholder="请输入昵称">
               </div>
-              <!-- 性别（回显当前值） -->
-              <div class="col-md-6">
-                <label for="gender" class="form-label">性别</label>
+
+              <!-- 性别 -->
+              <div class="form-group">
+                <label for="gender" class="form-label required">性别</label>
                 <select id="gender" name="gender" class="form-select">
                   {% for value, label in gender_choices %}
-                    <option value="{{ value }}" {% if profile.gender == value %}selected{% endif %}>{{ label }}</option>
+                  <option value="{{ value }}" {% if profile.gender == value %}selected{% endif %}>{{ label }}</option>
                   {% endfor %}
                 </select>
               </div>
             </div>
 
-            <!-- 手机号（回显当前值） -->
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label for="phone" class="form-label">手机号</label>
-                <input type="text" class="form-control" id="phone" name="phone" maxlength="11" 
-                       value="{{ profile.phone|default:'' }}" placeholder="请输入11位手机号">
-                <div class="form-text">格式示例：13800138000</div>
+            <div class="form-row">
+              <!-- 手机号 -->
+              <div class="form-group">
+                <label for="phone" class="form-label optional">手机号</label>
+                <input type="text" class="form-control" id="phone" name="phone" maxlength="11"
+                  value="{{ profile.phone|default:'' }}" placeholder="请输入11位手机号">
               </div>
-              <!-- 邮箱（回显当前值） -->
-              <div class="col-md-6">
-                <label for="email" class="form-label">邮箱</label>
-                <input type="email" class="form-control" id="email" name="email" maxlength="254" 
-                       value="{{ profile.email|default:request.user.email }}" placeholder="请输入邮箱地址">
+
+              <!-- 邮箱 -->
+              <div class="form-group">
+                <label for="email" class="form-label optional">邮箱</label>
+                <input type="email" class="form-control" id="email" name="email" maxlength="254"
+                  value="{{ profile.email|default:request.user.email }}" placeholder="请输入邮箱地址">
               </div>
             </div>
 
-            <!-- 个人简介（回显当前值） -->
-            <div class="mb-4">
-              <label for="bio" class="form-label">个人简介</label>
-              <textarea class="form-control" id="bio" name="bio" rows="3" maxlength="500" placeholder="请输入个人简介（最多500字）">
-                {{ profile.bio|default:'' }}
-              </textarea>
-              <div class="form-text"><span id="bioCount">{{ profile.bio|length|default:0 }}</span>/500 字</div>
+            <!-- 个人简介通栏 -->
+            <div class="form-row full-width">
+              <div class="form-group">
+                <label for="bio" class="form-label optional">个人简介</label>
+                <textarea class="form-control" id="bio" name="bio" rows="4" maxlength="500"
+                  placeholder="请输入个人简介（最多500字）">{{ profile.bio|default:'' }}</textarea>
+                <div class="word-count" id="bioCount">0/500</div>
+              </div>
             </div>
 
-            <!-- 地址信息（可选，回显当前值） -->
-            <div class="card mb-4">
-              <div class="card-header py-2">
-                <h6 class="mb-0">地址信息（选填）</h6>
-              </div>
-              <div class="card-body py-2">
-                <div class="row mb-3">
-                  <div class="col-md-8">
-                    <label for="address" class="form-label">详细地址</label>
-                    <input type="text" class="form-control" id="address" name="address" maxlength="200" 
-                           value="{{ profile.address|default:'' }}" placeholder="请输入详细地址">
-                  </div>
+            <!-- 地址信息卡片 -->
+            <div class="content-card" style="margin-top: 24px;">
+              <h2 class="section-title">地址信息</h2>
+
+              <div class="form-row">
+                <!-- 详细地址 -->
+                <div class="form-group">
+                  <label for="address" class="form-label optional">详细地址</label>
+                  <input type="text" class="form-control" id="address" name="address" maxlength="200"
+                    value="{{ profile.address|default:'' }}" placeholder="请输入详细地址">
                 </div>
-                <div class="row mb-3">
-                  <div class="col-md-6">
-                    <label for="city" class="form-label">城市</label>
-                    <input type="text" class="form-control" id="city" name="city" maxlength="50" 
-                           value="{{ profile.city|default:'' }}" placeholder="请输入城市">
-                  </div>
-                  <div class="col-md-6">
-                    <label for="state" class="form-label">省份/州</label>
-                    <input type="text" class="form-control" id="state" name="state" maxlength="50" 
-                           value="{{ profile.state|default:'' }}" placeholder="请输入省份/州">
-                  </div>
+              </div>
+
+              <div class="form-row">
+                <!-- 城市 -->
+                <div class="form-group">
+                  <label for="city" class="form-label optional">城市</label>
+                  <input type="text" class="form-control" id="city" name="city" maxlength="50"
+                    value="{{ profile.city|default:'' }}" placeholder="请输入城市">
+                </div>
+
+                <!-- 省份/州 -->
+                <div class="form-group">
+                  <label for="state" class="form-label optional">省份/州</label>
+                  <input type="text" class="form-control" id="state" name="state" maxlength="50"
+                    value="{{ profile.state|default:'' }}" placeholder="请输入省份/州">
                 </div>
               </div>
             </div>
 
             <!-- 提交按钮 -->
-            <div class="mt-4">
-              <button type="submit" class="btn btn-save">保存修改</button>
-              <button type="button" class="btn btn-cancel" onclick="window.location.href='{% url 'users:user_center' %}'">取消</button>
+            <div class="btn-group">
+              <button type="button" class="btn btn-secondary" onclick="window.location.href='{% url " users:user_center"
+                %}'">取消</button>
+              <button type="submit" class="btn btn-primary">保存修改</button>
             </div>
           </form>
         </div>
@@ -232,24 +758,138 @@
     </div>
   </div>
 
-  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  <!-- 头像预览遮罩层 -->
+  <div class="avatar-preview-overlay" id="avatar-overlay">
+    <img src="" alt="头像预览" class="avatar-preview-img" id="avatar-preview" />
+  </div>
+
   <script>
     // 头像预览功能
     function previewAvatar(input) {
       if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('avatarPreview').src = e.target.result;
-        }
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var avatarPreview = document.getElementById('avatarPreview');
+          avatarPreview.src = e.target.result;
+          // 更新遮罩层中的头像
+          document.getElementById('avatar-preview').src = e.target.result;
+        };
         reader.readAsDataURL(input.files[0]);
       }
     }
 
-    // 个人简介字数统计
-    document.getElementById('bio').addEventListener('input', function() {
-      const count = this.value.length;
-      document.getElementById('bioCount').textContent = count;
+    // 头像点击预览功能
+    const avatarPreview = document.getElementById('avatarPreview');
+    const avatarOverlay = document.getElementById('avatar-overlay');
+    const avatarPreviewImg = document.getElementById('avatar-preview');
+
+    avatarPreview.addEventListener('click', () => {
+      avatarPreviewImg.src = avatarPreview.src;
+      avatarOverlay.classList.add('show');
     });
+
+    avatarOverlay.addEventListener('click', () => {
+      avatarOverlay.classList.remove('show');
+    });
+
+    // 侧边栏折叠功能
+    document.querySelectorAll('.menu-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const targetId = item.getAttribute('data-target')
+        const subMenu = document.getElementById(targetId)
+        // 只切换子菜单的显示/隐藏，不添加active类
+        subMenu.classList.toggle('active')
+      })
+    })
+
+    // 左侧菜单收起/展开功能
+    const menuToggle = document.getElementById('menuToggle')
+    const leftMenu = document.getElementById('leftMenu')
+    let menuCollapsed = false
+
+    menuToggle.addEventListener('click', () => {
+      menuCollapsed = !menuCollapsed
+      if (menuCollapsed) {
+        leftMenu.style.width = '60px'
+        leftMenu.classList.add('collapsed')
+        leftMenu.querySelectorAll('.menu-item span').forEach(span => {
+          span.style.display = 'none'
+        })
+        leftMenu.querySelectorAll('.menu-item').forEach(item => {
+          item.style.padding = '12px 8px'
+          item.style.fontSize = '0'
+        })
+        // 折叠所有子菜单
+        leftMenu.querySelectorAll('.sub-menu').forEach(subMenu => {
+          subMenu.classList.remove('active')
+          subMenu.style.maxHeight = '0'
+        })
+        menuToggle.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        `
+      } else {
+        leftMenu.style.width = '200px'
+        leftMenu.classList.remove('collapsed')
+        leftMenu.querySelectorAll('.menu-item span').forEach(span => {
+          span.style.display = 'inline'
+        })
+        leftMenu.querySelectorAll('.menu-item').forEach(item => {
+          item.style.padding = '12px 16px'
+          item.style.fontSize = '14px'
+        })
+        // 展开个人中心子菜单（默认）
+        const personalMenu = document.getElementById('personal-menu')
+        if (personalMenu) {
+          personalMenu.classList.add('active')
+          personalMenu.style.maxHeight = '300px'
+        }
+        menuToggle.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        `
+      }
+    })
+
+    // 个人简介字数统计
+    const bioTextarea = document.getElementById('bio')
+    const bioCount = document.getElementById('bioCount')
+
+    function updateWordCount() {
+      const count = bioTextarea.value.length
+      bioCount.textContent = `${count}/500`
+      if (count > 500) {
+        bioCount.classList.add('exceeded')
+      } else {
+        bioCount.classList.remove('exceeded')
+      }
+    }
+
+    // 初始化字数统计
+    updateWordCount()
+
+    // 监听输入事件
+    bioTextarea.addEventListener('input', updateWordCount)
+
+    // 下拉框功能
+    document.querySelectorAll('.dropdown-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const dropdownContent = this.nextElementSibling
+        dropdownContent.classList.toggle('show')
+      })
+    })
+
+    // 点击页面其他地方关闭下拉框
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+          content.classList.remove('show')
+        })
+      }
+    })
   </script>
 </body>
+
 </html>

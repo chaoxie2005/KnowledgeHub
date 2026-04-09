@@ -1,101 +1,285 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-  {% load static %}
+{% load static %}
 
-  <head>
-    <meta charset="UTF-8" />
-    <title>用户中心</title>
-    <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
-    <style>
-      /* 侧边栏折叠样式 */
-      .menu-item {
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .sub-menu {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      }
-      .sub-menu.active {
-        max-height: 300px; /* 足够容纳所有子项 */
-      }
-      .menu-item span {
-        transition: transform 0.3s ease;
-      }
-      .menu-item.active span {
-        transform: rotate(180deg);
-      }
-      
-      /* 头像预览样式 */
-      .avatar-preview-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-      }
-      .avatar-preview-overlay.show {
-        display: flex;
-      }
-      .avatar-preview-img {
-        max-width: 80%;
-        max-height: 80%;
-        border-radius: 8px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      }
-      .large-avatar {
-        cursor: pointer;
-        transition: transform 0.2s ease;
-      }
-      .large-avatar:hover {
-        transform: scale(1.05);
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <title>用户中心</title>
+  <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  <body>
-    <div class="user-center-container">
-      <!-- 顶部导航栏 -->
-      <div class="top-nav">
-        <div class="site-name">
-          <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
-        </div>
+    body {
+      background-color: #f5f7fa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+
+    /* 全局链接样式 */
+    a {
+      color: #007bff;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: #0069d9;
+      text-decoration: none;
+    }
+
+    /* 容器样式 */
+    .user-center-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航栏 */
+    .top-nav {
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .site-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* 主体内容 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      padding: 24px;
+    }
+
+    /* 右侧内容 */
+    .right-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 卡片样式 */
+    .content-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+      padding: 24px;
+      width: 100%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .content-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 卡片标题 */
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* 账号信息卡片 */
+    .account-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 8px;
+      margin-bottom: 0;
+    }
+
+    .large-avatar-container {
+      position: relative;
+    }
+
+    .large-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .large-avatar:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .username-section {
+      flex: 1;
+    }
+
+    .username {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .signature {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    /* 信息列表样式 */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 13px;
+      color: #999;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    /* 个人简介 */
+    .profile-desc {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      padding: 16px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    /* 头像预览样式 */
+    .avatar-preview-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .avatar-preview-overlay.show {
+      display: flex;
+    }
+
+    .avatar-preview-img {
+      max-width: 80%;
+      max-height: 80%;
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      border: 4px solid #fff;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 16px;
+      }
+
+      .account-info {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="user-center-container">
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+      <div class="site-name">
+        <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
       </div>
+    </div>
 
-      <!-- 主体内容 -->
-      <div class="main-content">
-        <!-- 右侧内容 -->
-        <div class="right-content">
-          <!-- 账号信息卡片 -->
-          <div class="content-card">
-            <div class="section-title">账号信息</div>
-            <div class="account-info">
-              <div class="large-avatar-container">
-                {% if user.profile.avatar %}
-                  <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="large-avatar" id="avatar-trigger" />
-                {% else %}
-                  <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="large-avatar" id="avatar-trigger" />
-                {% endif %}
-              </div>
-              <div class="username-section">
-                <div class="username">{{ user.profile.nickname|default:user.username }}</div>
-                <div class="signature">{{ user.profile.bio|default:'这个人很懒，什么都没写~' }}</div>
-              </div>
+    <!-- 主体内容 -->
+    <div class="main-content">
+      <!-- 右侧内容 -->
+      <div class="right-content">
+        <!-- 账号信息卡片 -->
+        <div class="content-card">
+          <div class="section-title">账号信息</div>
+          <div class="account-info">
+            <div class="large-avatar-container">
+              {% if user.profile.avatar %}
+              <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="large-avatar" id="avatar-trigger" />
+              {% else %}
+              <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="large-avatar" id="avatar-trigger" />
+              {% endif %}
+            </div>
+            <div class="username-section">
+              <div class="username">{{ user.profile.nickname|default:user.username }}</div>
+              <div class="signature">{{ user.profile.bio|default:'这个人很懒，什么都没写~' }}</div>
             </div>
           </div>
+        </div>
 
-          <!-- 个人信息卡片 -->
-          <div class="content-card">
-            <div class="section-title">个人信息</div>
+        <!-- 个人信息卡片 -->
+        <div class="content-card">
+          <div class="section-title">个人信息</div>
+          <div class="info-grid">
             <div class="info-list">
               <div class="info-label">昵称</div>
               <div class="info-value">{{ user.profile.nickname|default:'暂未设置' }}</div>
@@ -121,15 +305,17 @@
               <div class="info-value">{{ user.date_joined|date:'Y-m-d H:i' }}</div>
             </div>
           </div>
+        </div>
 
-          <!-- 个人简介卡片 -->
-          <div class="content-card">
-            <div class="section-title">个人简介</div>
-            <div class="profile-desc">{{ user.profile.bio|default:'这个人很懒，什么都没写~' }}</div>
-          </div>
-          <!-- 地址信息卡片（精简版） -->
-          <div class="content-card">
-            <div class="section-title">地址信息</div>
+        <!-- 个人简介卡片 -->
+        <div class="content-card">
+          <div class="section-title">个人简介</div>
+          <div class="profile-desc">{{ user.profile.bio|default:'这个人很懒，什么都没写~' }}</div>
+        </div>
+        <!-- 地址信息卡片（精简版） -->
+        <div class="content-card">
+          <div class="section-title">地址信息</div>
+          <div class="info-grid">
             <div class="info-list">
               <div class="info-label">详细地址</div>
               <div class="info-value">{{ user.profile.address|default:'暂未设置' }}</div>
@@ -138,39 +324,41 @@
               <div class="info-label">所在地区</div>
               <div class="info-value">
                 {% if user.profile.city or user.profile.state %}
-                  {{ user.profile.state }} {{ user.profile.city }}
+                {{ user.profile.state }} {{ user.profile.city }}
                 {% else %}
-                  暂未设置
+                暂未设置
                 {% endif %}
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- 头像预览遮罩层 -->
-      <div class="avatar-preview-overlay" id="avatar-overlay">
-        <img src="" alt="头像预览" class="avatar-preview-img" id="avatar-preview" />
-      </div>
     </div>
 
-    <script>
-      // 头像预览功能
-      const avatarTrigger = document.getElementById('avatar-trigger')
-      const avatarOverlay = document.getElementById('avatar-overlay')
-      const avatarPreview = document.getElementById('avatar-preview')
-      
-      avatarTrigger.addEventListener('click', () => {
-        avatarPreview.src = avatarTrigger.src
-        avatarOverlay.classList.add('show')
-      })
-      
-      avatarOverlay.addEventListener('click', () => {
-        avatarOverlay.classList.remove('show')
-      })
-    </script>
-  </body>
+    <!-- 头像预览遮罩层 -->
+    <div class="avatar-preview-overlay" id="avatar-overlay">
+      <img src="" alt="头像预览" class="avatar-preview-img" id="avatar-preview" />
+    </div>
+  </div>
+
+  <script>
+    // 头像预览功能
+    const avatarTrigger = document.getElementById('avatar-trigger')
+    const avatarOverlay = document.getElementById('avatar-overlay')
+    const avatarPreview = document.getElementById('avatar-preview')
+
+    avatarTrigger.addEventListener('click', () => {
+      avatarPreview.src = avatarTrigger.src
+      avatarOverlay.classList.add('show')
+    })
+
+    avatarOverlay.addEventListener('click', () => {
+      avatarOverlay.classList.remove('show')
+    })
+  </script>
+</body>
+
 </html>
 
-<script src='{% static 'js/sweetalert.min.js'%}'></script>
+<script src='{% static ' js/sweetalert.min.js'%}'></script>
 {% include 'part/sweetalert.html' %}

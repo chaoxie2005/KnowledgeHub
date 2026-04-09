@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from openai import OpenAI
 from dotenv import load_dotenv
 
 # 加载环境变量
 load_dotenv()
 
-# 初始化火山引擎豆包 AI 客户端
-client = OpenAI(
-    api_key=os.getenv("DOUBAO_API_KEY"),
-    base_url=os.getenv("DOUBAO_BASE_URL"),
-)
+# 全局变量：缓存LLM实例
+_LLM = None
 
 
 def safe_print(text):
@@ -25,25 +21,67 @@ def safe_print(text):
             print(text.encode("utf-8").decode("utf-8", errors="ignore"))
 
 
+def _get_llm():
+    """
+    获取或初始化LLM实例（单例模式）
+    
+    Returns:
+        tuple: (llm实例, 错误信息) - 如果成功，错误信息为None
+    """
+    global _LLM
+    if _LLM is not None:
+        return _LLM, None
+
+    try:
+        from langchain_community.chat_models.tongyi import ChatTongyi
+    except ModuleNotFoundError:
+        return None, "请安装：pip install langchain-community langchain-core"
+
+    api_key = os.getenv("QWEN_API_KEY")
+    if not api_key:
+        return None, "未配置 QWEN_API_KEY"
+
+    try:
+        _LLM = ChatTongyi(
+            api_key=api_key,
+            model="deepseek-r1-distill-qwen-7b",
+            temperature=0.8,
+            streaming=True,
+        )
+    except TypeError:
+        _LLM = ChatTongyi(
+            api_key=api_key,
+            model="deepseek-r1-distill-qwen-7b",
+            temperature=0.8,
+        )
+    return _LLM, None
+
+
 def generate_article_summary(content: str, max_length: int = 200) -> str:
     """生成技术文章AI摘要"""
     if not content or len(content.strip()) == 0:
         return "暂无摘要"
 
+    llm, error = _get_llm()
+    if error:
+        safe_print(f"【AI摘要生成失败】错误信息：{error}")
+        return "暂无摘要"
+
     try:
-        response = client.chat.completions.create(
-            model="doubao-seed-2-0-lite-260215",  # 你的模型ID
-            messages=[
-                {
-                "role": "system",
-                "content": f"""你是专业的技术博客摘要助手，需遵守以下规则：
-                1.  长度约束：摘要长度严格控制在{max_length}字以内（含标点符号），不得超出限制；若文章核心内容较多，优先保留关键信息，适当精简次要细节，确保不超字的同时不丢失核心逻辑。
+        from langchain_core.prompts import ChatPromptTemplate
+    except ModuleNotFoundError:
+        safe_print("【AI摘要生成失败】请安装：pip install langchain-core")
+        return "暂无摘要"
+
+    try:
+        system_text = f"""你是专业的技术博客摘要助手，需遵守以下规则：
+        1.  长度约束：摘要长度严格控制在{max_length}字以内（含标点符号），不得超出限制；若文章核心内容较多，优先保留关键信息，适当精简次要细节，确保不超字的同时不丢失核心逻辑。
         2.  内容准确性：严格保留文章核心技术点、关键实现步骤、核心结论、技术选型理由、问题解决方案，不得篡改原文原意、增减技术细节，不添加个人主观判断，完全基于原文内容生成。
         3.  语言规范：
-            - 风格：简洁干练、逻辑清晰、专业严谨，符合技术读者阅读习惯，避免口语化、冗余表述，不使用模糊性词汇（如“大概”“可能”“类似”等）；
-            - 术语：准确使用原文中的技术术语，不随意替换、简写（若原文有规范简写，可沿用；无简写则使用完整术语），避免术语混淆（如区分“前端框架Vue”与“后端框架SpringBoot”，不笼统表述为“框架”）；
+            - 风格：简洁干练、逻辑清晰、专业严谨，符合技术读者阅读习惯，避免口语化、冗余表述，不使用模糊性词汇（如"大概""可能""类似"等）；
+            - 术语：准确使用原文中的技术术语，不随意替换、简写（若原文有规范简写，可沿用；无简写则使用完整术语），避免术语混淆（如区分"前端框架Vue"与"后端框架SpringBoot"，不笼统表述为"框架"）；
             - 句式：以短句为主，避免冗长复杂句式，便于快速抓取核心信息，可适当使用分号分隔相关技术点，提升可读性。
-        4.  核心重点突出：优先提炼“是什么（技术/问题）—怎么做（实现步骤/解决方案）—有什么用（优势/效果）”的核心逻辑，若文章侧重问题排查，需突出“问题现象—排查过程—解决方法”；若侧重技术讲解，需突出“技术核心原理—关键实现细节—应用场景”。
+        4.  核心重点突出：优先提炼"是什么（技术/问题）—怎么做（实现步骤/解决方案）—有什么用（优势/效果）"的核心逻辑，若文章侧重问题排查，需突出"问题现象—排查过程—解决方法"；若侧重技术讲解，需突出"技术核心原理—关键实现细节—应用场景"。
         5.  适配不同博客类型：
             - 开发类博客（前后端、移动端）：重点保留技术选型、核心代码逻辑、实现步骤、注意事项、踩坑点及解决方案；
             - 运维/部署类博客：重点保留部署环境、部署步骤、配置要点、故障排查方法、优化方案；
@@ -56,15 +94,19 @@ def generate_article_summary(content: str, max_length: int = 200) -> str:
         6.  格式要求：只返回摘要内容，不添加任何额外说明、标题、标识，不换行、不分段，纯文本呈现，确保摘要可直接复制使用。
         7.  补充约束：
             - 若原文存在核心数据（如性能优化前后的数值、版本号、配置参数等），需准确保留，不得遗漏或篡改；
-            - 若原文涉及多个技术点，需梳理逻辑顺序，按“核心到次要”的顺序呈现，避免杂乱无章；
-            - 避免冗余修饰，删除与技术无关的抒情、铺垫性语句（如“最近做项目遇到一个问题”“经过反复测试”等无实际技术价值的表述）；
-            - 确保摘要语句通顺，无语法错误、错别字，术语使用统一，逻辑连贯，让读者通过摘要能快速了解文章的核心内容和价值。"""},
-                {"role": "user", "content": f"请为以下技术文章生成摘要：\n{content}"},
-            ],
-            temperature=0.7,
-            max_tokens=max_length + 20,
-        )
-        summary = response.choices[0].message.content.strip()
+            - 若原文涉及多个技术点，需梳理逻辑顺序，按"核心到次要"的顺序呈现，避免杂乱无章；
+            - 避免冗余修饰，删除与技术无关的抒情、铺垫性语句（如"最近做项目遇到一个问题""经过反复测试"等无实际技术价值的表述）；
+            - 确保摘要语句通顺，无语法错误、错别字，术语使用统一，逻辑连贯，让读者通过摘要能快速了解文章的核心内容和价值。"""
+        
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_text),
+            ("human", "请为以下技术文章生成摘要：\n{content}"),
+        ])
+        
+        chain = prompt | llm
+        response = chain.invoke({"content": content})
+        summary = response.content.strip()
+        
         return summary[:max_length] if len(summary) > max_length else summary
     except Exception as e:
         safe_print(f"【AI摘要生成失败】错误信息：{str(e)}")
@@ -76,39 +118,50 @@ def optimize_article_title(title: str) -> str:
     if not title or len(title.strip()) == 0:
         return title
 
+    llm, error = _get_llm()
+    if error:
+        safe_print(f"【标题优化失败】错误信息：{error}")
+        return title
+
     try:
-        response = client.chat.completions.create(
-            model="doubao-seed-2-0-lite-260215",  # 你的模型ID
-            messages=[
-                {
-                    "role": "system",
-                    "content": """你是资深技术博客标题优化专家，需遵守以下规则：
-                    1.  核心一致性：严格保留原标题的核心关键词（技术名词、核心主题、核心场景等），不得替换、删减核心关键词，不改变原标题的核心原意，不偏离文章核心内容，确保标题与文章主题高度匹配。
-                2.  吸引力优化：
-                    - emoji使用：可适当添加贴合技术场景的emoji（如🔥、💡、🔧、🚀、🛠️、📝、💻、⚡等），emoji数量控制在1-2个，放置在标题开头或中间，不堆砌、不使用与技术无关的emoji（如🍓、🌸等），避免杂乱；
-                    - 语气适配：贴合技术读者阅读习惯，可使用引导式、痛点式、价值式语气，避免夸张、低俗、非技术化表述，兼顾专业度与吸引力（如“实战拆解”“避坑指南”“高效技巧”“零基础入门”等）；
-                    - 亮点突出：结合文章核心价值（如“高效优化”“零基础可学”“踩坑总结”“版本更新”），适当强化标题亮点，让技术读者快速捕捉文章价值。
-                3.  长度约束：标题长度严格控制在20-30字（含标点符号、emoji），不得超出此范围；若原标题过短，可补充贴合核心的辅助词汇（不冗余）；若原标题过长，可精简冗余表述，优先保留核心关键词和亮点。
-                4.  适配性要求：
-                    - 搜索引擎友好：标题包含核心技术关键词，关键词位置尽量靠前，避免堆砌关键词，符合技术博客搜索引擎收录习惯；
-                    - 社区阅读友好：句式简洁干练，不使用晦涩难懂的表述，不堆砌专业术语，兼顾专业性与可读性，适配技术社区（如掘金、CSDN、知乎技术区）阅读场景；
-                    - 分类型适配：
-                    - 开发/实战类：可突出“实战”“拆解”“实现”“教程”等关键词，搭配🔧、💻等emoji；
-                    - 踩坑/故障类：可突出“避坑”“排查”“解决”“报错”等关键词，搭配⚠️、🔍等emoji；
-                    - 入门/科普类：可突出“零基础”“入门”“详解”“科普”等关键词，搭配💡、📝等emoji；
-                    - 资讯/更新类：可突出“更新”“新特性”“迭代”“指南”等关键词，搭配🚀、⚡等emoji；
-                    - 优化/技巧类：可突出“优化”“高效”“技巧”“实战总结”等关键词，搭配🔥、🛠️等emoji。
-                5.  格式要求：只返回优化后的标题，不添加任何额外说明、解释、标识，不换行、不分段，纯文本呈现（含emoji），确保标题可直接复制使用。
-                6.  补充约束：
-                    - 避免同质化：优化后的标题尽量有辨识度，不照搬同类技术标题句式，结合文章特色优化；
-                    - 术语准确：标题中的技术术语使用规范、准确，不出现错别字、术语混淆（如“Vue”不写“Vue.js”除非原标题包含，“SpringBoot”不简写为“SB”）；
-                    - 语气克制：不使用夸张、绝对化词汇（如“最牛”“必看”“万能”等），保持专业、客观的语气；
-                    - 连贯性：标题语句通顺，无语法错误，emoji与文字搭配自然，不生硬堆砌，确保读者一眼能理解标题含义。"""},
-                {"role": "user", "content": f"优化这个技术博客标题：{title}"},
-            ],
-            temperature=0.8,
-        )
-        optimized_title = response.choices[0].message.content.strip()
+        from langchain_core.prompts import ChatPromptTemplate
+    except ModuleNotFoundError:
+        safe_print("【标题优化失败】请安装：pip install langchain-core")
+        return title
+
+    try:
+        system_text = """你是资深技术博客标题优化专家，需遵守以下规则：
+        1.  核心一致性：严格保留原标题的核心关键词（技术名词、核心主题、核心场景等），不得替换、删减核心关键词，不改变原标题的核心原意，不偏离文章核心内容，确保标题与文章主题高度匹配。
+        2.  吸引力优化：
+            - emoji使用：可适当添加贴合技术场景的emoji（如🔥、💡、🔧、🚀、🛠️、📝、💻、⚡等），emoji数量控制在1-2个，放置在标题开头或中间，不堆砌、不使用与技术无关的emoji（如🍓、🌸等），避免杂乱；
+            - 语气适配：贴合技术读者阅读习惯，可使用引导式、痛点式、价值式语气，避免夸张、低俗、非技术化表述，兼顾专业度与吸引力（如"实战拆解""避坑指南""高效技巧""零基础入门"等）；
+            - 亮点突出：结合文章核心价值（如"高效优化""零基础可学""踩坑总结""版本更新"），适当强化标题亮点，让技术读者快速捕捉文章价值。
+        3.  长度约束：标题长度严格控制在20-30字（含标点符号、emoji），不得超出此范围；若原标题过短，可补充贴合核心的辅助词汇（不冗余）；若原标题过长，可精简冗余表述，优先保留核心关键词和亮点。
+        4.  适配性要求：
+            - 搜索引擎友好：标题包含核心技术关键词，关键词位置尽量靠前，避免堆砌关键词，符合技术博客搜索引擎收录习惯；
+            - 社区阅读友好：句式简洁干练，不使用晦涩难懂的表述，不堆砌专业术语，兼顾专业性与可读性，适配技术社区（如掘金、CSDN、知乎技术区）阅读场景；
+            - 分类型适配：
+            - 开发/实战类：可突出"实战""拆解""实现""教程"等关键词，搭配🔧、💻等emoji；
+            - 踩坑/故障类：可突出"避坑""排查""解决""报错"等关键词，搭配⚠️、🔍等emoji；
+            - 入门/科普类：可突出"零基础""入门""详解""科普"等关键词，搭配💡、📝等emoji；
+            - 资讯/更新类：可突出"更新""新特性""迭代""指南"等关键词，搭配🚀、⚡等emoji；
+            - 优化/技巧类：可突出"优化""高效""技巧""实战总结"等关键词，搭配🔥、🛠️等emoji。
+        5.  格式要求：只返回优化后的标题，不添加任何额外说明、解释、标识，不换行、不分段，纯文本呈现（含emoji），确保标题可直接复制使用。
+        6.  补充约束：
+            - 避免同质化：优化后的标题尽量有辨识度，不照搬同类技术标题句式，结合文章特色优化；
+            - 术语准确：标题中的技术术语使用规范、准确，不出现错别字、术语混淆（如"Vue"不写"Vue.js"除非原标题包含，"SpringBoot"不简写为"SB"）；
+            - 语气克制：不使用夸张、绝对化词汇（如"最牛""必看""万能"等），保持专业、客观的语气；
+            - 连贯性：标题语句通顺，无语法错误，emoji与文字搭配自然，不生硬堆砌，确保读者一眼能理解标题含义。"""
+        
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_text),
+            ("human", "优化这个技术博客标题：{title}"),
+        ])
+        
+        chain = prompt | llm
+        response = chain.invoke({"title": title})
+        optimized_title = response.content.strip()
+        
         return optimized_title if optimized_title else title
     except Exception as e:
         safe_print(f"【标题优化失败】错误信息：{str(e)}")

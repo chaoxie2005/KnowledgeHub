@@ -726,8 +726,11 @@ def edit_draft(request, draft_id):
 
         # 更新标签（多对多关系）
         if tag_ids:
-            valid_tags = Tag.objects.filter(id__in=tag_ids)
-            article.tags.set(valid_tags)
+            # 过滤掉空字符串
+            tag_ids = [tag_id for tag_id in tag_ids if tag_id]
+            if tag_ids:
+                valid_tags = Tag.objects.filter(id__in=tag_ids)
+                article.tags.set(valid_tags)
 
         # 更新状态（草稿/发布）
         if action == "publish":
@@ -843,8 +846,11 @@ def edit_published(request, published_id):
 
         # 更新标签（多对多关系）
         if tag_ids:
-            valid_tags = Tag.objects.filter(id__in=tag_ids)
-            article.tags.set(valid_tags)
+            # 过滤掉空字符串
+            tag_ids = [tag_id for tag_id in tag_ids if tag_id]
+            if tag_ids:
+                valid_tags = Tag.objects.filter(id__in=tag_ids)
+                article.tags.set(valid_tags)
 
         # 核心调整：已发布文章编辑后的状态逻辑
         if action == "publish":
@@ -1036,7 +1042,7 @@ def article_ai_qa(request, article_id):
 
         if request.GET.get("stream") == "1":
             response = StreamingHttpResponse(
-                simple_rag_qa_stream(article.content, question),
+                simple_rag_qa_stream(article.content, question, request),
                 content_type="text/plain; charset=utf-8",
             )
             response["Cache-Control"] = "no-cache"
@@ -1070,7 +1076,7 @@ def global_ai_qa(request):
 
         if request.GET.get("stream") == "1":
             response = StreamingHttpResponse(
-                simple_rag_qa_stream(all_content, question),
+                simple_rag_qa_stream(all_content, question, request),
                 content_type="text/plain; charset=utf-8",
             )
             response["Cache-Control"] = "no-cache"

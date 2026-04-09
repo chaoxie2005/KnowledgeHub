@@ -10,156 +10,360 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
   <style>
-      .editor-toolbar {
-        border-color: #eee !important;
-        background: #f8f9fa !important;
-      }
-      .editor-toolbar button {
-        color: #333 !important;
-      }
-      .editor-preview {
-        background: #fff !important;
-      }
-      /* 摘要编辑器专属样式 */
-      .summary-editor .CodeMirror {
-        height: auto !important;
-        min-height: 80px !important;
-      }
-      .summary-editor .editor-toolbar {
-        padding: 4px 8px !important;
-        font-size: 12px !important;
-      }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+      background-color: #f5f7fa;
+    }
+
+    .user-center-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-nav {
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .site-name a {
+      text-decoration: none;
+      color: #0066cc;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-nickname {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      min-width: 120px;
+      padding: 8px 0;
+      display: none;
+      z-index: 1000;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 8px 16px;
+      text-decoration: none;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .dropdown-content a:hover {
+      background: #f5f7fa;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 24px;
+    }
+
+    .left-menu {
+      display: none;
+    }
+
     .menu-item {
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 20px;
+      color: #333;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
     }
+
+    .menu-item:hover {
+      background: #f5f7fa;
+      border-left-color: #e0e0e0;
+    }
+
+    .menu-item.active {
+      background: #e6f0ff;
+      color: #0066cc;
+      border-left-color: #0066cc;
+      font-weight: 600;
+      box-shadow: inset 3px 0 0 #0066cc;
+    }
+
+    .menu-item span {
+      transition: transform 0.3s ease;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .menu-item:hover span {
+      color: #666;
+    }
+
+    .menu-item.active span {
+      color: #0066cc;
+      transform: rotate(90deg);
+    }
+
     .sub-menu {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease;
     }
+
     .sub-menu.active {
       max-height: 300px;
     }
-    .menu-item span {
-      transition: transform 0.3s ease;
+
+    .sub-menu-item {
+      padding: 6px 20px 6px 32px;
     }
-    .menu-item.active span {
-      transform: rotate(180deg);
+
+    .sub-menu-item a {
+      text-decoration: none;
+      color: #666;
+      font-size: 13px;
+      display: block;
+      padding: 8px 12px;
+      transition: all 0.2s ease;
+      border-radius: 6px;
+      margin: 0 8px;
     }
+
+    .sub-menu-item:hover a {
+      color: #0066cc;
+      background: rgba(0, 102, 204, 0.08);
+    }
+
+    .sub-menu-item.active a {
+      color: #0066cc;
+      font-weight: 600;
+      background: #e6f0ff;
+      border-left: 3px solid #0066cc;
+      box-shadow: inset 3px 0 0 #0066cc;
+    }
+
+    .right-content {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
     .publish-card {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      margin-bottom: 20px;
-      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 28px;
+      padding: 28px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
+    .publish-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
     .publish-card .section-title {
-      font-size: 16px;
+      font-size: 19px;
       font-weight: 600;
       color: #333;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #eee;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+
+    .publish-card .section-title::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: #0066cc;
+      border-radius: 2px;
+    }
+
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 28px;
     }
+
     .form-label {
       display: block;
-      font-size: 14px;
+      font-size: 15px;
       color: #333;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       font-weight: 500;
     }
+
     .form-control {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 14px 18px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
       color: #333;
-      transition: border-color 0.2s ease;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      font-family: inherit;
     }
+
     .form-control:focus {
       outline: none;
       border-color: #0066cc;
-      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
     }
+
+    .form-control::placeholder {
+      color: #999;
+    }
+
     .form-text {
       font-size: 12px;
       color: #6c757d;
-      margin-top: 5px;
+      margin-top: 8px;
+      line-height: 1.4;
     }
+
     .cover-preview {
-      margin-top: 10px;
+      margin-top: 12px;
       max-width: 200px;
       max-height: 150px;
-      border-radius: 6px;
-      display: block; 
+      border-radius: 8px;
+      display: block;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
     }
-    .tag-item {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
+
+    .cover-preview:hover {
+      transform: scale(1.02);
     }
-    .tag-item input {
-      margin-right: 5px;
-    }
+
     .btn-group {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
     }
+
     .btn {
-      padding: 8px 18px;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
       border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
+
     .btn-cancel {
       background: #f5f5f5;
       color: #666;
     }
+
     .btn-cancel:hover {
-      background: #eee;
+      background: #e8e8e8;
+      color: #333;
     }
+
     .btn-draft {
       background: #0066cc;
       color: #fff;
     }
+
     .btn-draft:hover {
       background: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
     }
+
     .btn-publish {
       background: #28a745;
       color: #fff;
     }
+
     .btn-publish:hover {
       background: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
     }
+
     .count-text {
       font-size: 12px;
       color: #6c757d;
       text-align: right;
-      margin-top: 5px;
+      margin-top: 8px;
     }
 
-    /* ========== AI 按钮样式 ========== */
     .ai-btn-group {
       display: flex;
-      gap: 10px;
-      margin-top: 10px;
+      gap: 12px;
+      margin-top: 12px;
     }
+
     .btn-ai {
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
       border: 1px solid #0066cc;
@@ -167,16 +371,23 @@
       color: #0066cc;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
+
     .btn-ai:hover {
       background: #e0edff;
       border-color: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 102, 204, 0.1);
     }
+
     .btn-ai:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
+
     .ai-loading {
       display: none;
       width: 14px;
@@ -186,64 +397,188 @@
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
+
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
-    /* ========== 新增：标签搜索多选样式 ========== */
-    .tag-search-container {
+    .tag-input-container {
       position: relative;
+      width: 100%;
     }
-    .tag-dropdown {
+
+    .selected-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      min-height: 36px;
+    }
+
+    .tag-item {
+      background: #0066cc;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .tag-item:hover {
+      background: #0056b3;
+      transform: translateY(-1px);
+    }
+
+    .tag-item button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.8);
+      margin-left: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+
+    .tag-item button:hover {
+      color: #fff;
+    }
+
+    #tagDropdown {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
+      z-index: 999;
       background: #fff;
-      border: 1px solid #eee;
-      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
       max-height: 200px;
       overflow-y: auto;
-      z-index: 1000; /* 提高层级避免被遮挡 */
+      margin-top: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       display: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
-    .tag-dropdown.show {
-      display: block;
-    }
-    .tag-list {
-      padding: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .selected-tags {
-      margin-top: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .selected-tag {
-      padding: 4px 8px;
-      background: #e0edff;
-      color: #0066cc;
-      border-radius: 4px;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .selected-tag button {
-      background: none;
-      border: none;
-      color: #0066cc;
+
+    .tag-option {
+      padding: 10px 16px;
       cursor: pointer;
-      padding: 0;
       font-size: 14px;
-      line-height: 1;
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.2s ease;
     }
-    .selected-tag button:hover {
+
+    .tag-option:last-child {
+      border-bottom: none;
+    }
+
+    .tag-option:hover {
+      background: #f5f7fa;
+    }
+
+    .editor-toolbar {
+      border-color: #e0e0e0 !important;
+      background: #f8f9fa !important;
+      border-radius: 8px 8px 0 0 !important;
+    }
+
+    .editor-toolbar button {
+      color: #333 !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .editor-toolbar button:hover {
+      color: #0066cc !important;
+    }
+
+    .editor-preview {
+      background: #fff !important;
+      border-radius: 0 0 8px 8px !important;
+    }
+
+    /* 摘要编辑器专属样式 */
+    .summary-editor .CodeMirror {
+      height: auto !important;
+      min-height: 80px !important;
+    }
+
+    .summary-editor .editor-toolbar {
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* 全局链接样式 */
+    a {
+      color: #0066cc;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    a:hover {
       color: #0056b3;
+      text-decoration: none;
+    }
+
+    /* 全局选择文本样式 */
+    ::selection {
+      background: rgba(0, 102, 204, 0.1);
+      color: #0066cc;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .left-menu {
+        width: 100%;
+        position: static;
+      }
+
+      .right-content {
+        max-width: 100%;
+      }
+
+      .publish-card {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        justify-content: center;
+      }
     }
   </style>
 </head>
@@ -253,19 +588,19 @@
     <!-- 顶部导航栏 -->
     <div class="top-nav">
       <div class="site-name">
-        <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
+        <a href="{% url 'core:index' %}">首页</a>
       </div>
       <div class="user-info">
         {% if user.profile.avatar %}
-          <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" loading="lazy"/>
+        <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
         {% else %}
-          <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" loading="lazy"/>
+        <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
         {% endif %}
         <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
         <div class="dropdown">
           <button class="dropdown-btn">▼</button>
           <div class="dropdown-content">
-            <a href="{% url 'users:user_center' %}">账号设置</a>
+            <a href="{% url 'users:user_center' %}">个人中心</a>
             <a href="{% url 'authentication:logout' %}">退出登录</a>
           </div>
         </div>
@@ -274,54 +609,18 @@
 
     <!-- 主体内容 -->
     <div class="main-content">
-      <!-- 左侧菜单：高亮草稿箱 -->
-      <div class="left-menu">
-        <div class="menu-item" data-target="personal-menu">
-          个人中心
-          <span>▼</span>
-        </div>
-        <div class="sub-menu" id="personal-menu">
-          <div class="sub-menu-item">
-            <a href="{% url 'users:user_center' %}" style="text-decoration: none; color: inherit;">个人信息</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
-          </div>
-        </div>
-
-        <div class="menu-item active" data-target="content-menu">
-          内容管理
-          <span>▼</span>
-        </div>
-        <div class="sub-menu active" id="content-menu">
-          <div class="sub-menu-item">
-            <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
-          </div>
-          <div class="sub-menu-item active"> 
-            <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'article:comment_management' %}" style="text-decoration: none; color: inherit;">评论管理</a>
-          </div>
-        </div>
-      </div>
-
       <!-- 右侧编辑内容区 -->
       <div class="right-content">
         <!-- 表单提交到当前编辑接口 -->
         <form method="post" enctype="multipart/form-data" id="publishForm">
           {% csrf_token %}
-          
+
           <!-- 文章标题：回显草稿标题 + AI 优化按钮 -->
           <div class="publish-card">
             <div class="section-title">文章标题</div>
             <div class="form-group">
-              <input type="text" class="form-control" id="title" name="title" 
-                     placeholder="请输入文章标题（最多200字）" maxlength="200" required
-                     value="{{ article.title|default:'' }}">
+              <input type="text" class="form-control" id="title" name="title" placeholder="请输入文章标题（最多200字）"
+                maxlength="200" required value="{{ article.title|default:'' }}">
               <div class="form-text">标题是文章的核心，建议简洁明了</div>
               <!-- 新增：AI 优化标题按钮 -->
               <div class="ai-btn-group">
@@ -336,13 +635,26 @@
           <!-- 封面图 + 分类/标签 -->
           <div class="publish-card">
             <div class="section-title">基础设置</div>
-            
+
             <!-- 封面图：默认显示草稿封面 -->
             <div class="form-group">
               <label class="form-label">封面图</label>
-              <input type="file" class="form-control" id="cover" name="cover" accept="image/*">
-              <img src="{{ article.cover.url }}" alt="当前封面" class="cover-preview" id="coverPreview" loading="lazy">
-              <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 4MB 请上传横版或正方形图片，不要上传竖长型图片</div>
+              <div style="position: relative; margin-bottom: 12px;">
+                <input type="file" id="cover" name="cover" accept="image/*"
+                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;" />
+                <div class="btn btn-draft" style="width: 100%; justify-content: center;">
+                  📷 选择封面图片
+                </div>
+              </div>
+              {% if article.cover and article.cover.name or article.cover %}
+              <img
+                src="{% if article.cover and article.cover.name %}{{ article.cover.url }}{% else %}{{ article.cover }}{% endif %}"
+                alt="当前封面" class="cover-preview show" id="coverPreview" loading="lazy">
+              {% endif %}
+              <div class="form-text"
+                style="color: #ff4d4f; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                ⚠️ 支持 JPG/PNG/WebP 格式，大小不超过 4MB，请上传横版或正方形图片，不要上传竖长型图片
+              </div>
             </div>
 
             <!-- 文章分类：回显选中状态 -->
@@ -351,9 +663,9 @@
               <select class="form-control" id="category" name="category" required>
                 <option value="">请选择分类</option>
                 {% for category in categories %}
-                  <option value="{{ category.id }}" {% if article.category.id == category.id %}selected{% endif %}>
-                    {{ category.name }}
-                  </option>
+                <option value="{{ category.id }}" {% if article.category and article.category.id == category.id%}selected{% endif %}>
+                  {{ category.name }}
+                </option>
                 {% endfor %}
               </select>
             </div>
@@ -375,8 +687,8 @@
           <div class="publish-card">
             <div class="section-title">文章摘要（支持 Markdown）</div>
             <div class="form-group">
-              <textarea class="form-control summary-editor" id="summary" name="summary" rows="3" 
-                        placeholder="请输入文章摘要（最多200字）" maxlength="200" required>
+              <textarea class="form-control summary-editor" id="summary" name="summary" rows="3"
+                placeholder="请输入文章摘要（最多200字）" maxlength="200" required>
                 {{ article.summary|default:'' }}
               </textarea>
               <div class="count-text">
@@ -394,18 +706,19 @@
 
           <!-- 文章内容：回显内容 -->
           <div class="publish-card">
-              <div class="section-title">文章内容（支持 Markdown）</div>
-              <div class="form-group">
-                <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入文章正文内容，支持Markdown格式" required>{{ article.content|default:'' }}</textarea>
-                <div class="form-text">支持标题、列表、代码块、图片等 Markdown 语法</div>
-              </div>
+            <div class="section-title">文章内容（支持 Markdown）</div>
+            <div class="form-group">
+              <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入文章正文内容，支持Markdown格式"
+                required>{{ article.content|default:'' }}</textarea>
+              <div class="form-text">支持标题、列表、代码块、图片等 Markdown 语法</div>
+            </div>
           </div>
 
           <!-- 操作按钮-->
           <div class="btn-group">
             <button type="button" class="btn btn-cancel" onclick="history.back()">取消</button>
-            <button type="submit" class="btn btn-draft" name="action" value="draft">保存修改</button>  
-            <button type="submit" class="btn btn-publish" name="action" value="publish">发布文章</button>  
+            <button type="submit" class="btn btn-draft" name="action" value="draft">保存修改</button>
+            <button type="submit" class="btn btn-publish" name="action" value="publish">发布文章</button>
           </div>
         </form>
       </div>
@@ -426,12 +739,13 @@
     // 封面图预览：新上传时替换
     const coverInput = document.getElementById('cover')
     const coverPreview = document.getElementById('coverPreview')
-    coverInput.addEventListener('change', function(e) {
+    coverInput.addEventListener('change', function (e) {
       const file = e.target.files[0]
       if (file) {
         const reader = new FileReader()
-        reader.onload = function(e) {
+        reader.onload = function (e) {
           coverPreview.src = e.target.result
+          coverPreview.classList.add('show')
         }
         reader.readAsDataURL(file)
       }
@@ -449,7 +763,7 @@
       tagSearch.addEventListener('focus', () => {
         tagDropdown.classList.add('show')
       })
-      
+
       // 点击外部关闭下拉
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.tag-search-container')) {
@@ -485,7 +799,7 @@
     function renderSelectedTags() {
       selectedTags.innerHTML = ''
       const checkedTags = document.querySelectorAll('input[name="tags"]:checked')
-      
+
       if (checkedTags.length === 0) {
         return
       }
@@ -537,7 +851,7 @@
     let initialSummary = summaryMDE.value().trim()
     summaryCount.textContent = initialSummary.length
     // 监听内容变化
-    summaryMDE.codemirror.on('change', function() {
+    summaryMDE.codemirror.on('change', function () {
       const content = summaryMDE.value()
       // 限制最大字数 200
       if (content.length > 200) {
@@ -618,7 +932,7 @@
         },
         {
           name: "codeblock",
-          action: function(editor){
+          action: function (editor) {
             const cm = editor.codemirror
             const code = "\n```python\n\n```\n"
             cm.replaceSelection(code)
@@ -642,7 +956,7 @@
         "|",
         {
           name: "table",
-          action: function(editor){
+          action: function (editor) {
             const cm = editor.codemirror
             const table = `
       | 标题1 | 标题2 |
@@ -656,7 +970,7 @@
         },
         {
           name: "link",
-          action: function(editor){
+          action: function (editor) {
             const cm = editor.codemirror
             const link = "[链接文字](https://)"
             cm.replaceSelection(link)
@@ -668,9 +982,9 @@
         // 文字颜色
         {
           name: "color",
-          action: function(editor){
+          action: function (editor) {
             const color = prompt("请输入颜色，例如 red 或 #ff0000")
-            if(!color) return
+            if (!color) return
             const cm = editor.codemirror
             const text = cm.getSelection() || "彩色文字"
             cm.replaceSelection(`<span style="color:${color}">${text}</span>`)
@@ -681,7 +995,7 @@
         // 高亮文字
         {
           name: "highlight",
-          action: function(editor){
+          action: function (editor) {
             const cm = editor.codemirror
             const text = cm.getSelection() || "高亮文字"
             cm.replaceSelection(`<mark>${text}</mark>`)
@@ -692,9 +1006,9 @@
         // 字体大小
         {
           name: "fontsize",
-          action: function(editor){
+          action: function (editor) {
             const size = prompt("请输入字体大小，例如 18px")
-            if(!size) return
+            if (!size) return
             const cm = editor.codemirror
             const text = cm.getSelection() || "大号文字"
             cm.replaceSelection(`<span style="font-size:${size}">${text}</span>`)
@@ -706,11 +1020,11 @@
         // 图片上传
         {
           name: "image",
-          action: function(editor){
+          action: function (editor) {
             const input = document.createElement("input")
             input.type = "file"
             input.accept = "image/*"
-            input.onchange = function(){
+            input.onchange = function () {
               const file = input.files[0]
               const formData = new FormData()
               formData.append("image", file)
@@ -721,14 +1035,14 @@
                   "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
               })
-              .then(res => res.json())
-              .then(data => {
-                if(data.success){
-                  const url = data.url
-                  const cm = editor.codemirror
-                  cm.replaceSelection(`\n![](${url})\n`)
-                }
-              })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    const url = data.url
+                    const cm = editor.codemirror
+                    cm.replaceSelection(`\n![](${url})\n`)
+                  }
+                })
             }
             input.click()
           },
@@ -763,47 +1077,47 @@
         }
       ]
     })
-    
-    contentMDE.codemirror.on("paste", function(cm, e){
+
+    contentMDE.codemirror.on("paste", function (cm, e) {
       const items = e.clipboardData.items
-      for (let item of items){
-        if(item.type.indexOf("image") !== -1){
+      for (let item of items) {
+        if (item.type.indexOf("image") !== -1) {
           const file = item.getAsFile()
           const formData = new FormData()
           formData.append("image", file)
           fetch("/article/upload_image/", {
-            method:"POST",
-            body:formData,
-            headers:{
+            method: "POST",
+            body: formData,
+            headers: {
               "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
             }
           })
-          .then(res=>res.json())
-          .then(data=>{
-            if(data.success){
-              cm.replaceSelection(`\n![](${data.url})\n`)
-            }
-          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                cm.replaceSelection(`\n![](${data.url})\n`)
+              }
+            })
         }
       }
     })
 
     // ========== AI 功能实现 ==========
     // AI 优化标题
-    document.getElementById('aiOptimizeTitle').addEventListener('click', async function() {
+    document.getElementById('aiOptimizeTitle').addEventListener('click', async function () {
       const titleInput = document.getElementById('title')
       const loading = document.getElementById('titleLoading')
       const btn = this
-      
+
       if (!titleInput.value.trim()) {
         alert('请先输入文章标题！')
         return
       }
-      
+
       // 显示加载状态
       btn.disabled = true
       loading.style.display = 'inline-block'
-      
+
       try {
         const response = await fetch('/article/ai/optimize-title/', {
           method: 'POST',
@@ -813,7 +1127,7 @@
           },
           body: JSON.stringify({ title: titleInput.value })
         })
-        
+
         const data = await response.json()
         if (data.success) {
           titleInput.value = data.optimized_title
@@ -831,20 +1145,20 @@
     })
 
     // AI 生成摘要
-    document.getElementById('aiGenerateSummary').addEventListener('click', async function() {
+    document.getElementById('aiGenerateSummary').addEventListener('click', async function () {
       const content = contentMDE.value()
       const loading = document.getElementById('summaryLoading')
       const btn = this
-      
+
       if (!content.trim()) {
         alert('请先输入文章内容！')
         return
       }
-      
+
       // 显示加载状态
       btn.disabled = true
       loading.style.display = 'inline-block'
-      
+
       try {
         const response = await fetch('/article/ai/generate-summary/', {
           method: 'POST',
@@ -854,7 +1168,7 @@
           },
           body: JSON.stringify({ content: content })
         })
-        
+
         const data = await response.json()
         if (data.success) {
           // 设置摘要编辑器内容
@@ -875,11 +1189,11 @@
     })
 
     // 表单提交逻辑
-    document.getElementById('publishForm').addEventListener('submit', function(e) {
+    document.getElementById('publishForm').addEventListener('submit', function (e) {
       // 同步编辑器内容到 textarea
       document.getElementById('summary').value = summaryMDE.value()
       document.getElementById('content').value = contentMDE.value()
-      
+
       const action = this.querySelector('[name="action"]').value
       if (action === 'publish' && !confirm('确定要发布这篇文章吗？发布后将公开可见')) {
         e.preventDefault()
@@ -891,4 +1205,5 @@
   <script src="{% static 'js/sweetalert.min.js'%}"></script>
   {% include 'part/sweetalert.html' %}
 </body>
+
 </html>

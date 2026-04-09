@@ -10,33 +10,113 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
   <style>
-    .editor-toolbar {
-      border-color: #eee !important;
-      background: #f8f9fa !important;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .editor-toolbar button {
-      color: #333 !important;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+      background-color: #f5f7fa;
     }
 
-    .editor-preview {
-      background: #fff !important;
+    .user-center-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    .CodeMirror {
-      border: 1px solid #eee !important;
-      border-radius: 6px !important;
-      padding: 8px !important;
+    .top-nav {
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
-    .summary-editor .CodeMirror {
-      height: auto !important;
-      min-height: 80px !important;
+    .site-name a {
+      text-decoration: none;
+      color: #0066cc;
+      font-size: 18px;
+      font-weight: 600;
     }
 
-    .summary-editor .editor-toolbar {
-      padding: 4px 8px !important;
-      font-size: 12px !important;
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-nickname {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      min-width: 120px;
+      padding: 8px 0;
+      display: none;
+      z-index: 1000;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 8px 16px;
+      text-decoration: none;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .dropdown-content a:hover {
+      background: #f5f7fa;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 24px;
+    }
+
+    .left-menu {
+      display: none;
     }
 
     .menu-item {
@@ -44,6 +124,39 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 20px;
+      color: #333;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: #f5f7fa;
+      border-left-color: #e0e0e0;
+    }
+
+    .menu-item.active {
+      background: #e6f0ff;
+      color: #0066cc;
+      border-left-color: #0066cc;
+      font-weight: 600;
+      box-shadow: inset 3px 0 0 #0066cc;
+    }
+
+    .menu-item span {
+      transition: transform 0.3s ease;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .menu-item:hover span {
+      color: #666;
+    }
+
+    .menu-item.active span {
+      color: #0066cc;
+      transform: rotate(90deg);
     }
 
     .sub-menu {
@@ -56,93 +169,153 @@
       max-height: 300px;
     }
 
-    .menu-item span {
-      transition: transform 0.3s ease;
+    .sub-menu-item {
+      padding: 6px 20px 6px 32px;
     }
 
-    .menu-item.active span {
-      transform: rotate(180deg);
+    .sub-menu-item a {
+      text-decoration: none;
+      color: #666;
+      font-size: 13px;
+      display: block;
+      padding: 8px 12px;
+      transition: all 0.2s ease;
+      border-radius: 6px;
+      margin: 0 8px;
+    }
+
+    .sub-menu-item:hover a {
+      color: #0066cc;
+      background: rgba(0, 102, 204, 0.08);
+    }
+
+    .sub-menu-item.active a {
+      color: #0066cc;
+      font-weight: 600;
+      background: #e6f0ff;
+      border-left: 3px solid #0066cc;
+      box-shadow: inset 3px 0 0 #0066cc;
+    }
+
+    .right-content {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
     }
 
     .publish-card {
       background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      margin-bottom: 20px;
-      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 28px;
+      padding: 28px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .publish-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .publish-card .section-title {
-      font-size: 16px;
+      font-size: 19px;
       font-weight: 600;
       color: #333;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #eee;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .publish-card .section-title::before {
+      content: '';
+      width: 4px;
+      height: 20px;
+      background: #0066cc;
+      border-radius: 2px;
     }
 
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 28px;
     }
 
     .form-label {
       display: block;
-      font-size: 14px;
+      font-size: 15px;
       color: #333;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       font-weight: 500;
     }
 
     .form-control {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #eee;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 14px 18px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 15px;
       color: #333;
-      transition: border-color 0.2s ease;
+      transition: all 0.2s ease;
       box-sizing: border-box;
-      /* 新增：确保宽度计算正确 */
+      font-family: inherit;
     }
 
     .form-control:focus {
       outline: none;
       border-color: #0066cc;
-      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .form-control::placeholder {
+      color: #999;
     }
 
     .form-text {
       font-size: 12px;
       color: #6c757d;
-      margin-top: 5px;
+      margin-top: 8px;
+      line-height: 1.4;
     }
 
     .cover-preview {
-      margin-top: 10px;
+      margin-top: 12px;
       max-width: 200px;
       max-height: 150px;
-      border-radius: 6px;
+      border-radius: 8px;
       display: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
     }
 
     .cover-preview.show {
       display: block;
     }
 
+    .cover-preview:hover {
+      transform: scale(1.02);
+    }
+
     .btn-group {
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
     }
 
     .btn {
-      padding: 8px 18px;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
       border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .btn-cancel {
@@ -151,7 +324,8 @@
     }
 
     .btn-cancel:hover {
-      background: #eee;
+      background: #e8e8e8;
+      color: #333;
     }
 
     .btn-draft {
@@ -161,6 +335,8 @@
 
     .btn-draft:hover {
       background: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
     }
 
     .btn-publish {
@@ -170,25 +346,28 @@
 
     .btn-publish:hover {
       background: #218838;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
     }
 
     .count-text {
       font-size: 12px;
       color: #6c757d;
       text-align: right;
-      margin-top: 5px;
+      margin-top: 8px;
     }
 
     .ai-btn-group {
       display: flex;
-      gap: 10px;
-      margin-top: 10px;
+      gap: 12px;
+      margin-top: 12px;
     }
 
     .btn-ai {
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
       font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
       border: 1px solid #0066cc;
@@ -196,17 +375,21 @@
       color: #0066cc;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
 
     .btn-ai:hover {
       background: #e0edff;
       border-color: #0056b3;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 102, 204, 0.1);
     }
 
     .btn-ai:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
     .ai-loading {
@@ -225,8 +408,6 @@
       }
     }
 
-    /* ========== 标签样式（核心修复） ========== */
-    /* 给标签容器加相对定位，让下拉框锚定在输入框下方 */
     .tag-input-container {
       position: relative;
       width: 100%;
@@ -235,34 +416,44 @@
     .selected-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
-      min-height: 32px;
-      /* 新增：防止空状态高度塌陷 */
+      gap: 8px;
+      margin-top: 12px;
+      min-height: 36px;
     }
 
     .tag-item {
       background: #0066cc;
       color: #fff;
-      padding: 5px 10px;
-      border-radius: 4px;
+      padding: 6px 12px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .tag-item:hover {
+      background: #0056b3;
+      transform: translateY(-1px);
     }
 
     .tag-item button {
       background: none;
       border: none;
-      color: #fff;
-      margin-left: 6px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-left: 8px;
       cursor: pointer;
       font-size: 16px;
       line-height: 1;
       padding: 0;
+      transition: color 0.2s ease;
     }
 
-    /* 下拉框样式：锚定在输入框正下方，不遮挡其他元素 */
+    .tag-item button:hover {
+      color: #fff;
+    }
+
     #tagDropdown {
       position: absolute;
       top: 100%;
@@ -270,20 +461,21 @@
       right: 0;
       z-index: 999;
       background: #fff;
-      border: 1px solid #eee;
-      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
       max-height: 200px;
       overflow-y: auto;
-      margin-top: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-top: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       display: none;
     }
 
     .tag-option {
-      padding: 8px 12px;
+      padding: 10px 16px;
       cursor: pointer;
       font-size: 14px;
       border-bottom: 1px solid #f5f5f5;
+      transition: background 0.2s ease;
     }
 
     .tag-option:last-child {
@@ -293,6 +485,114 @@
     .tag-option:hover {
       background: #f5f7fa;
     }
+
+    .editor-toolbar {
+      border-color: #e0e0e0 !important;
+      background: #f8f9fa !important;
+      border-radius: 8px 8px 0 0 !important;
+    }
+
+    .editor-toolbar button {
+      color: #333 !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .editor-toolbar button:hover {
+      background: rgba(0, 102, 204, 0.1) !important;
+    }
+
+    .editor-preview {
+      background: #fff !important;
+    }
+
+    .CodeMirror {
+      border: 1px solid #e0e0e0 !important;
+      border-radius: 0 0 8px 8px !important;
+      padding: 16px !important;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+    }
+
+    .summary-editor .CodeMirror {
+      height: auto !important;
+      min-height: 100px !important;
+      border-radius: 8px !important;
+    }
+
+    .summary-editor .editor-toolbar {
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+      border-radius: 8px 8px 0 0 !important;
+    }
+
+    /* 自定义滚动条 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* 全局链接样式 */
+    a {
+      color: #0066cc;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    a:hover {
+      color: #0056b3;
+      text-decoration: none;
+    }
+
+    /* 全局选择文本样式 */
+    ::selection {
+      background: rgba(0, 102, 204, 0.1);
+      color: #0066cc;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .left-menu {
+        width: 100%;
+        position: static;
+      }
+
+      .right-content {
+        max-width: 100%;
+      }
+
+      .publish-card {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 
@@ -301,7 +601,7 @@
     {% include 'part/sweetalert.html' %}
     <div class="top-nav">
       <div class="site-name">
-        <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
+        <a href="{% url 'core:index' %}">首页</a>
       </div>
       <div class="user-info">
         {% if user.profile.avatar %}
@@ -313,7 +613,7 @@
         <div class="dropdown">
           <button class="dropdown-btn">▼</button>
           <div class="dropdown-content">
-            <a href="{% url 'users:user_center' %}">账号设置</a>
+            <a href="{% url 'users:user_center' %}">个人中心</a>
             <a href="{% url 'authentication:logout' %}">退出登录</a>
           </div>
         </div>
@@ -328,10 +628,10 @@
         </div>
         <div class="sub-menu" id="personal-menu">
           <div class="sub-menu-item">
-            <a href="{% url 'users:user_center' %}" style="text-decoration: none; color: inherit;">个人信息</a>
+            <a href="{% url 'users:user_center' %}">个人信息</a>
           </div>
           <div class="sub-menu-item">
-            <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
+            <a href="{% url 'authentication:change_password' %}">修改密码</a>
           </div>
         </div>
 
@@ -341,16 +641,16 @@
         </div>
         <div class="sub-menu active" id="content-menu">
           <div class="sub-menu-item active">
-            <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
+            <a href="{% url 'article:publish_article' %}">发布文章</a>
           </div>
           <div class="sub-menu-item">
-            <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
+            <a href="{% url 'article:drafts' %}">草稿箱</a>
           </div>
           <div class="sub-menu-item">
-            <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
+            <a href="{% url 'article:published' %}">已发布</a>
           </div>
           <div class="sub-menu-item">
-            <a href="{% url 'article:comment_management' %}" style="text-decoration: none; color: inherit;">评论管理</a>
+            <a href="{% url 'article:comment_management' %}">评论管理</a>
           </div>
         </div>
       </div>
@@ -365,7 +665,7 @@
             <div class="form-group">
               <input type="text" class="form-control" id="title" name="title" placeholder="请输入文章标题" maxlength="100"
                 required value="{{ values.title }}" />
-              <div class="form-text">标题是文章的核心，建议简洁明了</div>
+              <div class="form-text">标题是文章的核心，建议 15-20 字，突出核心亮点，简洁明了</div>
               <div class="ai-btn-group">
                 <button type="button" class="btn-ai" id="aiOptimizeTitle">
                   <span class="ai-loading" id="titleLoading"></span>
@@ -380,31 +680,41 @@
             <div class="section-title">基础设置</div>
             <div class="form-group">
               <label class="form-label">封面图</label>
-              <input type="file" class="form-control" id="cover" name="cover" accept="image/*" />
+              <div style="position: relative; margin-bottom: 12px;">
+                <input type="file" id="cover" name="cover" accept="image/*"
+                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;" />
+                <div class="btn btn-draft" style="width: 100%; justify-content: center;">
+                  📷 选择封面图片
+                </div>
+              </div>
               <img src="" alt="封面预览" class="cover-preview" id="coverPreview" loading="lazy" />
-              <div class="form-text">支持 JPG/PNG/WebP 格式，大小不超过 4MB 请上传横版或正方形图片，不要上传竖长型图片</div>
+              <div class="form-text"
+                style="color: #ff4d4f; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                ⚠️ 支持 JPG/PNG/WebP 格式，大小不超过 4MB，请上传横版或正方形图片，不要上传竖长型图片
+              </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">文章分类</label>
               <select class="form-control" id="category" name="category" required>
                 <option value="">请选择分类</option>
+                <option value="" disabled>--- 热门分类 ---</option>
                 {% for category in categories %}
                 <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
               </select>
             </div>
 
-            <!-- ====================== 标签：选择 + 自定义 完整版（位置修复） ====================== -->
+            <!-- 标签：选择 + 自定义 -->
             <div class="form-group">
               <label class="form-label">文章标签（可多选/可自定义）</label>
-              <!-- 新增：标签输入容器，用于定位下拉框 -->
               <div class="tag-input-container">
                 <input type="text" id="tagSearch" class="form-control" placeholder="搜索标签 或 输入新标签回车添加">
                 <div id="tagDropdown"></div>
               </div>
               <div class="selected-tags" id="selectedTags"></div>
               <input type="hidden" name="tags" id="tagValues">
+              <div class="form-text">按回车添加新标签，点击标签可删除</div>
             </div>
 
           </div>
@@ -476,7 +786,7 @@
       }
     })
 
-    // ========================== 标签：选择 + 自定义 完整功能 ==========================
+    // 标签：选择 + 自定义
     let selectedTags = [];
     const tagSearch = document.getElementById('tagSearch');
     const tagDropdown = document.getElementById('tagDropdown');
@@ -567,7 +877,7 @@
       }
     });
 
-    // ========================== 编辑器 ==========================
+    // 编辑器
     const summaryMDE = new SimpleMDE({
       element: document.getElementById("summary"),
       spellChecker: false,
@@ -578,7 +888,7 @@
 
     try {
       localStorage.removeItem('smde_blog_editor');
-    } catch (e) {}
+    } catch (e) { }
 
     const contentMDE = new SimpleMDE({
       element: document.getElementById("content"),
@@ -596,7 +906,7 @@
       }
     });
 
-    // ========================== AI 功能 ==========================
+    // AI 功能
     document.getElementById('aiOptimizeTitle').addEventListener('click', async () => {
       const title = document.getElementById('title').value.trim();
       if (!title) { alert('请输入标题'); return; }

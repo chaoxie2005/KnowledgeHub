@@ -50,7 +50,7 @@ def register(request):
             t = Thread(
                 target=send_mail,
                 args=[
-                    "激活账号【超凡博客】",
+                    "激活账号【知文汇】",
                     content,
                     settings.EMAIL_HOST_USER,
                     [user.email],
@@ -193,7 +193,7 @@ def forget_password(request):
         t = Thread(
             target=send_mail,
             args=[
-                "找回密码【超凡博客】",
+                "找回密码【知文汇】",
                 content,
                 settings.EMAIL_HOST_USER,
                 [user.email],

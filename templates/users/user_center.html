@@ -1,236 +1,935 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-  {% load static %}
+{% load static %}
 
-  <head>
-    <meta charset="UTF-8" />
-    <title>用户中心</title>
-    <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
-    <style>
-      /* 侧边栏折叠样式 */
-      .menu-item {
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+<head>
+  <meta charset="UTF-8" />
+  <title>用户中心</title>
+  <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+
+    /* 全局链接样式 */
+    a {
+      color: #007bff;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    a:hover {
+      color: #0056b3;
+    }
+
+    /* 全局选择文本样式 */
+    ::selection {
+      background-color: rgba(0, 123, 255, 0.1);
+      color: #007bff;
+    }
+
+    /* 主容器 */
+    .user-center-container {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 顶部导航栏 */
+    .top-nav {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .site-name a {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e0e0e0;
+      transition: all 0.3s ease;
+    }
+
+    .user-avatar:hover {
+      border-color: #007bff;
+      transform: scale(1.05);
+    }
+
+    .user-nickname {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+      color: #666;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .dropdown-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 8px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 120px;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #333;
+      transition: background-color 0.3s ease;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f5f5f5;
+      color: #007bff;
+    }
+
+    /* 主体内容 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      padding: 24px;
+      gap: 24px;
+    }
+
+    /* 左侧菜单 */
+    .left-menu {
+      width: 200px;
+      background: #fff;
+      border-right: 1px solid #e0e0e0;
+      padding: 0;
+      transition: width 0.3s ease;
+    }
+
+    /* 收起/展开按钮 */
+    .menu-toggle {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.3s ease;
+    }
+
+    .menu-toggle:hover {
+      background-color: #f5f5f5;
+      color: #007bff;
+    }
+
+    /* 菜单项 */
+    .menu-item {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      transition: all 0.3s ease;
+      position: relative;
+      border-left: 4px solid transparent;
+    }
+
+    .menu-item:hover {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .menu-item.active {
+      background-color: #fff;
+      color: #333;
+      border-left-color: transparent;
+      font-weight: 500;
+    }
+
+    .menu-item.active:hover {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .menu-item span {
+      font-size: 10px;
+      transition: transform 0.3s ease;
+      color: #999;
+    }
+
+    .menu-item.active span {
+      transform: rotate(180deg);
+      color: #333;
+    }
+
+    /* 子菜单 */
+    .sub-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .sub-menu.active {
+      max-height: 300px;
+    }
+
+    .sub-menu-item {
+      padding: 10px 16px 10px 32px;
+      font-size: 13px;
+      color: #666;
+      transition: all 0.3s ease;
+      position: relative;
+      border-left: 4px solid transparent;
+    }
+
+    .sub-menu-item:hover {
+      background-color: #f8f9fa;
+      color: #333;
+    }
+
+    .sub-menu-item.active {
+      background-color: transparent;
+      color: #333;
+      font-weight: 500;
+      border-left-color: transparent;
+    }
+
+    .sub-menu-item a {
+      color: #333 !important;
+    }
+
+    .sub-menu-item.active a {
+      color: #333 !important;
+    }
+
+    /* 侧边栏收起时的样式 */
+    .left-menu.collapsed {
+      position: relative;
+      overflow: hidden !important;
+    }
+
+    .left-menu.collapsed .sub-menu {
+      display: none !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    .left-menu.collapsed .sub-menu-item {
+      display: none !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    /* 提高优先级，确保覆盖所有子菜单项的样式 */
+    .left-menu.collapsed .sub-menu-item.active {
+      display: none !important;
+      border-left-color: transparent !important;
+      background-color: transparent !important;
+      color: #666 !important;
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    /* 确保所有元素在收起时都不可见 */
+    .left-menu.collapsed * {
+      border-left-color: transparent !important;
+      background-color: transparent !important;
+      color: #666 !important;
+    }
+
+    /* 右侧内容 */
+    .right-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* 卡片样式 */
+    .content-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+      padding: 24px;
+      width: 100%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .content-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    /* 账号信息卡片 */
+    .account-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .large-avatar-container {
+      position: relative;
+    }
+
+    .large-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .large-avatar:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .username-section {
+      flex: 1;
+    }
+
+    .username {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .signature {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .modify-btn {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .modify-btn:hover {
+      background-color: #0069d9;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      color: #fff;
+    }
+
+    /* 信息列表样式 */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 13px;
+      color: #999;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    /* 个人简介 */
+    .profile-desc {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+      padding: 16px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    /* 头像预览样式 */
+    .avatar-preview-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .avatar-preview-overlay.show {
+      display: flex;
+    }
+
+    .avatar-preview-img {
+      max-width: 80%;
+      max-height: 80%;
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      border: 4px solid #fff;
+    }
+
+    /* 编辑按钮 */
+    .edit-btn {
+      background-color: #f8f9fa;
+      color: #666;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-left: 8px;
+    }
+
+    .edit-btn:hover {
+      background-color: #e9ecef;
+      color: #007bff;
+      border-color: #007bff;
+    }
+
+    /* 主色调按钮 */
+    .edit-btn.primary {
+      background-color: #007bff;
+      color: #fff;
+      border-color: #007bff;
+    }
+
+    .edit-btn.primary:hover {
+      background-color: #0069d9;
+      border-color: #0062cc;
+    }
+
+    /* 危险按钮 */
+    .edit-btn.danger {
+      background-color: #dc3545;
+      color: #fff;
+      border-color: #dc3545;
+    }
+
+    .edit-btn.danger:hover {
+      background-color: #c82333;
+      border-color: #bd2130;
+    }
+
+    /* 信息项hover效果 */
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    .info-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* 安全信息 */
+    .security-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .security-status .status {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .security-status .status.safe {
+      color: #28a745;
+    }
+
+    .security-status .status.warning {
+      color: #ffc107;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .main-content {
+        flex-direction: column;
+        padding: 16px;
       }
-      .sub-menu {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-      }
-      .sub-menu.active {
-        max-height: 300px; /* 足够容纳所有子项 */
-      }
-      .menu-item span {
-        transition: transform 0.3s ease;
-      }
-      .menu-item.active span {
-        transform: rotate(180deg);
-      }
-      
-      /* 头像预览样式 */
-      .avatar-preview-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
+
+      .left-menu {
         width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
+        order: 2;
       }
-      .avatar-preview-overlay.show {
-        display: flex;
-      }
-      .avatar-preview-img {
-        max-width: 80%;
-        max-height: 80%;
-        border-radius: 8px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      }
-      .large-avatar {
-        cursor: pointer;
-        transition: transform 0.2s ease;
-      }
-      .large-avatar:hover {
-        transform: scale(1.05);
-      }
-    </style>
-  </head>
 
-  <body>
-    <div class="user-center-container">
-      <!-- 顶部导航栏 -->
-      <div class="top-nav">
-        <div class="site-name">
-          <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
+      .right-content {
+        width: 100%;
+        order: 1;
+      }
+
+      .account-info {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="user-center-container">
+    <!-- 顶部导航栏 -->
+    <div class="top-nav">
+      <div class="site-name">
+        <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
+      </div>
+      <div class="user-info">
+        {% if user.profile.avatar %}
+        <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+        {% else %}
+        <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+        {% endif %}
+        <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
+        <div class="dropdown">
+          <button class="dropdown-btn">▼</button>
+          <div class="dropdown-content">
+            <a href="{% url 'authentication:logout' %}">退出登录</a>
+          </div>
         </div>
-        <div class="user-info">
-          {% if user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
-          {% else %}
-            <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
-          {% endif %}
-          <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
-          <div class="dropdown">
-            <button class="dropdown-btn">▼</button>
-            <div class="dropdown-content">
-              <a href="{% url 'authentication:logout' %}">退出登录</a>
-            </div>
+      </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="main-content">
+      <!-- 左侧菜单（可折叠） -->
+      <div class="left-menu" id="leftMenu">
+        <!-- 收起/展开按钮 -->
+        <button class="menu-toggle" id="menuToggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="menu-item" data-target="personal-menu">
+          个人中心
+          <span>▼</span>
+        </div>
+        <div class="sub-menu" id="personal-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'users:edit_user' %}" style="text-decoration: none; color: inherit;">个人信息</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
+          </div>
+        </div>
+
+        <div class="menu-item" data-target="content-menu">
+          内容管理
+          <span>▼</span>
+        </div>
+        <div class="sub-menu" id="content-menu">
+          <div class="sub-menu-item">
+            <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
+          </div>
+          <div class="sub-menu-item">
+            <a href="{% url 'article:comment_management' %}" style="text-decoration: none; color: inherit;">评论管理</a>
           </div>
         </div>
       </div>
 
-      <!-- 主体内容 -->
-      <div class="main-content">
-        <!-- 左侧菜单（可折叠） -->
-        <div class="left-menu">
-          <div class="menu-item active" data-target="personal-menu">
-            个人中心
-            <span>▼</span>
-          </div>
-          <div class="sub-menu active" id="personal-menu">
-            <div class="sub-menu-item active">
-              <a href="#" style="text-decoration: none; color: inherit;">个人信息</a>
+      <!-- 右侧内容 -->
+      <div class="right-content">
+        <!-- 账号信息卡片 -->
+        <div class="content-card">
+          <div class="account-info">
+            <div class="large-avatar-container">
+              {% if user.profile.avatar %}
+              <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="large-avatar" id="avatar-trigger" />
+              {% else %}
+              <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="large-avatar" id="avatar-trigger" />
+              {% endif %}
             </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'authentication:change_password' %}" style="text-decoration: none; color: inherit;">修改密码</a>
+            <div class="username-section">
+              <div class="username">{{ user.profile.nickname|default:user.username }}</div>
+              <div class="signature">{{ user.profile.bio|default:'还没有填写个人简介，点击编辑补充吧～' }}</div>
             </div>
+            <a class="modify-btn" href="{% url 'users:edit_user' %}">修改信息</a>
           </div>
 
-          <div class="menu-item" data-target="content-menu">
-            内容管理
-            <span>▼</span>
-          </div>
-          <div class="sub-menu" id="content-menu">
-            <div class="sub-menu-item">
-              <a href="{% url 'article:publish_article' %}" style="text-decoration: none; color: inherit;">发布文章</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'article:drafts' %}" style="text-decoration: none; color: inherit;">草稿箱</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'article:published' %}" style="text-decoration: none; color: inherit;">已发布</a>
-            </div>
-            <div class="sub-menu-item">
-              <a href="{% url 'article:comment_management' %}" style="text-decoration: none; color: inherit;">评论管理</a>
-            </div>
+          <!-- 安全状态 -->
+          <div class="security-status">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span class="status safe">账号安全状态良好</span>
           </div>
         </div>
 
-        <!-- 右侧内容 -->
-        <div class="right-content">
-          <!-- 账号信息卡片 -->
-          <div class="content-card">
-            <div class="section-title">账号信息</div>
-            <div class="account-info">
-              <div class="large-avatar-container">
-                {% if user.profile.avatar %}
-                  <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="large-avatar" id="avatar-trigger" />
-                {% else %}
-                  <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="large-avatar" id="avatar-trigger" />
-                {% endif %}
-              </div>
-              <div class="username-section">
-                <div class="username">{{ user.profile.nickname|default:user.username }}</div>
-                <div class="signature">{{ user.profile.bio|default:'这个人很懒，什么都没写~' }}</div>
-              </div>
-              <a class="modify-btn" href="{% url 'users:edit_user' %}">修改信息</a>
-            </div>
+        <!-- 个人信息卡片 -->
+        <div class="content-card">
+          <div class="section-title">
+            个人信息
+            <a href="{% url 'users:edit_user' %}" class="edit-btn primary">编辑</a>
           </div>
-
-          <!-- 个人信息卡片 -->
-          <div class="content-card">
-            <div class="section-title">个人信息</div>
-            <div class="info-list">
+          <div class="info-grid">
+            <div class="info-item">
               <div class="info-label">昵称</div>
               <div class="info-value">{{ user.profile.nickname|default:'暂未设置' }}</div>
             </div>
-            <div class="info-list">
+            <div class="info-item">
               <div class="info-label">用户名</div>
               <div class="info-value">{{ user.username }}</div>
             </div>
-            <div class="info-list">
+            <div class="info-item">
               <div class="info-label">性别</div>
               <div class="info-value">{{ user.profile.get_gender_display }}</div>
             </div>
-            <div class="info-list">
+            <div class="info-item">
               <div class="info-label">邮箱</div>
-              <div class="info-value">{{ user.profile.email|default:user.email|default:'暂未设置' }}</div>
+              <div class="info-value">
+                {% if user.profile.email or user.email %}
+                {% with email=user.profile.email|default:user.email %}
+                {% if email|length > 8 %}
+                {{ email|slice:':4' }}****@{{ email|slice:'-10:' }}
+                {% else %}
+                {{ email }}
+                {% endif %}
+                {% endwith %}
+                {% else %}
+                暂未设置
+                {% endif %}
+              </div>
             </div>
-            <div class="info-list">
+            <div class="info-item">
               <div class="info-label">手机号</div>
-              <div class="info-value">{{ user.profile.phone|default:'暂未设置' }}</div>
+              <div class="info-value">
+                {% if user.profile.phone %}
+                {% if user.profile.phone|length == 11 %}
+                {{ user.profile.phone|slice:':3' }}****{{ user.profile.phone|slice:'-4:' }}
+                {% else %}
+                {{ user.profile.phone }}
+                {% endif %}
+                {% else %}
+                暂未设置
+                {% endif %}
+              </div>
             </div>
-            <div class="info-list">
+            <div class="info-item">
               <div class="info-label">注册时间</div>
               <div class="info-value">{{ user.date_joined|date:'Y-m-d H:i' }}</div>
             </div>
           </div>
+        </div>
 
-          <!-- 个人简介卡片 -->
-          <div class="content-card">
-            <div class="section-title">个人简介</div>
-            <div class="profile-desc">{{ user.profile.bio|default:'这个人很懒，什么都没写~' }}</div>
+        <!-- 个人简介卡片 -->
+        <div class="content-card">
+          <div class="section-title">
+            个人简介
+            <a href="{% url 'users:edit_user' %}" class="edit-btn primary">编辑</a>
           </div>
-          <!-- 地址信息卡片（精简版） -->
-          <div class="content-card">
-            <div class="section-title">地址信息</div>
-            <div class="info-list">
+          <div class="profile-desc">{{ user.profile.bio|default:'还没有填写个人简介，点击编辑补充吧～' }}</div>
+          <div class="bio-stats" style="margin-top: 12px; font-size: 12px; color: #999; text-align: right;">
+            {% if user.profile.bio %}
+            {{ user.profile.bio|length }}/500 字
+            {% else %}
+            0/500 字
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 地址信息卡片 -->
+        <div class="content-card">
+          <div class="section-title">
+            地址信息
+            <a href="{% url 'users:edit_user' %}" class="edit-btn primary">编辑</a>
+          </div>
+          <div class="info-grid">
+            <div class="info-item">
               <div class="info-label">详细地址</div>
               <div class="info-value">{{ user.profile.address|default:'暂未设置' }}</div>
             </div>
-            <div class="info-list">
+            <div class="info-item">
               <div class="info-label">所在地区</div>
               <div class="info-value">
                 {% if user.profile.city or user.profile.state %}
-                  {{ user.profile.state|default:'中国' }} {{ user.profile.city|default:'北京' }}
+                {{ user.profile.state|default:'中国' }} {{ user.profile.city|default:'北京' }}
                 {% else %}
-                  暂未设置
+                暂未设置
                 {% endif %}
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 头像预览遮罩层 -->
-      <div class="avatar-preview-overlay" id="avatar-overlay">
-        <img src="" alt="头像预览" class="avatar-preview-img" id="avatar-preview" />
+        <!-- 账号安全卡片 -->
+        <div class="content-card">
+          <div class="section-title">账号安全</div>
+          <div class="security-status">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span class="status safe">账号安全状态良好</span>
+          </div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">修改密码</div>
+              <div class="info-value">
+                <a href="{% url 'authentication:change_password' %}" class="edit-btn primary">立即修改</a>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">绑定手机</div>
+              <div class="info-value">
+                {% if user.profile.phone %}
+                <span class="status safe">已绑定</span>
+                <a href="{% url 'users:edit_user' %}" class="edit-btn">修改</a>
+                {% else %}
+                <span class="status warning">未绑定</span>
+                <a href="{% url 'users:edit_user' %}" class="edit-btn primary">立即绑定</a>
+                {% endif %}
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">绑定邮箱</div>
+              <div class="info-value">
+                {% if user.profile.email or user.email %}
+                <span class="status safe">已绑定</span>
+                <a href="{% url 'users:edit_user' %}" class="edit-btn">修改</a>
+                {% else %}
+                <span class="status warning">未绑定</span>
+                <a href="{% url 'users:edit_user' %}" class="edit-btn primary">立即绑定</a>
+                {% endif %}
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">最近登录</div>
+              <div class="info-value">{{ user.last_login|date:'Y-m-d H:i'|default:'暂无记录' }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">登录设备管理</div>
+              <div class="info-value">
+                <a href="#" class="edit-btn">查看设备</a>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">账号注销</div>
+              <div class="info-value">
+                <a href="#" class="edit-btn danger">注销账号</a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <script>
-      // 侧边栏折叠功能
-      document.querySelectorAll('.menu-item').forEach((item) => {
-        item.addEventListener('click', () => {
-          const targetId = item.getAttribute('data-target')
-          const subMenu = document.getElementById(targetId)
-          item.classList.toggle('active')
-          subMenu.classList.toggle('active')
+    <!-- 头像预览遮罩层 -->
+    <div class="avatar-preview-overlay" id="avatar-overlay">
+      <img src="" alt="头像预览" class="avatar-preview-img" id="avatar-preview" />
+    </div>
+  </div>
+
+  <script>
+    // 侧边栏折叠功能
+    document.querySelectorAll('.menu-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const targetId = item.getAttribute('data-target')
+        const subMenu = document.getElementById(targetId)
+        // 只切换子菜单的显示/隐藏，不添加active类
+        subMenu.classList.toggle('active')
+      })
+    })
+
+    // 左侧菜单收起/展开功能
+    const menuToggle = document.getElementById('menuToggle')
+    const leftMenu = document.getElementById('leftMenu')
+    let menuCollapsed = false
+
+    menuToggle.addEventListener('click', () => {
+      menuCollapsed = !menuCollapsed
+      if (menuCollapsed) {
+        leftMenu.style.width = '60px'
+        leftMenu.classList.add('collapsed')
+        leftMenu.querySelectorAll('.menu-item span').forEach(span => {
+          span.style.display = 'none'
         })
-      })
-      
-      // 头像预览功能
-      const avatarTrigger = document.getElementById('avatar-trigger')
-      const avatarOverlay = document.getElementById('avatar-overlay')
-      const avatarPreview = document.getElementById('avatar-preview')
-      
-      avatarTrigger.addEventListener('click', () => {
-        avatarPreview.src = avatarTrigger.src
-        avatarOverlay.classList.add('show')
-      })
-      
-      avatarOverlay.addEventListener('click', () => {
-        avatarOverlay.classList.remove('show')
-      })
-    </script>
-  </body>
+        leftMenu.querySelectorAll('.menu-item').forEach(item => {
+          item.style.padding = '12px 8px'
+          item.style.fontSize = '0'
+          item.classList.remove('active')
+        })
+        // 折叠所有子菜单
+        leftMenu.querySelectorAll('.sub-menu').forEach(subMenu => {
+          subMenu.classList.remove('active')
+          subMenu.style.maxHeight = '0'
+        })
+        menuToggle.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        `
+      } else {
+        leftMenu.style.width = '200px'
+        leftMenu.classList.remove('collapsed')
+        leftMenu.querySelectorAll('.menu-item span').forEach(span => {
+          span.style.display = 'inline'
+        })
+        leftMenu.querySelectorAll('.menu-item').forEach(item => {
+          item.style.padding = '12px 16px'
+          item.style.fontSize = '14px'
+        })
+        // 展开个人中心子菜单（默认）
+        const personalMenu = document.getElementById('personal-menu')
+        if (personalMenu) {
+          personalMenu.classList.add('active')
+          personalMenu.style.maxHeight = '300px'
+        }
+        menuToggle.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        `
+      }
+    })
+
+    // 头像预览功能
+    const avatarTrigger = document.getElementById('avatar-trigger')
+    const avatarOverlay = document.getElementById('avatar-overlay')
+    const avatarPreview = document.getElementById('avatar-preview')
+
+    avatarTrigger.addEventListener('click', () => {
+      avatarPreview.src = avatarTrigger.src
+      avatarOverlay.classList.add('show')
+    })
+
+    avatarOverlay.addEventListener('click', () => {
+      avatarOverlay.classList.remove('show')
+    })
+  </script>
+</body>
+
 </html>
 
-<script src='{% static 'js/sweetalert.min.js'%}'></script>
+<script src='{% static  "js/sweetalert.min.js" %}'></script>
 {% include 'part/sweetalert.html' %}

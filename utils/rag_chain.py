@@ -152,7 +152,7 @@ def _build_vector_store_from_db():
     dashscope_api_key = os.getenv("DASHSCOPE_API_KEY")
     embeddings = DashScopeEmbeddings(
         dashscope_api_key=dashscope_api_key,
-        model="text-embedding-v1",
+        model="text-embedding-v2",
     )
 
     # 构建Chroma向量库

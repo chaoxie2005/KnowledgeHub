@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+{% load static %}
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注销账号</title>
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 卡片样式 */
+    .card {
+      max-width: 450px;
+      width: 100%;
+      margin: 0 auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border: none;
+      overflow: hidden;
+    }
+
+    .card-body {
+      padding: 32px;
+      background-color: #fff;
+    }
+
+    /* 标题样式 */
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    /* 表单样式 */
+    .form-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #1e293b;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .form-control:hover {
+      border-color: #d1d5db;
+    }
+
+    /* 按钮样式 */
+    .btn {
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      border: none;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    .btn-secondary {
+      background-color: #e9ecef;
+      border: none;
+      color: #333;
+      margin-top: 12px;
+    }
+
+    .btn-secondary:hover {
+      background-color: #dee2e6;
+    }
+
+    /* 提示信息 */
+    .alert {
+      border-radius: 8px;
+      margin-bottom: 20px;
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .card {
+        margin: 0 16px;
+      }
+
+      .card-body {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-body">
+        <h1 class="card-title">注销账号</h1>
+        
+        <!-- 消息提示 -->
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- 注销账号表单 -->
+        <form method="post" id="deleteForm">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="password" class="form-label">请输入密码以确认注销</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+          </div>
+          <button type="button" class="btn btn-danger" id="deleteBtn">注销账号</button>
+          <a href="{% url 'users:user_center' %}" class="btn btn-secondary">取消</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- SweetAlert 库 -->
+  <script src="{% static 'js/sweetalert.min.js' %}"></script>
+  <script>
+    // 注销账号确认弹窗
+    document.getElementById('deleteBtn').addEventListener('click', function() {
+      Swal.fire({
+        title: "你确定要注销账号吗?",
+        text: "注销后所有数据将被永久删除，无法恢复！",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc3545",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "确认注销",
+        cancelButtonText: "取消"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // 提交表单
+          document.getElementById('deleteForm').submit();
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

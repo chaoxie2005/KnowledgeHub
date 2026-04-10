@@ -710,7 +710,7 @@
                 {% if user.profile.email or user.email %}
                 {% with email=user.profile.email|default:user.email %}
                 {% if email|length > 8 %}
-                {{ email|slice:':4' }}****@{{ email|slice:'-10:' }}
+                {{ email|slice:':6' }}****@{{ email|slice:'-6:' }}
                 {% else %}
                 {{ email }}
                 {% endif %}

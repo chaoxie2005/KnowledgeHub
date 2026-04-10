@@ -468,7 +468,7 @@
       {# 掘金快讯页面：提交到掘金热文搜索 #}
       <form action="{% url 'article:juejin_hot' %}" method="get" class="d-flex">
         {% else %}
-        <form action="{% url 'core:index' %}" method="get" class="d-flex">
+        <form action="{% url 'core:search' %}" method="get" class="d-flex">
           {% endif %}
           <div class="search-group">
             <input type="text" name="keyword" placeholder="搜索文章..." value="{{ keyword|default:'' }}"

@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>知文汇-首页</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="shortcut icon" href="/static/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+    
+    
+    
+
+  </head>
+  <body>
+    <div class="container">
+      
+      <style>
+  /* 头部容器样式 */
+  .blog-header {
+    padding: 16px 0;
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1);
+    z-index: 100;
+  }
+
+  /* 全局重置：避免 Bootstrap 默认样式干扰 */
+  .blog-header .row {
+    margin: 0;
+    align-items: center;
+  }
+
+  .blog-header .col-4 {
+    padding: 0;
+  }
+
+  /* 左侧导航文字：提升对比度，明确层级 */
+  .blog-header .col-4 .publish-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    border: none;
+    border-radius: 16px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    display: inline-block;
+  }
+
+  .blog-header .col-4 .publish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  /* Logo样式 */
+  .blog-header-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: #2d3748 !important;
+    font-size: 2rem;
+    font-weight: 800 !important;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .blog-header-logo:hover {
+    color: #667eea !important;
+  }
+
+  .blog-header-logo .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+  }
+
+  .blog-header-logo:hover .logo-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+  }
+
+  /* 右侧容器：强制不换行，元素紧凑排列 */
+  .blog-header .right-col {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+  }
+
+  /* 搜索组：强制一行显示 */
+  .blog-header .search-group {
+    display: flex;
+    flex-shrink: 0;
+    background: #f7fafc;
+    border-radius: 25px;
+    padding: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .blog-header .search-group:focus-within {
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+  }
+
+  /* 搜索框样式：优化颜色和交互 */
+  .blog-header input[name='keyword'] {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    width: 220px;
+    outline: none;
+    transition: all 0.3s ease;
+    color: #4a5568;
+    background: transparent;
+  }
+
+  .blog-header input[name='keyword']::placeholder {
+    color: #a0aec0;
+    opacity: 1;
+  }
+
+  .blog-header input[name='keyword']:focus {
+    width: 280px;
+  }
+
+  /* 搜索按钮：优化默认/hover样式 */
+  .blog-header .search-btn {
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .blog-header .search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  }
+
+  /* 登录按钮：优化默认样式，强化hover */
+  .blog-header .login-btn {
+    color: #667eea !important;
+    border-color: #667eea !important;
+    background: white !important;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .blog-header .login-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-color: #667eea !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  /* 新增：用户头像样式 */
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #f7fafc;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .user-avatar:hover {
+    transform: scale(1.1);
+    border-color: #667eea;
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .user-info-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    background: #f7fafc;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 105;
+  }
+
+  .user-info-wrapper:hover {
+    background: white;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .user-nickname {
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ========== 导航栏样式优化 ========== */
+  .blog-nav {
+    margin: 24px 0;
+    padding: 0;
+    background: transparent;
+    border-radius: 20px;
+    border: none;
+    box-shadow: none;
+    position: relative;
+    z-index: 50;
+  }
+
+  .blog-nav .nav {
+    display: flex;
+    justify-content: center !important;
+    width: 100%;
+    gap: 16px;
+    background: white;
+    padding: 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+  }
+
+  .blog-nav .nav a {
+    text-align: center;
+    color: #4a5568;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 12px 28px !important;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  /* Hover效果：背景色 + 文字颜色变化 + 轻微上浮 */
+  .blog-nav .nav a:hover {
+    color: #667eea;
+    background: #f7fafc;
+    transform: translateY(-2px);
+  }
+
+  /* 活跃状态 */
+  .blog-nav .nav a.active {
+    color: white !important;
+    font-weight: 600;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .blog-nav .nav a.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  /* 下拉按钮样式 */
+  .blog-nav .nav .dropdown-toggle {
+    padding: 12px 28px !important;
+  }
+
+  /* 下拉菜单样式 */
+  .blog-nav .dropdown .dropdown-menu {
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    padding: 12px;
+    margin-top: 12px !important;
+    background: white;
+    z-index: 110;
+  }
+
+  /* 用户下拉菜单样式 */
+  .user-info-wrapper .dropdown-menu {
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    padding: 12px;
+    margin-top: 12px !important;
+    background: white;
+    z-index: 110;
+  }
+
+  .blog-nav .dropdown .dropdown-item {
+    padding: 12px 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: #4a5568;
+    font-weight: 500;
+  }
+
+  .blog-nav .dropdown .dropdown-item:hover {
+    color: #667eea;
+    background: #f7fafc;
+    transform: translateX(6px);
+  }
+
+  /* 响应式布局优化：解决移动端换行问题 */
+  @media (max-width: 992px) {
+    .blog-header-logo {
+      font-size: 1.6rem;
+    }
+
+    .blog-header-logo .logo-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+
+    .blog-header input[name='keyword'] {
+      width: 180px;
+    }
+
+    .blog-header input[name='keyword']:focus {
+      width: 220px;
+    }
+
+    .blog-nav .nav a {
+      padding: 10px 20px !important;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .blog-header {
+      padding: 12px 0;
+    }
+
+    .blog-header .row {
+      flex-wrap: wrap !important;
+      gap: 15px;
+    }
+
+    .blog-header .col-4 {
+      flex: 1 0 30%;
+      min-width: 120px;
+    }
+
+    .blog-header .col-4.text-center {
+      order: -1;
+      flex: 1 0 100%;
+      margin-bottom: 10px;
+    }
+
+    .blog-header-logo {
+      font-size: 1.4rem;
+    }
+
+    .blog-header-logo .logo-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+
+    .blog-header input[name='keyword'] {
+      width: 140px;
+      padding: 8px 16px;
+    }
+
+    .blog-header input[name='keyword']:focus {
+      width: 180px;
+    }
+
+    .blog-header .search-btn {
+      padding: 6px 16px;
+    }
+
+    .blog-header .login-btn {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+    }
+
+    .user-nickname {
+      font-size: 0.85rem;
+    }
+
+    /* 移动端分类导航自适应 */
+    .blog-nav .nav {
+      flex-wrap: wrap !important;
+      gap: 8px !important;
+      padding: 8px;
+    }
+
+    .blog-nav .nav a {
+      padding: 8px 16px !important;
+      font-size: 13px;
+      min-height: 40px;
+    }
+
+    .blog-header .right-col {
+      gap: 12px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .blog-header-logo {
+      font-size: 1.2rem;
+      gap: 8px;
+    }
+
+    .blog-header-logo .logo-icon {
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+    }
+
+    .blog-header input[name='keyword'] {
+      width: 120px;
+    }
+
+    .blog-header input[name='keyword']:focus {
+      width: 150px;
+    }
+
+    .blog-nav .nav a {
+      padding: 6px 12px !important;
+      font-size: 12px;
+    }
+  }
+</style>
+
+
+<header class="blog-header py-3">
+  <div class="row flex-nowrap justify-content-between align-items-center">
+    <!-- 左侧：个人中心（登录后保留，未登录隐藏） -->
+    <div class="col-4">
+      
+    </div>
+
+    <!-- 中间：博客标题 + Logo -->
+    <div class="col-4 text-center">
+      <span class="blog-header-logo">
+        <span class="logo-icon">知</span>
+        <span>知文汇</span>
+      </span>
+    </div>
+
+    <!-- 右侧：搜索 + 登录/用户信息 -->
+    <div class="col-4 right-col">
+      
+        <form action="/search/" method="get" class="d-flex">
+          
+          <div class="search-group">
+            <input type="text" name="keyword" placeholder="搜索文章..." value="测试"
+              autocomplete="off" />
+            <button class="search-btn" type="submit">搜索</button>
+          </div>
+        </form>
+
+        
+        
+        
+        <a class="btn btn-sm login-btn" href="/authentication/login/">登录 / 注册</a>
+        
+    </div>
+  </div>
+</header>
+
+<!-- 分类导航区-->
+<nav class="blog-nav">
+  <div class="nav d-flex justify-content-between">
+    <!-- 固定入口 -->
+    <a class="" href="/">
+      <span>🏠</span> 首页
+    </a>
+    <a class="" href="/article/juejin_hot/">
+      <span>🔥</span> 掘金快讯
+    </a>
+    <a class="" href="/article/csdn_hot/">
+      <span>📱</span> CSDN快讯
+    </a>
+    <!-- 分类下拉菜单 -->
+    
+  </div>
+</nav>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+      <style>
+  /* 置顶区全局样式：和列表完全统一 */
+  .top-banner {
+    margin-bottom: 24px;
+  }
+
+  /* 置顶标签：明确提示读者这是置顶区 */
+  .sticky-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  /* 置顶卡片：和列表.article-item完全统一 */
+  .sticky-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .sticky-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 置顶卡片图片区：统一比例 */
+  .sticky-card-img {
+    width: 280px;
+    overflow: hidden;
+    background: #f8f9fa;
+  }
+
+  .sticky-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .sticky-card:hover .sticky-card-img img {
+    transform: scale(1.05);
+  }
+
+  /* 置顶卡片内容区：和列表完全统一 */
+  .sticky-card-content {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* 标签样式：和列表完全统一 */
+  .article-tags {
+    margin-bottom: 8px;
+  }
+
+  .article-tag {
+    display: inline-block;
+    background: #f5f7fa;
+    color: #555;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+  }
+
+  .article-tag a {
+    color: #555 !important;
+    text-decoration: none;
+  }
+
+  .article-tag:hover {
+    background: #e9ecef;
+  }
+
+  .no-tag {
+    font-size: 12px;
+    color: #999;
+  }
+
+  /* 标题：和列表完全统一 */
+  .article-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* 信息栏：和列表完全统一（小圆点分隔） */
+  .article-info {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .article-info a {
+    text-decoration: none;
+  }
+
+  .article-author {
+    color: #722ed1 !important;
+    font-weight: 500;
+  }
+
+  /* 摘要：和列表完全统一 */
+  .article-summary {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    flex: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    margin-bottom: 16px;
+  }
+
+  /* 阅读更多：和列表完全统一 */
+  .read-more {
+    font-size: 14px;
+    color: #0066cc !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: padding 0.2s;
+  }
+
+  .read-more:hover {
+    padding-left: 3px;
+    color: #0056b3 !important;
+  }
+
+  /* 热门双列卡片：和列表+置顶头条统一 */
+  .hot-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    height: 100%;
+  }
+
+  .hot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  .hot-card-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .hot-card-img {
+    width: 160px;
+    overflow: hidden;
+    background: #f8f9fa;
+  }
+
+  .hot-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .hot-card:hover .hot-card-img img {
+    transform: scale(1.05);
+  }
+
+  /* 响应式适配：小屏幕隐藏图片 */
+  @media (max-width: 992px) {
+
+    .sticky-card-img,
+    .hot-card-img {
+      display: none;
+    }
+
+    .sticky-card-content,
+    .hot-card-content {
+      padding: 16px;
+    }
+
+    .article-title {
+      font-size: 18px;
+    }
+  }
+</style>
+
+<!-- 置顶头条区（带明确置顶标识） -->
+<div class="top-banner">
+  
+
+  <!-- 热门推荐区（和置顶+列表完全统一） -->
+  
+</div>
+    </div>
+
+    <main role="main" class="container">
+      <div class="row">
+        <div class="col-md-8 blog-main">
+          
+            文章列表页
+          
+        </div>
+
+        
+        <aside class="col-md-4 blog-sidebar">
+          
+<!-- 引入侧边栏样式文件 -->
+<link rel="stylesheet" href="/static/css/sidebar.css">
+
+<!-- AI 全站问答 -->
+<div class="sidebar-widget ai-qa-widget">
+  <h4 class="widget-title font-italic">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
+      <path
+        d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+      </path>
+    </svg>
+    AI 全站问答
+  </h4>
+  <div class="ai-qa-box">
+    <textarea id="sidebarAiQuestion" class="ai-qa-input" placeholder="输入你的问题，可在全站内容中搜索答案"></textarea>
+    <div class="ai-qa-footer">
+      <button id="sidebarAiAskBtn" class="ai-qa-btn">发送问题</button>
+    </div>
+    <div id="sidebarAiAnswer" class="ai-answer" style="display: none;"></div>
+  </div>
+</div>
+
+<!-- 最新文章 -->
+<div class="sidebar-widget">
+  <h4 class="widget-title font-italic">最新文章</h4>
+  <ol class="article-list mb-0">
+    
+    
+    <li class="empty-tip">暂无最新文章</li>
+    
+    
+  </ol>
+</div>
+
+<!-- 3. 热门文章 -->
+<div class="sidebar-widget">
+  <h4 class="widget-title font-italic">热门文章</h4>
+  <ol class="article-list mb-0">
+    
+    
+    <li class="empty-tip">暂无热门文章</li>
+    
+    
+  </ol>
+</div>
+
+<!-- 4. 文章归档 -->
+<div class="sidebar-widget">
+  <h4 class="widget-title font-italic">文章归档</h4>
+  <ol class="article-list mb-0">
+    
+    
+    <li class="empty-tip">暂无归档数据</li>
+    
+    
+  </ol>
+</div>
+
+<style>
+  /* AI 问答侧边栏样式 */
+  .ai-qa-widget {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+  }
+
+  .ai-qa-box {
+    padding: 0;
+  }
+
+  .ai-qa-input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    resize: none;
+    min-height: 80px;
+    font-size: 0.9rem;
+    outline: none;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .ai-qa-input:focus {
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  }
+
+  .ai-qa-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .ai-qa-btn {
+    background: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .ai-qa-btn:hover {
+    background: #0052a3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+  }
+
+  .ai-qa-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .ai-answer {
+    margin-top: 12px;
+    padding: 12px;
+    background: #eff6ff;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border-left: 3px solid #0066cc;
+    max-height: none;
+    overflow-y: visible;
+  }
+</style>
+
+<script>
+  // 侧边栏AI问答（流式输出）
+  (function () {
+    const sidebarAiAskBtn = document.getElementById('sidebarAiAskBtn');
+    if (sidebarAiAskBtn) {
+      sidebarAiAskBtn.addEventListener('click', async () => {
+        const btn = sidebarAiAskBtn;
+        const questionEl = document.getElementById('sidebarAiQuestion');
+        const question = (questionEl.value || '').trim();
+        const answerBox = document.getElementById('sidebarAiAnswer');
+
+        if (!question) { alert('请输入问题'); return; }
+
+        btn.disabled = true;
+        btn.textContent = 'AI 输出中...';
+        answerBox.innerText = '';
+        answerBox.style.display = 'block';
+
+        questionEl.value = '';
+
+        try {
+          const res = await fetch("/article/ai-qa/global/?stream=1", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': 'nFNt6YR7bbtrxBDQNfedW7AUEzeMxbpRmmnCf3cCLZB9FHghsNSGkdT9DEBcz2oI'
+            },
+            body: 'question=' + encodeURIComponent(question)
+          });
+
+          const contentType = (res.headers.get('content-type') || '').toLowerCase();
+          if (!res.ok && contentType.includes('application/json')) {
+            const data = await res.json();
+            answerBox.innerText = data.msg || data.error || '请求失败';
+            return;
+          }
+
+          if (!res.body) {
+            answerBox.innerText = await res.text();
+            return;
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let out = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            out += decoder.decode(value, { stream: true });
+            answerBox.innerText = out;
+          }
+        } catch (e) {
+          answerBox.innerText = '网络异常，请重试';
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '发送问题';
+        }
+      });
+    }
+  })();
+</script>
+        </aside>
+      </div>
+    </main>
+
+  <script src='/static/%20js/sweetalert.min.js'></script>
+  
+  
+  </body>
+</html>
+
+
+
+

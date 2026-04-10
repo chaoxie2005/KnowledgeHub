@@ -283,6 +283,30 @@ def logout(request):
     return redirect(to='core:index')
 
 
+@login_required
+def delete_account(request):
+    """注销账号视图"""
+    if request.method == "GET":
+        return render(request, "authentication/delete_account.html")
+    elif request.method == "POST":
+        password = request.POST.get("password")
+        
+        # 验证密码
+        if not request.user.check_password(password):
+            messages.error(request, "密码错误，请重新输入")
+            return render(request, "authentication/delete_account.html")
+        
+        # 记录用户名，用于后续提示
+        username = request.user.username
+        
+        # 注销用户
+        request.user.delete()
+        
+        # 退出登录
+        logout_auth(request)
+        
+        messages.success(request, f"账号 {username} 已成功注销")
+        return redirect(to="core:index")
 
 
 from .utils import generate_verify_code

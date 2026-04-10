@@ -605,6 +605,7 @@
           <button class="dropdown-btn">▼</button>
           <div class="dropdown-content">
             <a href="{% url 'authentication:logout' %}">退出登录</a>
+            <a href="{% url 'authentication:delete_account' %}">注销账号</a>
           </div>
         </div>
       </div>
@@ -836,7 +837,7 @@
             <div class="info-item">
               <div class="info-label">账号注销</div>
               <div class="info-value">
-                <a href="#" class="edit-btn danger">注销账号</a>
+                <a href="{% url 'authentication:delete_account' %}" class="edit-btn danger">注销账号</a>
               </div>
             </div>
           </div>

@@ -657,6 +657,10 @@
     {% for tag in article.tags %}
     <span class="article-tag">{{ tag.name }}</span>
     {% endfor %}
+    {% elif article.tags.all %}
+    {% for tag in article.tags.all %}
+    <span class="article-tag">{{ tag.name }}</span>
+    {% endfor %}
     {% else %}
     <span class="no-tag">暂无标签</span>
     {% endif %}
@@ -667,10 +671,11 @@
     {% if article.cover %}
     <img src="{{ article.cover }}" alt="{{ article.title }}" loading="lazy" />
     {% else %}
-    <img src="https://picsum.photos/seed/{{ article.id }}/200/300?random=1000" alt="{{ article.title }}" loading="lazy" />
+    <img src="https://picsum.photos/seed/{{ article.id }}/200/300?random=1000" alt="{{ article.title }}"
+      loading="lazy" />
     {% endif %}
   </div>
-  
+
 
   <!--使用渲染后的HTML -->
   <div class="article-content markdown-body">
@@ -1083,64 +1088,99 @@
   }
 
   // AI 问答（流式输出）
-  document.getElementById('aiAskBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('aiAskBtn');
-    const questionEl = document.getElementById('aiQuestion');
-    const question = (questionEl.value || '').trim();
+  (function () {
     const answerBox = document.getElementById('aiAnswer');
+    const articleId = '{{ article.id }}';
+    const storageKey = `ai_article_${articleId}_answer`;
 
-    if (!question) { alert('请输入问题'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'AI 输出中...';
-    answerBox.innerText = '';
-    answerBox.style.display = 'block';
-
-    questionEl.value = '';
-
-    try {
-      const res = await fetch("{% url 'article:article_ai_qa' article.id %}?stream=1", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: 'question=' + encodeURIComponent(question)
-      });
-
-      const contentType = (res.headers.get('content-type') || '').toLowerCase();
-      if (!res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
-        answerBox.innerText = data.msg || data.error || '请求失败';
-        return;
+    // 加载保存的回答
+    function loadSavedAnswer() {
+      const savedAnswer = sessionStorage.getItem(storageKey);
+      if (savedAnswer) {
+        answerBox.innerText = savedAnswer;
+        answerBox.style.display = 'block';
       }
-
-      if (!res.body) {
-        answerBox.innerText = await res.text();
-        questionEl.value = '';
-        return;
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let out = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        out += decoder.decode(value, { stream: true });
-        answerBox.innerText = out;
-      }
-
-      questionEl.value = '';
-    } catch (e) {
-      answerBox.innerText = '网络异常，请重试';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '发送问题';
-      questionEl.value = '';
     }
-  });
+
+    // 保存回答到sessionStorage
+    function saveAnswer(answer) {
+      sessionStorage.setItem(storageKey, answer);
+    }
+
+    // 清除保存的回答
+    function clearSavedAnswer() {
+      sessionStorage.removeItem(storageKey);
+    }
+
+    // 页面加载时加载保存的回答
+    loadSavedAnswer();
+
+    document.getElementById('aiAskBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('aiAskBtn');
+      const questionEl = document.getElementById('aiQuestion');
+      const question = (questionEl.value || '').trim();
+
+      if (!question) { alert('请输入问题'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'AI 输出中...';
+      answerBox.innerText = '';
+      answerBox.style.display = 'block';
+
+      questionEl.value = '';
+      clearSavedAnswer();
+
+      try {
+        const res = await fetch("{% url 'article:article_ai_qa' article.id %}?stream=1", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: 'question=' + encodeURIComponent(question)
+        });
+
+        const contentType = (res.headers.get('content-type') || '').toLowerCase();
+        if (!res.ok && contentType.includes('application/json')) {
+          const data = await res.json();
+          const errorMsg = data.msg || data.error || '请求失败';
+          answerBox.innerText = errorMsg;
+          saveAnswer(errorMsg);
+          return;
+        }
+
+        if (!res.body) {
+          const text = await res.text();
+          answerBox.innerText = text;
+          saveAnswer(text);
+          questionEl.value = '';
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let out = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          out += decoder.decode(value, { stream: true });
+          answerBox.innerText = out;
+        }
+
+        saveAnswer(out);
+        questionEl.value = '';
+      } catch (e) {
+        const errorMsg = '网络异常，请重试';
+        answerBox.innerText = errorMsg;
+        saveAnswer(errorMsg);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '发送问题';
+        questionEl.value = '';
+      }
+    });
+  })();
 </script>
 <script>
   $(function () {

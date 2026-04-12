@@ -682,7 +682,6 @@ def edit_draft(request, draft_id):
         summary = request.POST.get("summary", "").strip()
         content = request.POST.get("content", "").strip()
         category_id = request.POST.get("category")
-        tag_ids = request.POST.getlist("tags")
         action = request.POST.get("action", "draft")
 
         # 校验必填项
@@ -724,13 +723,18 @@ def edit_draft(request, draft_id):
             except Category.DoesNotExist:
                 messages.warning(request, "选择的分类不存在，未更新分类！")
 
-        # 更新标签（多对多关系）
-        if tag_ids:
-            # 过滤掉空字符串
-            tag_ids = [tag_id for tag_id in tag_ids if tag_id]
-            if tag_ids:
-                valid_tags = Tag.objects.filter(id__in=tag_ids)
-                article.tags.set(valid_tags)
+        # 更新标签（支持选择 + 自定义）
+        tag_str = request.POST.get("tags", "")
+        tag_names = [t.strip() for t in tag_str.split(",") if t.strip()]
+
+        final_tags = []
+        for name in tag_names:
+            # 不存在则创建，存在则获取
+            tag, created = Tag.objects.get_or_create(name=name)
+            final_tags.append(tag)
+
+        # 多对多赋值
+        article.tags.set(final_tags)
 
         # 更新状态（草稿/发布）
         if action == "publish":
@@ -802,7 +806,6 @@ def edit_published(request, published_id):
         summary = request.POST.get("summary", "").strip()
         content = request.POST.get("content", "").strip()
         category_id = request.POST.get("category")
-        tag_ids = request.POST.getlist("tags")
         action = request.POST.get("action", "publish")  # 已发布文章默认保存为发布状态
 
         # 校验必填项
@@ -844,13 +847,18 @@ def edit_published(request, published_id):
             except Category.DoesNotExist:
                 messages.warning(request, "选择的分类不存在，未更新分类！")
 
-        # 更新标签（多对多关系）
-        if tag_ids:
-            # 过滤掉空字符串
-            tag_ids = [tag_id for tag_id in tag_ids if tag_id]
-            if tag_ids:
-                valid_tags = Tag.objects.filter(id__in=tag_ids)
-                article.tags.set(valid_tags)
+        # 更新标签（支持选择 + 自定义）
+        tag_str = request.POST.get("tags", "")
+        tag_names = [t.strip() for t in tag_str.split(",") if t.strip()]
+
+        final_tags = []
+        for name in tag_names:
+            # 不存在则创建，存在则获取
+            tag, created = Tag.objects.get_or_create(name=name)
+            final_tags.append(tag)
+
+        # 多对多赋值
+        article.tags.set(final_tags)
 
         # 核心调整：已发布文章编辑后的状态逻辑
         if action == "publish":

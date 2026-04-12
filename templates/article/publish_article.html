@@ -7,6 +7,7 @@
   <title>发布文章 - 用户中心</title>
   <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
   <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
   <style>
@@ -724,9 +725,9 @@
             <div class="section-title">文章摘要（支持 Markdown）</div>
             <div class="form-group">
               <textarea class="form-control summary-editor" id="summary" name="summary" rows="3" placeholder="请输入文章摘要"
-                maxlength="200" required>{{ values.summary }}</textarea>
+                maxlength="500" required>{{ values.summary }}</textarea>
               <div class="count-text">
-                <span id="summaryCount">0</span>/200 字
+                <span id="summaryCount">0</span>/500 字
               </div>
               <div class="ai-btn-group">
                 <button type="button" class="btn-ai" id="aiGenerateSummary">
@@ -881,7 +882,24 @@
     const summaryMDE = new SimpleMDE({
       element: document.getElementById("summary"),
       spellChecker: false,
-      toolbar: ["bold", "italic", "strikethrough", "|", "link", "preview"],
+      toolbar: [
+        { name: "bold", action: SimpleMDE.toggleBold, className: "fa fa-bold", title: "加粗" },
+        { name: "italic", action: SimpleMDE.toggleItalic, className: "fa fa-italic", title: "斜体" },
+        { name: "strikethrough", action: SimpleMDE.toggleStrikethrough, className: "fa fa-strikethrough", title: "删除线" },
+        "|",
+        { name: "heading", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "标题" },
+        { name: "code", action: SimpleMDE.toggleCodeBlock, className: "fa fa-code", title: "代码块" },
+        { name: "quote", action: SimpleMDE.toggleBlockquote, className: "fa fa-quote-left", title: "引用" },
+        "|",
+        { name: "unordered-list", action: SimpleMDE.toggleUnorderedList, className: "fa fa-list-ul", title: "无序列表" },
+        { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
+        "|",
+        { name: "link", action: SimpleMDE.drawLink, className: "fa fa-link", title: "链接" },
+        { name: "image", action: SimpleMDE.drawImage, className: "fa fa-image", title: "图片" },
+        "|",
+        { name: "preview", action: SimpleMDE.togglePreview, className: "fa fa-eye", title: "预览" },
+        { name: "side-by-side", action: SimpleMDE.toggleSideBySide, className: "fa fa-columns", title: "分屏预览" }
+      ],
       status: false,
       autosave: false
     });
@@ -893,16 +911,115 @@
     const contentMDE = new SimpleMDE({
       element: document.getElementById("content"),
       spellChecker: false,
+      toolbar: [
+        { name: "bold", action: SimpleMDE.toggleBold, className: "fa fa-bold", title: "加粗" },
+        { name: "italic", action: SimpleMDE.toggleItalic, className: "fa fa-italic", title: "斜体" },
+        { name: "strikethrough", action: SimpleMDE.toggleStrikethrough, className: "fa fa-strikethrough", title: "删除线" },
+        "|",
+        { name: "heading", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "标题" },
+        { name: "heading-smaller", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "小标题" },
+        { name: "heading-bigger", action: SimpleMDE.toggleHeadingBigger, className: "fa fa-header", title: "大标题" },
+        "|",
+        { name: "code", action: SimpleMDE.toggleCodeBlock, className: "fa fa-code", title: "代码块" },
+        { name: "quote", action: SimpleMDE.toggleBlockquote, className: "fa fa-quote-left", title: "引用" },
+        "|",
+        { name: "unordered-list", action: SimpleMDE.toggleUnorderedList, className: "fa fa-list-ul", title: "无序列表" },
+        { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
+        "|",
+        { name: "link", action: SimpleMDE.drawLink, className: "fa fa-link", title: "链接" },
+        {
+          name: "image",
+          action: function (editor) {
+            const input = document.createElement("input")
+            input.type = "file"
+            input.accept = "image/*"
+            input.onchange = function () {
+              const file = input.files[0]
+              const formData = new FormData()
+              formData.append("image", file)
+              fetch("/article/upload_image/", {
+                method: "POST",
+                body: formData,
+                headers: {
+                  "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+              })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    const cm = editor.codemirror
+                    cm.replaceSelection(`\n![](${data.url})\n`)
+                  }
+                })
+            }
+            input.click()
+          },
+          className: "fa fa-image",
+          title: "图片"
+        },
+        "|",
+        { name: "preview", action: SimpleMDE.togglePreview, className: "fa fa-eye", title: "预览" },
+        { name: "side-by-side", action: SimpleMDE.toggleSideBySide, className: "fa fa-columns", title: "分屏预览" },
+        { name: "fullscreen", action: SimpleMDE.toggleFullScreen, className: "fa fa-arrows-alt", title: "全屏" },
+        "|",
+        { name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "fa fa-question-circle", title: "Markdown 语法帮助" }
+      ],
+      autosave: {
+        enabled: true,
+        uniqueId: "blog_editor_publish",
+        delay: 5000,
+      },
+      status: [
+        "autosave",
+        "lines",
+        "words",
+        "cursor"
+      ]
     });
+
+    // 处理粘贴图片
+    contentMDE.codemirror.on("paste", function (cm, e) {
+      const items = e.clipboardData.items
+      let hasImage = false
+      for (let item of items) {
+        if (item.type.indexOf("image") !== -1) {
+          hasImage = true
+          break
+        }
+      }
+      if (hasImage) {
+        e.preventDefault()
+        for (let item of items) {
+          if (item.type.indexOf("image") !== -1) {
+            const file = item.getAsFile()
+            const formData = new FormData()
+            formData.append("image", file)
+            fetch("/article/upload_image/", {
+              method: "POST",
+              body: formData,
+              headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+              }
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  cm.replaceSelection(`\n![](${data.url})\n`)
+                }
+              })
+          }
+        }
+      }
+    })
 
     // 字数统计
     const summaryCount = document.getElementById('summaryCount');
     summaryMDE.codemirror.on('change', () => {
       const c = summaryMDE.value();
       summaryCount.innerText = c.length;
-      if (c.length > 200) {
-        summaryMDE.value(c.substring(0, 200));
-        summaryCount.innerText = 200;
+      if (c.length > 500) {
+        summaryMDE.value(c.substring(0, 500));
+        summaryCount.innerText = 500;
       }
     });
 

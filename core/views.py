@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 
 def index(request):
     """首页"""
-    article_qs = Article.objects.filter(status="published").order_by("-created_time")
+    article_qs = Article.objects.filter(status="published").prefetch_related("tags").order_by("-created_time")
 
     # 2. 处理热门文章：增加空值判断，避免索引越界
     hot_articles = article_qs.order_by("-read_count")[:8]
@@ -45,7 +45,7 @@ def index(request):
     except Exception:
         paginated_articles = paginator.page(1)
 
-    last_articles = Article.objects.filter(status="published").order_by(
+    last_articles = Article.objects.filter(status="published").prefetch_related("tags").order_by(
         "-published_time"
     )[
         :5

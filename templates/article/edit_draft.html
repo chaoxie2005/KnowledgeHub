@@ -7,6 +7,7 @@
   <title>编辑草稿 - 用户中心</title>
   <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
   <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
   <style>
@@ -688,11 +689,11 @@
             <div class="section-title">文章摘要（支持 Markdown）</div>
             <div class="form-group">
               <textarea class="form-control summary-editor" id="summary" name="summary" rows="3"
-                placeholder="请输入文章摘要（最多200字）" maxlength="200" required>
+                placeholder="请输入文章摘要（最多500字）" maxlength="500" required>
                 {{ article.summary|default:'' }}
               </textarea>
               <div class="count-text">
-                <span id="summaryCount">{{ article.summary|default:''|length }}</span>/200 字
+                <span id="summaryCount">{{ article.summary|default:''|length }}</span>/500 字
               </div>
               <!-- 新增：AI 生成摘要按钮 -->
               <div class="ai-btn-group">
@@ -751,94 +752,129 @@
       }
     })
 
-    // ========== 新增：标签搜索多选功能（支持草稿标签回显） ==========
-    const tagSearch = document.getElementById('tagSearch')
-    const tagDropdown = document.getElementById('tagDropdown')
-    const tagItems = document.querySelectorAll('.tag-item[data-tag]')
-    const selectedTags = document.getElementById('selectedTags')
+    // 标签：选择 + 自定义
+    let selectedTags = [];
+    const tagSearch = document.getElementById('tagSearch');
+    const tagDropdown = document.getElementById('tagDropdown');
+    const selectedTagsEl = document.getElementById('selectedTags');
+    const tagValuesEl = document.getElementById('tagValues');
 
-    // 避免标签为空时的报错
-    if (tagSearch) {
-      // 点击搜索框显示下拉
-      tagSearch.addEventListener('focus', () => {
-        tagDropdown.classList.add('show')
-      })
+    const allTags = [
+      {% for tag in tags %}
+    "{{ tag.name|escapejs }}"{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+    ];
 
-      // 点击外部关闭下拉
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.tag-search-container')) {
-          tagDropdown.classList.remove('show')
+    // 初始化已选标签（回显草稿中已选中的标签）
+    const existingTags = [
+      {% for tag in article.tags.all %}
+    "{{ tag.name|escapejs }}"{% if not forloop.last %}, {% endif %}
+    {% endfor %}
+    ];
+    selectedTags = existingTags;
+    render();
+
+    // 搜索标签
+    tagSearch.addEventListener('input', function () {
+      const val = this.value.trim().toLowerCase();
+      if (!val) {
+        tagDropdown.style.display = 'none';
+        return;
+      }
+
+      const filtered = allTags.filter(t => t.toLowerCase().includes(val) && !selectedTags.includes(t));
+      tagDropdown.innerHTML = '';
+
+      if (filtered.length > 0) {
+        filtered.forEach(tag => {
+          const div = document.createElement('div');
+          div.className = 'tag-option';
+          div.innerText = tag;
+          div.onclick = () => {
+            if (!selectedTags.includes(tag)) {
+              selectedTags.push(tag);
+              render();
+            }
+            tagSearch.value = '';
+            tagDropdown.style.display = 'none';
+          };
+          tagDropdown.appendChild(div);
+        });
+        tagDropdown.style.display = 'block';
+      } else {
+        // 无匹配标签时，提示可自定义
+        const tipDiv = document.createElement('div');
+        tipDiv.className = 'tag-option';
+        tipDiv.innerText = '无匹配标签，按回车可自定义添加';
+        tipDiv.style.color = '#999';
+        tagDropdown.appendChild(tipDiv);
+        tagDropdown.style.display = 'block';
+      }
+    });
+
+    // 回车添加自定义标签
+    tagSearch.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const tag = this.value.trim();
+        if (!tag) return;
+        if (!selectedTags.includes(tag)) {
+          selectedTags.push(tag);
+          render();
         }
-      })
-
-      // 搜索过滤标签（不区分大小写）
-      tagSearch.addEventListener('input', (e) => {
-        const keyword = e.target.value.toLowerCase().trim()
-        tagItems.forEach(item => {
-          const tagName = item.getAttribute('data-tag')
-          if (tagName.includes(keyword)) {
-            item.style.display = 'flex'
-          } else {
-            item.style.display = 'none'
-          }
-        })
-      })
-
-      // 监听 checkbox 变化，渲染已选标签
-      document.querySelectorAll('input[name="tags"]').forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-          renderSelectedTags()
-        })
-      })
-
-      // 初始化已选标签（回显草稿中已选中的标签）
-      renderSelectedTags()
-    }
-
-    // 渲染已选标签
-    function renderSelectedTags() {
-      selectedTags.innerHTML = ''
-      const checkedTags = document.querySelectorAll('input[name="tags"]:checked')
-
-      if (checkedTags.length === 0) {
-        return
+        this.value = '';
+        tagDropdown.style.display = 'none';
       }
+    });
 
-      checkedTags.forEach(checkbox => {
-        const tagName = checkbox.parentElement.textContent.trim()
-        const tagId = checkbox.value
-        const tagEl = document.createElement('div')
-        tagEl.className = 'selected-tag'
-        tagEl.innerHTML = `
-          ${tagName}
-          <button type="button" onclick="unselectTag(${tagId})">×</button>
-        `
-        selectedTags.appendChild(tagEl)
-      })
+    // 渲染标签
+    function render() {
+      selectedTagsEl.innerHTML = '';
+      selectedTags.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.className = 'tag-item';
+        item.innerHTML = `${t}<button onclick="removeTag(${i})">×</button>`;
+        selectedTagsEl.appendChild(item);
+      });
+      tagValuesEl.value = selectedTags.join(',');
     }
 
-    // 取消选中标签
-    function unselectTag(tagId) {
-      const checkbox = document.querySelector(`input[name="tags"][value="${tagId}"]`)
-      if (checkbox) {
-        checkbox.checked = false
-        renderSelectedTags()
+    // 删除标签
+    window.removeTag = function (index) {
+      selectedTags.splice(index, 1);
+      render();
+    }
+
+    // 点击外部关闭下拉
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.tag-input-container')) {
+        tagDropdown.style.display = 'none';
       }
-    }
+    });
 
     // ========== 初始化摘要 Markdown 编辑器 ==========
     const summaryMDE = new SimpleMDE({
       element: document.getElementById("summary"),
       spellChecker: false,
       placeholder: "请输入文章摘要（支持 Markdown 格式）...",
-      // 简化的工具栏
+      // 丰富的工具栏
       toolbar: [
         { name: "bold", action: SimpleMDE.toggleBold, className: "fa fa-bold", title: "加粗" },
         { name: "italic", action: SimpleMDE.toggleItalic, className: "fa fa-italic", title: "斜体" },
         { name: "strikethrough", action: SimpleMDE.toggleStrikethrough, className: "fa fa-strikethrough", title: "删除线" },
         "|",
+        { name: "heading", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "标题" },
+        { name: "code", action: SimpleMDE.toggleCodeBlock, className: "fa fa-code", title: "代码块" },
+        { name: "quote", action: SimpleMDE.toggleBlockquote, className: "fa fa-quote-left", title: "引用" },
+        "|",
+        { name: "unordered-list", action: SimpleMDE.toggleUnorderedList, className: "fa fa-list-ul", title: "无序列表" },
+        { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
+        "|",
         { name: "link", action: SimpleMDE.drawLink, className: "fa fa-link", title: "链接" },
-        { name: "preview", action: SimpleMDE.togglePreview, className: "fa fa-eye", title: "预览" }
+        { name: "image", action: SimpleMDE.drawImage, className: "fa fa-image", title: "图片" },
+        "|",
+        { name: "preview", action: SimpleMDE.togglePreview, className: "fa fa-eye", title: "预览" },
+        { name: "side-by-side", action: SimpleMDE.toggleSideBySide, className: "fa fa-columns", title: "分屏预览" }
       ],
       autosave: false,
       status: false,
@@ -853,11 +889,11 @@
     // 监听内容变化
     summaryMDE.codemirror.on('change', function () {
       const content = summaryMDE.value()
-      // 限制最大字数 200
-      if (content.length > 200) {
-        summaryMDE.value(content.substring(0, 200))
-        summaryCount.textContent = 200
-        alert('摘要字数不能超过 200 字！')
+      // 限制最大字数 500
+      if (content.length > 500) {
+        summaryMDE.value(content.substring(0, 500))
+        summaryCount.textContent = 500
+        alert('摘要字数不能超过 500 字！')
       } else {
         summaryCount.textContent = content.length
       }
@@ -1078,26 +1114,37 @@
       ]
     })
 
+    // 处理粘贴图片
     contentMDE.codemirror.on("paste", function (cm, e) {
       const items = e.clipboardData.items
+      let hasImage = false
       for (let item of items) {
         if (item.type.indexOf("image") !== -1) {
-          const file = item.getAsFile()
-          const formData = new FormData()
-          formData.append("image", file)
-          fetch("/article/upload_image/", {
-            method: "POST",
-            body: formData,
-            headers: {
-              "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data.success) {
-                cm.replaceSelection(`\n![](${data.url})\n`)
+          hasImage = true
+          break
+        }
+      }
+      if (hasImage) {
+        e.preventDefault()
+        for (let item of items) {
+          if (item.type.indexOf("image") !== -1) {
+            const file = item.getAsFile()
+            const formData = new FormData()
+            formData.append("image", file)
+            fetch("/article/upload_image/", {
+              method: "POST",
+              body: formData,
+              headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
               }
             })
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  cm.replaceSelection(`\n![](${data.url})\n`)
+                }
+              })
+          }
         }
       }
     })
@@ -1129,6 +1176,7 @@
         })
 
         const data = await response.json()
+
         if (data.success) {
           titleInput.value = data.optimized_title
           alert('标题优化成功！')
@@ -1170,6 +1218,7 @@
         })
 
         const data = await response.json()
+
         if (data.success) {
           // 设置摘要编辑器内容
           summaryMDE.value(data.summary)
@@ -1188,9 +1237,9 @@
       }
     })
 
-    // 表单提交逻辑
+    // 表单提交逻辑（同步编辑器内容）
     document.getElementById('publishForm').addEventListener('submit', function (e) {
-      // 同步编辑器内容到 textarea
+      // 同步两个编辑器内容到 textarea
       document.getElementById('summary').value = summaryMDE.value()
       document.getElementById('content').value = contentMDE.value()
 

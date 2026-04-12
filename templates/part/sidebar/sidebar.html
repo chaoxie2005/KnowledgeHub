@@ -164,12 +164,35 @@
   // 侧边栏AI问答（流式输出）
   (function () {
     const sidebarAiAskBtn = document.getElementById('sidebarAiAskBtn');
+    const answerBox = document.getElementById('sidebarAiAnswer');
+
+    // 加载保存的回答
+    function loadSavedAnswer() {
+      const savedAnswer = sessionStorage.getItem('ai_sidebar_answer');
+      if (savedAnswer) {
+        answerBox.innerText = savedAnswer;
+        answerBox.style.display = 'block';
+      }
+    }
+
+    // 保存回答到sessionStorage
+    function saveAnswer(answer) {
+      sessionStorage.setItem('ai_sidebar_answer', answer);
+    }
+
+    // 清除保存的回答
+    function clearSavedAnswer() {
+      sessionStorage.removeItem('ai_sidebar_answer');
+    }
+
+    // 页面加载时加载保存的回答
+    loadSavedAnswer();
+
     if (sidebarAiAskBtn) {
       sidebarAiAskBtn.addEventListener('click', async () => {
         const btn = sidebarAiAskBtn;
         const questionEl = document.getElementById('sidebarAiQuestion');
         const question = (questionEl.value || '').trim();
-        const answerBox = document.getElementById('sidebarAiAnswer');
 
         if (!question) { alert('请输入问题'); return; }
 
@@ -179,6 +202,7 @@
         answerBox.style.display = 'block';
 
         questionEl.value = '';
+        clearSavedAnswer();
 
         try {
           const res = await fetch("{% url 'article:global_ai_qa' %}?stream=1", {
@@ -193,12 +217,16 @@
           const contentType = (res.headers.get('content-type') || '').toLowerCase();
           if (!res.ok && contentType.includes('application/json')) {
             const data = await res.json();
-            answerBox.innerText = data.msg || data.error || '请求失败';
+            const errorMsg = data.msg || data.error || '请求失败';
+            answerBox.innerText = errorMsg;
+            saveAnswer(errorMsg);
             return;
           }
 
           if (!res.body) {
-            answerBox.innerText = await res.text();
+            const text = await res.text();
+            answerBox.innerText = text;
+            saveAnswer(text);
             return;
           }
 
@@ -212,11 +240,17 @@
             out += decoder.decode(value, { stream: true });
             answerBox.innerText = out;
           }
+
+          saveAnswer(out);
+          questionEl.value = '';
         } catch (e) {
-          answerBox.innerText = '网络异常，请重试';
+          const errorMsg = '网络异常，请重试';
+          answerBox.innerText = errorMsg;
+          saveAnswer(errorMsg);
         } finally {
           btn.disabled = false;
           btn.textContent = '发送问题';
+          questionEl.value = '';
         }
       });
     }

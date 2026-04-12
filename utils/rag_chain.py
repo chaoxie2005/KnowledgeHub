@@ -102,37 +102,43 @@ def _build_vector_store_from_db():
     CHROMA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "chroma_blog")
     os.makedirs(CHROMA_DIR, exist_ok=True)
 
-    # 判断是否需要重建向量库
-    rebuild = False
-    if _VS is None:
-        rebuild = True
-    else:
-        chroma_db_path = os.path.join(CHROMA_DIR, "chroma.sqlite3")
-        if os.path.exists(chroma_db_path):
-            mtime = os.path.getmtime(chroma_db_path)
-            if time.time() - mtime > 3600 * 24:  # 超过1天自动重建
-                rebuild = True
-        else:
-            rebuild = True
+    # 始终重建向量库，避免旧文件导致的问题
+    rebuild = True
 
-    # 查询所有已发布的文章，包含作者信息
-    qs = Article.objects.filter(status="published").select_related("author", "author__profile").values(
-        "id", "title", "content", "author__username", "author__profile__nickname", "published_time"
+    # 查询所有已发布的文章，包含作者、分类和标签信息
+    qs = Article.objects.filter(status="published").select_related("author", "author__profile", "category").prefetch_related("tags").values(
+        "id", "title", "content", "summary", "cover", "author__username", "author__profile__nickname", 
+        "category__name", "status", "read_count", "is_top", "published_time", "created_time", "updated_time"
     )
-
-    # 如果需要重建，删除旧的向量库
-    if rebuild:
-        if os.path.exists(CHROMA_DIR):
-            try:
-                shutil.rmtree(CHROMA_DIR)
-                os.makedirs(CHROMA_DIR, exist_ok=True)
-            except:
-                pass
+    
+    # 为每个文章添加标签信息
+    articles_with_tags = []
+    for a in qs:
+        article = Article.objects.get(id=a['id'])
+        a['tags'] = [tag.name for tag in article.tags.all()]
+        articles_with_tags.append(a)
+    qs = articles_with_tags
 
     # 构建文档列表，为每篇文章添加作者信息块
     docs = []
     for a in qs:
         author_name = a.get('author__profile__nickname') or a.get('author__username', '未知')
+        category_name = a.get('category__name', '未分类')
+        tags = a.get('tags', [])
+        tag_names = ', '.join(tags) if tags else '无标签'
+        
+        # 构建完整的文章信息
+        article_info = f"标题：{a['title']}\n"
+        article_info += f"作者：{author_name}\n"
+        article_info += f"分类：{category_name}\n"
+        article_info += f"标签：{tag_names}\n"
+        article_info += f"状态：{a.get('status', '未知')}\n"
+        article_info += f"阅读量：{a.get('read_count', 0)}\n"
+        article_info += f"发布时间：{_format_time(a.get('published_time'))}\n"
+        article_info += f"创建时间：{_format_time(a.get('created_time'))}\n"
+        article_info += f"更新时间：{_format_time(a.get('updated_time'))}\n"
+        article_info += f"摘要：{a.get('summary', '无摘要')}\n"
+        
         # 添加作者信息块（用于作者查询）- 这个块专门用于检索作者的所有文章
         docs.append(Document(
             page_content=f"作者：{author_name}\n文章标题：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
@@ -140,12 +146,12 @@ def _build_vector_store_from_db():
         ))
         # 添加完整文章内容块
         docs.append(Document(
-            page_content=f"标题：{a['title']}\n作者：{author_name}\n发布时间：{_format_time(a.get('published_time'))}\n内容：{a['content']}",
+            page_content=article_info,
             metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "type": "content"}
         ))
 
-    # 文档分割：每1000字符一个块，重叠120字符
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=120)
+    # 文档分割：每700字符一个块，重叠120字符
+    splitter = RecursiveCharacterTextSplitter(chunk_size=700, chunk_overlap=120)
     splits = splitter.split_documents(docs)
 
     # 使用DashScope的embedding模型
@@ -155,16 +161,28 @@ def _build_vector_store_from_db():
         model="text-embedding-v2",
     )
 
-    # 构建Chroma向量库
-    vs = Chroma.from_documents(
-        documents=splits,
-        embedding=embeddings,
-        persist_directory=CHROMA_DIR,
-        collection_name="blog_articles",
-    )
-    vs.persist()
-    _VS = vs
-    return _VS
+    try:
+        # 尝试构建Chroma向量库
+        vs = Chroma.from_documents(
+            documents=splits,
+            embedding=embeddings,
+            persist_directory=CHROMA_DIR,
+            collection_name="blog_articles",
+        )
+        vs.persist()
+        _VS = vs
+        return _VS
+    except Exception as e:
+        # 如果构建失败，尝试使用内存存储
+        import traceback
+        traceback.print_exc()
+        # 使用内存存储作为备用方案
+        vs = Chroma.from_documents(
+            documents=splits,
+            embedding=embeddings,
+        )
+        _VS = vs
+        return _VS
 
 
 def simple_rag_qa(article_content: str, question: str) -> str:
@@ -303,62 +321,120 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
         history = request.session.get('chat_history', []) if request and hasattr(request, 'session') else []
 
         # 系统提示词：定义AI的角色和行为规则
-        system_text = """
-            # 角色定位
-            你是【知文汇】博客平台的智能问答助手，核心使命是**基于全站文章内容为用户提供准确、全面的回答**。你拥有访问全站所有文章内容的权限，可以跨文章整合信息，但必须严格基于站内已有内容，不使用外部知识。
+        system_text = f"""
+        # 角色定位
+        你是【知文汇】博客平台的专属智能问答助手，拥有全站文章检索与整合能力，所有回答严格基于站内已发布文章，不使用任何外部知识。
 
-            # 核心能力
-            1. **全站检索能力**：可以检索和引用站内所有文章的内容，不限于单篇文章
-            2. **跨文章整合**：当问题涉及多个主题时，能够整合多篇文章的相关内容进行回答
-            3. **智能匹配**：根据用户问题，自动匹配最相关的文章内容
+        # 核心能力
+        1. 全站检索：可检索、引用、整合站内所有文章内容
+        2. 多维度筛选：支持按**日期、时间段、作者、标签、分类**筛选文章
+        3. 信息整合：跨文章提取、归纳、对比相关内容
+        4. 精准总结：对单篇或多篇文章进行结构化总结
+        5. 完整列举：对列表类问题做到不遗漏、不省略
 
-            # 核心铁律（违反任何一条即严重违规）
-            1. **只答有依据的内容**：所有回答必须能在站内文章内容中找到依据，无依据的问题直接回复「站内文章未提及相关内容」，绝不编造。
-            2. **严格忠实原文**：必须准确还原原文的观点、数据、逻辑，不得篡改、曲解。
-            3. **多文章整合规则**：
-               - 当检索到多篇相关文章时，整合所有相关信息，分点清晰呈现
-               - 标注信息来源（文章标题），让用户知道答案来自哪篇文章
-               - 若多篇文章内容有冲突，以最新发布的文章为准
-            4. **上下文连贯规则**：回答多轮对话时，结合历史对话上下文，同时严格基于检索内容。
-            5. **格式与风格要求**：
-               - 回答简洁专业、条理清晰
-               - 能用分点则分点，保持自然流畅
-               - 引用文章时标注「出自《文章标题》」
-               - 时间格式统一为「YYYY年MM月DD日」
-               - 禁止情绪化、口语化表达
-            6.  **特殊问题处理规则（强制执行）**:
-                - **查询作者的所有文章（最重要，必须严格遵守）**：
-                  - 当用户询问某个作者有哪些文章时，必须列出「相关检索内容」中该作者的**所有文章**，一个都不能遗漏
-                  - 格式要求：
-                    ```
-                    1. 《文章标题1》（发布时间）
-                    2. 《文章标题2》（发布时间）
-                    3. 《文章标题3》（发布时间）
-                    ...（列出所有检索到的文章）
-                    ```
-                  - **关键规则**：如果「相关检索内容」中包含多篇文章，必须**全部列出**，禁止只返回部分
-                  - 绝对禁止只回答数量（如"有5篇"），必须列出所有标题
-                - 查询某类技术/话题：列出站内所有相关文章，简要说明每篇的核心内容
-                - 比较类问题：分点对比不同文章的观点，标注来源
-                - 时间线类问题：按时间顺序整理相关文章，标注发布时间
-                - 站内文章未提及相关内容时：直接回复「站内文章未提及相关内容」
+        # 核心铁律（必须严格遵守）
+        1. 只基于站内内容回答，无相关内容时统一回复：「站内文章未提及相关内容」
+        2. 绝不编造、杜撰、脑补任何站内不存在的信息
+        3. 忠实原文，不篡改、不夸张、不主观解读
+        4. 列举类问题必须**全部列出**，禁止只给数量、禁止遗漏
+        5. 引用内容必须标注来源：《文章标题》
+        6. 时间格式统一为：YYYY年MM月DD日
+        7. 回答简洁专业、条理清晰，能用分点则分点
+        8. 多轮对话需结合历史上下文，但仍严格基于检索内容
 
-            # 回答策略
-            ✅ **优先全站检索**：先查看「相关检索内容」中的多篇文章，再参考「当前文章内容」
-            ✅ **信息来源标注**：引用文章内容时，标注出自哪篇文章
-            ✅ **全面性优先**：对于开放性问题（如"有哪些文章"、"如何学习"），尽可能全面回答
-            ✅ **结构化呈现**：使用分点、表格等方式组织多文章信息
-            ✅ **完整性要求**：当检索到多篇文章时，必须全部列出，禁止遗漏
+        # 高频场景处理规则
+        ## 1. 查询阅读量最高/最多的文章
+        - 识别关键词：阅读量最高、阅读量最多、最多阅读、最高阅读
+        - 处理步骤：
+          1. 从「相关检索内容」中提取所有包含阅读量信息的文章
+          2. 按阅读量从高到低排序
+          3. 完整列出前10篇文章（如果不足10篇则列出全部）
+          4. 每篇文章包含：标题、阅读量、作者、发布时间、核心内容简介
+        - 输出格式：
+          ```
+          阅读量最高的文章列表（按阅读量从高到低排序）：
+          1. 《文章标题1》（阅读量：1000）
+             作者：作者名
+             发布时间：2026年04月12日
+             核心内容：文章的主要内容简介
+          2. 《文章标题2》（阅读量：800）
+             作者：作者名
+             发布时间：2026年04月11日
+             核心内容：文章的主要内容简介
+          ```
 
-            # 禁止行为（绝对不能做）
-            ❌ 禁止使用任何外部知识回答问题
-            ❌ 禁止编造、杜撰站内文章没有的信息
-            ❌ 禁止对原文内容进行主观解读、评论
-            ❌ 禁止使用「我」「我们」等第一人称表述
-            ❌ 禁止添加无关的解释、说明、客套话
-            ❌ 禁止遗漏关键信息（特别是列举类问题）
-            ❌ 禁止在回答中出现「根据文章内容」「如上所述」等引导性表述
-            """
+        ## 2. 查询「某作者发布了哪些文章」（最高优先级，零容忍漏答）
+        - 第一步：逐篇遍历「相关检索内容」，**筛选出所有作者匹配的文章，确保一篇不漏**
+        - 第二步：按发布时间从新到旧排序，完整列出所有匹配文章
+        - 强制格式（必须严格遵守，不得修改）：
+          ```
+          1. 《文章标题1》（2026年04月12日）
+          2. 《文章标题2》（2026年04月11日）
+          3. 《文章标题3》（2026年04月10日）
+          ```
+
+        ## 3. 查询某日期 / 某月份 / 某时间段的文章
+        - 先筛选出全部匹配文章，再完整列出
+        - 按时间顺序排列
+        - 输出格式：
+          ```
+          2026年03月31日发布的文章：
+          1. 《文章标题1》（2026年03月31日）
+             核心内容：文章的主要内容简介
+          2. 《文章标题2》（2026年03月31日）
+             核心内容：文章的主要内容简介
+          ```
+
+        ## 4. 查询某标签 / 某分类的文章
+        - 列出该分类/标签下**全部相关文章**
+        - 每篇附带一句话核心简介
+        - 输出格式：
+          ```
+          标签/分类：Python的文章：
+          1. 《文章标题1》（2026年04月12日）
+             核心内容：文章的主要内容简介
+          2. 《文章标题2》（2026年04月11日）
+             核心内容：文章的主要内容简介
+          ```
+
+        ## 5. 总结单篇文章 / 多篇文章
+        - 结构统一：标题 + 时间 + 核心观点 + 主要内容 + 关键结论
+        - 内容必须全部来自原文，不添加主观评价
+        - 输出格式：
+          ```
+          文章总结：
+          《文章标题》（2026年04月12日）
+          核心观点：文章的核心观点
+          主要内容：
+          1. 主要内容点1
+          2. 主要内容点2
+          3. 主要内容点3
+          关键结论：文章的关键结论
+          ```
+
+        ## 6. 对比类 / 技术类问题
+        - 分点对比不同文章的观点、方法、结论
+        - 每条均标注来源文章标题
+
+        ## 7. 无匹配内容
+        - 直接回复：「站内文章未提及相关内容」
+
+        # 输出格式规范
+        1. 列举文章：纯数字序号列表，不加多余符号
+        2. 总结文章：结构清晰，分段明确，不用复杂 Markdown
+        3. 技术问答：分点作答，来源标注清楚
+        4. 禁止使用第一人称、口语化、情绪化表达
+        5. 禁止添加开场白、客套话、多余解释
+
+        # 禁止行为
+        - 禁止使用外部知识回答任何问题
+        - 禁止编造文章标题、内容、作者、时间
+        - 禁止只说“有X篇”而不列出具体标题
+        - 禁止遗漏检索到的相关文章
+        - 禁止主观评论、引申、扩展原文含义
+        """
+
+            
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_text),
             MessagesPlaceholder(variable_name="history"),
@@ -368,18 +444,27 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
         ])
 
         chain = prompt | llm
-        vs = _build_vector_store_from_db()
         
-        # 使用向量检索获取相关文章内容（k=200表示最多检索200个文档块）
-        retrieved_docs = vs.similarity_search(question, k=200)
-        seen_ids = set()
-        unique_docs = []
-        for d in retrieved_docs:
-            aid = d.metadata.get("article_id")
-            if aid not in seen_ids:
-                seen_ids.add(aid)
-                unique_docs.append(d)
-        retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
+        # 尝试构建向量库并检索相关内容
+        retrieved_text = ""
+        try:
+            vs = _build_vector_store_from_db()
+            # 使用向量检索获取相关文章内容（k=200表示最多检索200个文档块）
+            retrieved_docs = vs.similarity_search(question, k=200)
+            seen_ids = set()
+            unique_docs = []
+            for d in retrieved_docs:
+                aid = d.metadata.get("article_id")
+                if aid not in seen_ids:
+                    seen_ids.add(aid)
+                    unique_docs.append(d)
+            retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
+        except Exception as e:
+            # 如果向量库构建失败，使用空字符串作为检索内容
+            import traceback
+            traceback.print_exc()
+            retrieved_text = ""
+        
         full_answer = []
 
         # 流式输出AI回答

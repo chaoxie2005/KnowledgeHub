@@ -115,6 +115,15 @@ class Article(models.Model):
         # 调用父类的 save 方法
         super().save(*args, **kwargs)
         
+        # 清除文章详情页缓存
+        try:
+            import redis
+            redis_client = redis.Redis(host='localhost', port=6379, db=0)
+            cache_key = f"article:detail:{self.id}"
+            redis_client.delete(cache_key)
+        except Exception as e:
+            pass
+        
         # 只有当文章状态为 published 时才更新向量库
         if self.status == "published":
             try:

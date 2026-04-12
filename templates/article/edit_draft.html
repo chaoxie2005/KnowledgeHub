@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
   <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
+  <!-- CKEditor 5 富文本编辑器 -->
+  <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+  <!-- 保留 SimpleMDE 用于摘要编辑 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
   <style>
@@ -664,7 +667,8 @@
               <select class="form-control" id="category" name="category" required>
                 <option value="">请选择分类</option>
                 {% for category in categories %}
-                <option value="{{ category.id }}" {% if article.category and article.category.id == category.id%}selected{% endif %}>
+                <option value="{{ category.id }}" {% if article.category and
+                  article.category.id==category.id%}selected{% endif %}>
                   {{ category.name }}
                 </option>
                 {% endfor %}
@@ -709,9 +713,9 @@
           <div class="publish-card">
             <div class="section-title">文章内容（支持 Markdown）</div>
             <div class="form-group">
-              <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入文章正文内容，支持Markdown格式"
+              <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入正文"
                 required>{{ article.content|default:'' }}</textarea>
-              <div class="form-text">支持标题、列表、代码块、图片等 Markdown 语法</div>
+              <div class="form-text">支持 Markdown 语法</div>
             </div>
           </div>
 
@@ -871,10 +875,7 @@
         { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
         "|",
         { name: "link", action: SimpleMDE.drawLink, className: "fa fa-link", title: "链接" },
-        { name: "image", action: SimpleMDE.drawImage, className: "fa fa-image", title: "图片" },
-        "|",
-        { name: "preview", action: SimpleMDE.togglePreview, className: "fa fa-eye", title: "预览" },
-        { name: "side-by-side", action: SimpleMDE.toggleSideBySide, className: "fa fa-columns", title: "分屏预览" }
+        { name: "image", action: SimpleMDE.drawImage, className: "fa fa-image", title: "图片" }
       ],
       autosave: false,
       status: false,
@@ -903,157 +904,96 @@
     const contentMDE = new SimpleMDE({
       element: document.getElementById("content"),
       spellChecker: false,
-      placeholder: "请输入文章正文内容，支持 Markdown 格式...",
-      autosave: {
-        enabled: true,
-        uniqueId: "blog_editor_draft_" + "{{ article.id|default:'' }}",
-        delay: 5000,
-      },
-      status: [
-        "autosave",
-        "lines",
-        "words",
-        "cursor"
-      ],
       toolbar: [
-        {
-          name: "bold",
-          action: SimpleMDE.toggleBold,
-          className: "fa fa-bold",
-          title: "加粗"
-        },
-        {
-          name: "italic",
-          action: SimpleMDE.toggleItalic,
-          className: "fa fa-italic",
-          title: "斜体"
-        },
-        {
-          name: "strikethrough",
-          action: SimpleMDE.toggleStrikethrough,
-          className: "fa fa-strikethrough",
-          title: "删除线"
-        },
+        { name: "undo", action: function (editor) { editor.codemirror.undo(); }, className: "fa fa-undo", title: "撤销" },
+        { name: "redo", action: function (editor) { editor.codemirror.redo(); }, className: "fa fa-repeat", title: "重做" },
         "|",
+        { name: "heading", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "标题" },
+        { name: "bold", action: SimpleMDE.toggleBold, className: "fa fa-bold", title: "加粗" },
+        { name: "italic", action: SimpleMDE.toggleItalic, className: "fa fa-italic", title: "斜体" },
         {
-          name: "heading",
-          action: SimpleMDE.toggleHeadingSmaller,
-          className: "fa fa-header",
-          title: "标题"
-        },
-        {
-          name: "heading-smaller",
-          action: SimpleMDE.toggleHeadingSmaller,
-          className: "fa fa-header",
-          title: "小标题"
-        },
-        {
-          name: "heading-bigger",
-          action: SimpleMDE.toggleHeadingBigger,
-          className: "fa fa-header",
-          title: "大标题"
-        },
-        "|",
-        {
-          name: "quote",
-          action: SimpleMDE.toggleBlockquote,
-          className: "fa fa-quote-left",
-          title: "引用"
-        },
-        {
-          name: "code",
-          action: SimpleMDE.toggleCodeBlock,
-          className: "fa fa-code",
-          title: "代码"
-        },
-        {
-          name: "codeblock",
+          name: "font-color",
           action: function (editor) {
-            const cm = editor.codemirror
-            const code = "\n```python\n\n```\n"
-            cm.replaceSelection(code)
+            const color = prompt("请输入颜色值（如 #ff0000 或 red）：");
+            if (color) {
+              const cm = editor.codemirror;
+              const text = cm.getSelection() || "文本";
+              cm.replaceSelection(`<span style="color:${color}">${text}</span>`);
+            }
           },
-          className: "fa fa-file-code-o",
-          title: "插入代码块"
+          className: "fa fa-font",
+          title: "字体颜色"
+        },
+        {
+          name: "background-color",
+          action: function (editor) {
+            const color = prompt("请输入背景颜色值（如 #ffff00 或 yellow）：");
+            if (color) {
+              const cm = editor.codemirror;
+              const text = cm.getSelection() || "文本";
+              cm.replaceSelection(`<span style="background-color:${color}">${text}</span>`);
+            }
+          },
+          className: "fa fa-highlighter",
+          title: "背景颜色"
+        },
+        "|",
+        { name: "unordered-list", action: SimpleMDE.toggleUnorderedList, className: "fa fa-list-ul", title: "无序列表" },
+        { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
+        "|",
+        {
+          name: "align-left",
+          action: function (editor) {
+            const cm = editor.codemirror;
+            const text = cm.getSelection() || "文本";
+            cm.replaceSelection(`<div style="text-align: left;">${text}</div>`);
+          },
+          className: "fa fa-align-left",
+          title: "左对齐"
+        },
+        {
+          name: "align-center",
+          action: function (editor) {
+            const cm = editor.codemirror;
+            const text = cm.getSelection() || "文本";
+            cm.replaceSelection(`<div style="text-align: center;">${text}</div>`);
+          },
+          className: "fa fa-align-center",
+          title: "居中对齐"
+        },
+        {
+          name: "align-right",
+          action: function (editor) {
+            const cm = editor.codemirror;
+            const text = cm.getSelection() || "文本";
+            cm.replaceSelection(`<div style="text-align: right;">${text}</div>`);
+          },
+          className: "fa fa-align-right",
+          title: "右对齐"
         },
         "|",
         {
-          name: "unordered-list",
-          action: SimpleMDE.toggleUnorderedList,
-          className: "fa fa-list-ul",
-          title: "无序列表"
+          name: "horizontal-rule",
+          action: function (editor) {
+            const cm = editor.codemirror;
+            cm.replaceSelection("\n---\n");
+          },
+          className: "fa fa-minus",
+          title: "水平分隔线"
         },
-        {
-          name: "ordered-list",
-          action: SimpleMDE.toggleOrderedList,
-          className: "fa fa-list-ol",
-          title: "有序列表"
-        },
+        { name: "quote", action: SimpleMDE.toggleBlockquote, className: "fa fa-quote-left", title: "引用" },
+        { name: "code", action: SimpleMDE.toggleCodeBlock, className: "fa fa-code", title: "代码块" },
         "|",
         {
           name: "table",
           action: function (editor) {
-            const cm = editor.codemirror
-            const table = `
-      | 标题1 | 标题2 |
-      |------|------|
-      | 内容 | 内容 |
-      `
-            cm.replaceSelection(table)
+            const cm = editor.codemirror;
+            const table = "\n| 标题1 | 标题2 | 标题3 |\n| --- | --- | --- |\n| 内容1 | 内容2 | 内容3 |\n";
+            cm.replaceSelection(table);
           },
           className: "fa fa-table",
-          title: "插入表格"
+          title: "表格"
         },
-        {
-          name: "link",
-          action: function (editor) {
-            const cm = editor.codemirror
-            const link = "[链接文字](https://)"
-            cm.replaceSelection(link)
-          },
-          className: "fa fa-link",
-          title: "插入链接"
-        },
-        "|",
-        // 文字颜色
-        {
-          name: "color",
-          action: function (editor) {
-            const color = prompt("请输入颜色，例如 red 或 #ff0000")
-            if (!color) return
-            const cm = editor.codemirror
-            const text = cm.getSelection() || "彩色文字"
-            cm.replaceSelection(`<span style="color:${color}">${text}</span>`)
-          },
-          className: "fa fa-paint-brush",
-          title: "设置文字颜色",
-        },
-        // 高亮文字
-        {
-          name: "highlight",
-          action: function (editor) {
-            const cm = editor.codemirror
-            const text = cm.getSelection() || "高亮文字"
-            cm.replaceSelection(`<mark>${text}</mark>`)
-          },
-          className: "fa fa-pencil",
-          title: "高亮文字"
-        },
-        // 字体大小
-        {
-          name: "fontsize",
-          action: function (editor) {
-            const size = prompt("请输入字体大小，例如 18px")
-            if (!size) return
-            const cm = editor.codemirror
-            const text = cm.getSelection() || "大号文字"
-            cm.replaceSelection(`<span style="font-size:${size}">${text}</span>`)
-          },
-          className: "fa fa-text-height",
-          title: "设置字体大小"
-        },
-        "|",
-        // 图片上传
         {
           name: "image",
           action: function (editor) {
@@ -1074,45 +1014,129 @@
                 .then(res => res.json())
                 .then(data => {
                   if (data.success) {
-                    const url = data.url
                     const cm = editor.codemirror
-                    cm.replaceSelection(`\n![](${url})\n`)
+                    cm.replaceSelection(`\n![](${data.url})\n`)
                   }
                 })
             }
             input.click()
           },
-          className: "fa fa-picture-o",
-          title: "上传图片"
+          className: "fa fa-image",
+          title: "图片"
+        },
+        {
+          name: "link",
+          action: SimpleMDE.drawLink,
+          className: "fa fa-link",
+          title: "链接"
         },
         "|",
         {
-          name: "preview",
-          action: SimpleMDE.togglePreview,
-          className: "fa fa-eye",
-          title: "预览"
-        },
-        {
-          name: "side-by-side",
-          action: SimpleMDE.toggleSideBySide,
-          className: "fa fa-columns",
-          title: "分屏预览"
-        },
-        {
-          name: "fullscreen",
-          action: SimpleMDE.toggleFullScreen,
-          className: "fa fa-arrows-alt",
-          title: "全屏编辑"
+          name: "toc",
+          action: function (editor) {
+            const cm = editor.codemirror;
+            cm.replaceSelection("\n[TOC]\n");
+          },
+          className: "fa fa-list",
+          title: "目录"
         },
         "|",
         {
-          name: "guide",
-          action: "https://www.markdownguide.org/basic-syntax/",
-          className: "fa fa-question-circle",
-          title: "Markdown 语法帮助"
-        }
+          name: "preview", action: function (editor) {
+            // 简单的 Markdown 到 HTML 转换函数
+            function markdownToHtml(markdown) {
+              // 标题
+              markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+              markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+              markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+              // 粗体和斜体
+              markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>');
+              markdown = markdown.replace(/\*(.*)\*/gim, '<em>$1</em>');
+
+              // 链接
+              markdown = markdown.replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" target="_blank">$1</a>');
+
+              // 图片
+              markdown = markdown.replace(/!\[([^\]]+)\]\(([^\)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%;">');
+
+              // 代码块
+              markdown = markdown.replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>');
+
+              // 行内代码
+              markdown = markdown.replace(/`([^`]+)`/gim, '<code>$1</code>');
+
+              // 引用
+              markdown = markdown.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+
+              // 无序列表
+              markdown = markdown.replace(/^\* (.*$)/gim, '<li>$1</li>');
+              markdown = markdown.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+              // 有序列表
+              markdown = markdown.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
+              markdown = markdown.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
+
+              // 换行
+              markdown = markdown.replace(/\n/gim, '<br>');
+
+              return markdown;
+            }
+
+            const preview = document.createElement('div');
+            preview.style.position = 'fixed';
+            preview.style.top = '0';
+            preview.style.right = '0';
+            preview.style.width = '50%';
+            preview.style.height = '100vh';
+            preview.style.background = '#fff';
+            preview.style.borderLeft = '1px solid #e0e0e0';
+            preview.style.padding = '20px';
+            preview.style.overflow = 'auto';
+            preview.style.zIndex = '1000';
+            preview.style.boxShadow = '-2px 0 10px rgba(0,0,0,0.1)';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '关闭预览';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '10px';
+            closeBtn.style.right = '10px';
+            closeBtn.style.padding = '5px 10px';
+            closeBtn.style.background = '#f0f0f0';
+            closeBtn.style.border = '1px solid #ddd';
+            closeBtn.style.borderRadius = '4px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.onclick = function () {
+              document.body.removeChild(preview);
+            };
+            preview.appendChild(closeBtn);
+
+            const content = editor.value();
+            const html = markdownToHtml(content);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.style.marginTop = '40px';
+            contentDiv.innerHTML = html;
+            preview.appendChild(contentDiv);
+
+            document.body.appendChild(preview);
+          }, className: "fa fa-eye", title: "预览"
+        },
+        "|",
+        { name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "fa fa-question-circle", title: "Markdown 语法帮助" }
+      ],
+      autosave: {
+        enabled: true,
+        uniqueId: "blog_editor_publish",
+        delay: 5000,
+      },
+      status: [
+        "autosave",
+        "lines",
+        "words",
+        "cursor"
       ]
-    })
+    });
 
     // 处理粘贴图片
     contentMDE.codemirror.on("paste", function (cm, e) {

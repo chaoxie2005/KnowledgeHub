@@ -2,32 +2,156 @@
 
 {% block style%}
 <style>
-  /* 分类页卡片 —— 与首页统一 */
-  .category-card {
+  /* 精选文章推荐区域 */
+  .featured-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
+  }
+
+  .featured-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20technology%20background%20with%20blue%20and%20purple%20gradient&image_size=landscape_16_9');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.1;
+    z-index: 0;
+  }
+
+  .featured-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .featured-image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .featured-text {
+    flex: 1;
+  }
+
+  .featured-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .featured-description {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .featured-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+  }
+
+  /* 文章竖型布局 */
+  .article-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .article-card {
     background: #ffffff;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-    margin-bottom: 24px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid rgba(0, 0, 0, 0.06);
     overflow: hidden;
-    padding: 28px;
+    display: flex;
+    flex-direction: row;
   }
 
-  .category-card:hover {
+  .article-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
   }
 
-  /* 标签样式统一 */
-  .article-tags {
+  .article-card-image {
+    width: 250px;
+    min-height: 200px;
+    overflow: hidden;
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    background: #f5f5f5;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .article-card-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+  }
+
+  .article-card:hover .article-card-image img {
+    transform: scale(1.05);
+  }
+
+  .article-card-content {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .article-card-content>*:last-child {
+    margin-top: auto;
+  }
+
+  /* 标签样式 */
+  .article-card-tags {
     margin-bottom: 12px;
   }
 
-  .article-tag {
+  .article-card-tag {
     display: inline-block;
     background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
-    color: #0066cc;
+    color: #6366F1;
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
@@ -35,94 +159,114 @@
     margin-right: 8px;
     margin-bottom: 6px;
     transition: all 0.2s ease;
-    border: 1px solid rgba(0, 102, 204, 0.1);
+    border: 1px solid rgba(99, 102, 204, 0.1);
   }
 
-  .article-tag a {
-    color: #0066cc !important;
+  .article-card-tag a {
+    color: #6366F1 !important;
     text-decoration: none;
   }
 
-  .article-tag:hover {
-    background: linear-gradient(135deg, #0066cc 0%, #0056b3 100%);
+  .article-card-tag:hover {
+    background: #6366F1;
     color: #fff;
     transform: scale(1.05);
   }
 
-  .article-tag:hover a {
+  .article-card-tag:hover a {
     color: #fff !important;
   }
 
-  .no-tag {
-    font-size: 12px;
-    color: #999;
-  }
-
-  /* 标题统一 */
-  .article-title {
-    font-size: 22px;
+  /* 标题 */
+  .article-card-title {
+    font-size: 18px;
     font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     line-height: 1.4;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+  }
+
+  .article-card-title a {
+    color: #000000 !important;
+    text-decoration: none;
     transition: color 0.2s ease;
-    letter-spacing: -0.3px;
   }
 
-  .article-title:hover {
-    color: #0066cc;
+  .article-card-title a:hover {
+    color: #64b5f6 !important;
   }
 
-  /* 信息栏统一 */
-  .article-info {
-    font-size: 13px;
+  /* 信息栏 */
+  .article-card-info {
+    font-size: 12px;
     color: #666;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 4px;
   }
 
-  .article-info a {
+  .article-card-info a {
     text-decoration: none;
     transition: color 0.2s ease;
   }
 
-  .article-info a:hover {
-    color: #0066cc;
+  .article-card-info a:hover {
+    color: #6366F1;
   }
 
-  .article-author {
-    color: #0066cc !important;
+  .article-card-author {
+    color: #6366F1 !important;
     font-weight: 600;
   }
 
-  .article-info .divider {
+  .article-card-info .divider {
     color: #ccc;
     margin: 0 4px;
   }
 
-  /* 摘要统一 */
-  .article-summary {
-    font-size: 15px;
+  /* 摘要 */
+  .article-card-summary {
+    font-size: 14px;
     color: #555;
-    line-height: 1.7;
-    margin-bottom: 18px;
+    line-height: 1.6;
+    margin-bottom: 16px;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+    flex: 1;
   }
 
-  /* 阅读更多统一 */
+  /* 底部信息 */
+  .article-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #999;
+  }
+
+  .article-card-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .article-card-views {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 继续阅读链接 */
   .read-more {
     font-size: 14px;
-    color: #0066cc !important;
+    color: #64b5f6 !important;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
@@ -133,7 +277,7 @@
 
   .read-more:hover {
     gap: 8px;
-    color: #0056b3 !important;
+    color: #42a5f5 !important;
   }
 
   .read-more::after {
@@ -146,65 +290,90 @@
   }
 
   /* 响应式优化 */
+  @media (max-width: 992px) {
+    .article-card {
+      flex-direction: column;
+      height: auto;
+    }
+
+    .article-card-image {
+      width: 100%;
+      height: 200px;
+      border-right: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+  }
+
   @media (max-width: 768px) {
-    .category-card {
-      margin-bottom: 16px;
-      border-radius: 12px;
-      padding: 20px;
+    .featured-section {
+      padding: 24px;
     }
 
-    .article-title {
-      font-size: 18px;
+    .featured-content {
+      flex-direction: column;
+      text-align: center;
     }
 
-    .article-summary {
-      font-size: 14px;
+    .featured-image {
+      width: 100%;
+      height: 160px;
+    }
+
+    .article-grid {
+      gap: 16px;
     }
   }
 </style>
 {% endblock %}
 
-
 {% block post %}
-<div class="row mb-4">
+<!-- 分类页面标题 -->
+<div class="featured-section">
+  <div class="featured-content">
+    <div class="featured-text">
+      <h2 class="featured-title">{{ category.name|default:'未知分类' }} - 文章分类</h2>
+      <p class="featured-description">查看所有属于 {{ category.name|default:'未知分类' }} 分类的文章</p>
+      <span class="featured-badge">{{ articles.paginator.count }} 篇文章</span>
+    </div>
+  </div>
+</div>
+
+<!-- 文章网格 -->
+<div class="article-grid">
   {% if not articles %}
-  <a class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;"
-    href="{% url 'article:publish_article' %}">
+  <div class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;">
     暂无文章，快来发布你的第一篇文章吧～
-  </a>
+  </div>
   {% else %}
   {% for article in articles %}
-  <div class="col-12 mb-3">
-    <div class="category-card">
-      <div class="article-tags">
-        {% if article.tags.exists %}
+  <div class="article-card">
+    {% if article.cover %}
+    <div class="article-card-image">
+      <img src="{{ article.cover.url }}" alt="{{ article.title }}">
+    </div>
+    {% endif %}
+    <div class="article-card-content">
+      <div class="article-card-tags">
+        {% if article.tags.all %}
         {% for tag in article.tags.all %}
-        <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
+        <span class="article-card-tag"><a href="#">{{ tag.name }}</a></span>
         {% endfor %}
         {% else %}
-        <span class="no-tag">暂无标签</span>
+        <span class="article-card-tag" style="background: #f5f5f5; color: #999;">暂无标签</span>
         {% endif %}
       </div>
-
-      <a class="article-title" href="{% url 'article:detail' article.id %}">{{ article.title }}</a>
-
-      <div class="article-info">
-        {% if article.category %}
-        <a href="#">{{ article.category.name }}</a>
-        {% else %}
-        <span style="color: #6c757d;">暂无分类</span>
-        {% endif %}
-        <span class="divider">•</span>
-        <a href="{% url 'users:user_detail' article.author.id %}" class="article-author">
+      <h3 class="article-card-title"><a href="{% url 'article:detail' article.id %}">{{ article.title }}</a></h3>
+      <div class="article-card-info">
+        <a href="{% url 'users:user_detail' article.author.id %}" class="article-card-author">
           {{ article.author.profile.nickname|default:article.author.username }}
         </a>
         <span class="divider">•</span>
-        <span>{{ article.published_time|date:'Y-m-d H:i' }}</span>
+        <span class="article-card-time">{{ article.published_time|date:'Y-m-d H:i' }}</span>
       </div>
-
-      <p class="article-summary">{{ article.summary|truncatechars:120|default:'暂无摘要' }}</p>
-
-      <a href="{% url 'article:detail' article.id %}" class="read-more">继续阅读 →</a>
+      <p class="article-card-summary">{{ article.summary|truncatechars:100|default:'暂无摘要' }}</p>
+      <div class="article-card-footer">
+        <a href="{% url 'article:detail' article.id %}" class="read-more">继续阅读 →</a>
+      </div>
     </div>
   </div>
   {% endfor %}

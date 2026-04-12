@@ -117,7 +117,8 @@ def search(request):
                 "source": "本地文章",
                 "author": article.author.profile.nickname if hasattr(article.author, 'profile') and article.author.profile.nickname else article.author.username,
                 "created_time": article.created_time,
-                "read_count": article.read_count
+                "read_count": article.read_count,
+                "cover": article.cover
             })
         
         # 2. 掘金热榜文章搜索

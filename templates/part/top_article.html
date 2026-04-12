@@ -4,6 +4,83 @@
     margin-bottom: 24px;
   }
 
+  /* 精选文章推荐区域 */
+  .featured-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
+  }
+
+  .featured-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20technology%20background%20with%20blue%20and%20purple%20gradient&image_size=landscape_16_9');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.1;
+    z-index: 0;
+  }
+
+  .featured-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .featured-image {
+    flex-shrink: 0;
+    width: 200px;
+    height: 120px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .featured-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .featured-text {
+    flex: 1;
+  }
+
+  .featured-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .featured-description {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .featured-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+  }
+
   /* 置顶标签：明确提示读者这是置顶区 */
   .sticky-badge {
     display: inline-block;
@@ -39,9 +116,13 @@
     width: 280px;
     overflow: hidden;
     background: #f8f9fa;
+    position: relative;
   }
 
   .sticky-card-img img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -137,7 +218,7 @@
   /* 阅读更多：和列表完全统一 */
   .read-more {
     font-size: 14px;
-    color: #0066cc !important;
+    color: #6366F1 !important;
     font-weight: 500;
     text-decoration: none;
     transition: padding 0.2s;
@@ -145,7 +226,7 @@
 
   .read-more:hover {
     padding-left: 3px;
-    color: #0056b3 !important;
+    color: #4F46E5 !important;
   }
 
   /* 热门双列卡片：和列表+置顶头条统一 */
@@ -179,9 +260,13 @@
     width: 160px;
     overflow: hidden;
     background: #f8f9fa;
+    position: relative;
   }
 
   .hot-card-img img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -194,6 +279,15 @@
 
   /* 响应式适配：小屏幕隐藏图片 */
   @media (max-width: 992px) {
+    .featured-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .featured-image {
+      width: 100%;
+      height: 160px;
+    }
 
     .sticky-card-img,
     .hot-card-img {
@@ -209,153 +303,40 @@
       font-size: 18px;
     }
   }
+
+  @media (max-width: 768px) {
+    .featured-section {
+      padding: 24px;
+    }
+  }
 </style>
 
-<!-- 置顶头条区（带明确置顶标识） -->
-<div class="top-banner">
-  {% if latest_articles %}
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="sticky-card">
-        <div class="sticky-card-img">
-          {% if latest_articles.cover %}
-          <img src="{{ latest_articles.cover.url }}" alt="{{ latest_articles.title }}">
-          {% else %}
-          <img src="https://picsum.photos/seed/{{ latest_articles.id }}/200" alt="{{ latest_articles.title }}">
-          {% endif %}
-        </div>
-        <div class="sticky-card-content">
-          <div>
-            <!-- 置顶标签：明确提示读者 -->
-            <span class="sticky-badge">📌 最新推荐</span>
-            <div class="article-tags">
-              {% if latest_articles.tags.exists %}
-              {% for tag in latest_articles.tags.all %}
-              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
-              {% endfor %}
-              {% else %}
-              <span class="no-tag">暂无标签</span>
-              {% endif %}
-            </div>
-            <a class="article-title" href="{% url 'article:detail' latest_articles.id %}">
-              {{ latest_articles.title }}</a>
-            <div class="article-info">
-              {% if latest_articles.category %}
-              <a href="{% url 'article:category_list' latest_articles.category.id %}" style="color: #0066cc;">
-                {{ latest_articles.category.name }}</a>
-              {% else %}
-              <span style="color: #6c757d;">暂无分类</span>
-              {% endif %}
-              <span style="margin:0 6px;">|</span>
-              <a href="{% url 'users:user_detail' latest_articles.author.id %}" class="article-author">
-                {{ latest_articles.author.profile.nickname|default:latest_articles.author.username }}
-              </a>
-              <span style="margin:0 6px;">|</span>
-              <span>{{ latest_articles.published_time|date:'Y-m-d H:i' }}</span>
-            </div>
-            <p class="article-summary">{{ latest_articles.summary|truncatechars:150|default:'暂无摘要' }}</p>
-          </div>
-          <a href="{% url 'article:detail' latest_articles.id %}" class="read-more">继续阅读 →</a>
-        </div>
+
+<!-- 精选文章推荐 -->
+{% if hot_one %}
+<div class="featured-section">
+  <div class="featured-content">
+    <div class="featured-image">
+      {% if hot_one.cover %}
+      <img src="{{ hot_one.cover.url }}" alt="{{ hot_one.title }}">
+      {% else %}
+      <img src="https://picsum.photos/seed/{{ hot_one.id }}/200" alt="{{ hot_one.title }}">
+      {% endif %}
+    </div>
+    <div class="featured-text">
+      <span class="sticky-badge" style="background: linear-gradient(135deg, #4facfe, #00f2fe); margin-bottom: 12px;">🔥
+        热门推荐</span>
+      <h2 class="featured-title"><a href="{% url 'article:detail' hot_one.id %}"
+          style="color: white; text-decoration: none;">{{ hot_one.title }}</a></h2>
+      <p class="featured-description">{{ hot_one.summary|truncatechars:100|default:'暂无摘要' }}</p>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span class="featured-badge">最新</span>
+        <a href="{% url 'article:detail' hot_one.id %}" class="read-more" style="color: white !important;">继续阅读 →</a>
       </div>
     </div>
   </div>
-  {% endif %}
-
-  <!-- 热门推荐区（和置顶+列表完全统一） -->
-  {% if hot_one or hot_two %}
-  <div class="row mb-4">
-    {% if hot_one %}
-    <div class="col-md-6 mb-4 mb-md-0">
-      <div class="hot-card">
-        <div class="hot-card-content">
-          <div>
-            <span class="sticky-badge" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🔥 热门推荐</span>
-            <div class="article-tags">
-              {% if hot_one.tags.exists %}
-              {% for tag in hot_one.tags.all %}
-              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
-              {% endfor %}
-              {% else %}
-              <span class="no-tag">暂无标签</span>
-              {% endif %}
-            </div>
-            <a class="article-title" href="{% url 'article:detail' hot_one.id %}" style="font-size: 18px;">
-              {{ hot_one.title }}</a>
-            <div class="article-info">
-              {% if hot_one.category %}
-              <a href="{% url 'article:category_list' hot_one.category.id %}" style="color: #0066cc;">
-                {{ hot_one.category.name }}</a>
-              {% else %}
-              <span style="color: #6c757d;">暂无分类</span>
-              {% endif %}
-              <span style="margin:0 6px;">|</span>
-              <a href="{% url 'users:user_detail' hot_one.author.id %}" class="article-author">
-                {{ hot_one.author.profile.nickname|default:hot_one.author.username }}
-              </a>
-              <span style="margin:0 6px;">|</span>
-              <span>{{ hot_one.published_time|date:'Y-m-d H:i' }}</span>
-            </div>
-            <p class="article-summary">{{ hot_one.summary|truncatechars:80|default:'暂无摘要' }}</p>
-          </div>
-          <a href="{% url 'article:detail' hot_one.id %}" class="read-more">继续阅读 →</a>
-        </div>
-        <div class="hot-card-img">
-          {% if hot_one.cover %}
-          <img src="{{ hot_one.cover.url }}" alt="{{ hot_one.title }}">
-          {% else %}
-          <img src="https://picsum.photos/seed/{{ hot_one.id }}/200" alt="{{ hot_one.title }}">
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-
-    {% if hot_two %}
-    <div class="col-md-6">
-      <div class="hot-card">
-        <div class="hot-card-content">
-          <div>
-            <span class="sticky-badge" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">🔥 热门推荐</span>
-            <div class="article-tags">
-              {% if hot_two.tags.exists %}
-              {% for tag in hot_two.tags.all %}
-              <span class="article-tag"><a href="#">{{ tag.name }}</a></span>
-              {% endfor %}
-              {% else %}
-              <span class="no-tag">暂无标签</span>
-              {% endif %}
-            </div>
-            <a class="article-title" href="{% url 'article:detail' hot_two.id %}" style="font-size: 18px;">
-              {{ hot_two.title }}</a>
-            <div class="article-info">
-              {% if hot_two.category %}
-              <a href="{% url 'article:category_list' hot_two.category.id %}" style="color: #0066cc;">
-                {{ hot_two.category.name }}</a>
-              {% else %}
-              <span style="color: #6c757d;">暂无分类</span>
-              {% endif %}
-              <span style="margin:0 6px;">|</span>
-              <a href="{% url 'users:user_detail' hot_two.author.id %}" class="article-author">
-                {{ hot_two.author.profile.nickname|default:hot_two.author.username }}
-              </a>
-              <span style="margin:0 6px;">|</span>
-              <span>{{ hot_two.published_time|date:'Y-m-d H:i' }}</span>
-            </div>
-            <p class="article-summary">{{ hot_two.summary|truncatechars:80|default:'暂无摘要' }}</p>
-          </div>
-          <a href="{% url 'article:detail' hot_two.id %}" class="read-more">继续阅读 →</a>
-        </div>
-        <div class="hot-card-img">
-          {% if hot_two.cover %}
-          <img src="{{ hot_two.cover.url }}" alt="{{ hot_two.title }}">
-          {% else %}
-          <img src="https://picsum.photos/seed/{{ hot_two.id }}/200" alt="{{ hot_two.title }}">
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
 </div>
+{% endif %}
+
+
+<!-- 置顶头条区（带明确置顶标识） -->

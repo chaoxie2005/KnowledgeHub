@@ -325,6 +325,13 @@ def detail(request, article_id):
 
 def category_list(request, category_id):
     """与其标签相关的文章列表页"""
+    # 获取分类对象
+    try:
+        category = Category.objects.get(id=category_id)
+    except Category.DoesNotExist:
+        category = None
+    
+    # 获取该分类下的文章
     articles = Article.objects.filter(
         category_id=category_id, status="published"
     ).order_by("-published_time")
@@ -364,6 +371,7 @@ def category_list(request, category_id):
     categories = Category.objects.all()
     about_articles = articles[:5]
     context = {
+        "category": category,  # 传递分类对象
         "articles": articles,
         "last_articles": last_articles,  # 最新文章列表页
         "hot_list": hot_list,  # 热门文章列表页

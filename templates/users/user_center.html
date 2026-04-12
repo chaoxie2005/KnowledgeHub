@@ -277,41 +277,40 @@
     /* 侧边栏收起时的样式 */
     .left-menu.collapsed {
       position: relative;
-      overflow: hidden !important;
+    }
+
+    .left-menu.collapsed .menu-item {
+      position: relative;
     }
 
     .left-menu.collapsed .sub-menu {
-      display: none !important;
-      height: 0 !important;
-      overflow: hidden !important;
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
+      position: absolute;
+      left: 100%;
+      top: 0;
+      width: 180px;
+      background: #fff;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .left-menu.collapsed .sub-menu.active {
+      max-height: 300px;
     }
 
     .left-menu.collapsed .sub-menu-item {
-      display: none !important;
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
+      display: block;
+      position: static;
+      padding: 10px 16px;
+      border-left: none;
     }
 
-    /* 提高优先级，确保覆盖所有子菜单项的样式 */
-    .left-menu.collapsed .sub-menu-item.active {
-      display: none !important;
-      border-left-color: transparent !important;
-      background-color: transparent !important;
-      color: #666 !important;
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
-    }
-
-    /* 确保所有元素在收起时都不可见 */
-    .left-menu.collapsed * {
-      border-left-color: transparent !important;
-      background-color: transparent !important;
-      color: #666 !important;
+    .left-menu.collapsed .sub-menu-item:hover {
+      background-color: #f8f9fa;
+      color: #333;
     }
 
     /* 右侧内容 */
@@ -854,12 +853,37 @@
   <script>
     // 侧边栏折叠功能
     document.querySelectorAll('.menu-item').forEach((item) => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation() // 防止事件冒泡
         const targetId = item.getAttribute('data-target')
         const subMenu = document.getElementById(targetId)
-        // 只切换子菜单的显示/隐藏，不添加active类
+
+        // 先关闭所有其他子菜单
+        document.querySelectorAll('.sub-menu').forEach(menu => {
+          if (menu.id !== targetId) {
+            menu.classList.remove('active')
+            menu.style.maxHeight = '0'
+          }
+        })
+
+        // 切换当前子菜单的显示/隐藏
         subMenu.classList.toggle('active')
+        if (subMenu.classList.contains('active')) {
+          subMenu.style.maxHeight = '300px'
+        } else {
+          subMenu.style.maxHeight = '0'
+        }
       })
+    })
+
+    // 点击页面其他地方关闭子菜单
+    document.addEventListener('click', function (event) {
+      if (!event.target.closest('.menu-item') && !event.target.closest('.sub-menu')) {
+        document.querySelectorAll('.sub-menu').forEach(subMenu => {
+          subMenu.classList.remove('active')
+          subMenu.style.maxHeight = '0'
+        })
+      }
     })
 
     // 左侧菜单收起/展开功能
@@ -877,8 +901,10 @@
         })
         leftMenu.querySelectorAll('.menu-item').forEach(item => {
           item.style.padding = '12px 8px'
-          item.style.fontSize = '0'
-          item.classList.remove('active')
+          item.style.justifyContent = 'center'
+          // 保留菜单项文本，但使其不可见，保持点击区域
+          item.style.color = 'transparent'
+          item.style.fontSize = '14px'
         })
         // 折叠所有子菜单
         leftMenu.querySelectorAll('.sub-menu').forEach(subMenu => {
@@ -898,7 +924,8 @@
         })
         leftMenu.querySelectorAll('.menu-item').forEach(item => {
           item.style.padding = '12px 16px'
-          item.style.fontSize = '14px'
+          item.style.justifyContent = 'space-between'
+          item.style.color = '#333'
         })
         // 展开个人中心子菜单（默认）
         const personalMenu = document.getElementById('personal-menu')

@@ -2,12 +2,13 @@
   /* 头部容器样式 */
   .blog-header {
     padding: 16px 0;
-    position: relative;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.03);
-    border-bottom: 1px solid rgba(0, 102, 204, 0.1);
-    z-index: 100;
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+    z-index: 1000;
   }
 
   /* 全局重置：避免 Bootstrap 默认样式干扰 */
@@ -22,22 +23,23 @@
 
   /* 左侧导航文字：提升对比度，明确层级 */
   .blog-header .col-4 .publish-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #6366F1;
     color: white !important;
     border: none;
-    border-radius: 16px;
-    padding: 10px 20px;
+    border-radius: 20px;
+    padding: 12px 24px;
     font-size: 1rem;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
     display: inline-block;
   }
 
   .blog-header .col-4 .publish-btn:hover {
+    background: #4F46E5;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
   }
 
   /* Logo样式 */
@@ -45,8 +47,8 @@
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    color: #2d3748 !important;
-    font-size: 2rem;
+    color: #1a202c !important;
+    font-size: 2.2rem;
     font-weight: 800 !important;
     text-decoration: none;
     letter-spacing: -0.5px;
@@ -55,27 +57,27 @@
   }
 
   .blog-header-logo:hover {
-    color: #667eea !important;
+    color: #6366F1 !important;
   }
 
   .blog-header-logo .logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
+    width: 52px;
+    height: 52px;
+    background: #6366F1;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
     transition: all 0.3s ease;
   }
 
   .blog-header-logo:hover .logo-icon {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 8px 24px rgba(99, 102, 204, 0.5);
   }
 
   /* 右侧容器：强制不换行，元素紧凑排列 */
@@ -99,7 +101,7 @@
   }
 
   .blog-header .search-group:focus-within {
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
   }
 
   /* 搜索框样式：优化颜色和交互 */
@@ -127,7 +129,7 @@
   /* 搜索按钮：优化默认/hover样式 */
   .blog-header .search-btn {
     border: none;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #6366F1;
     color: white;
     border-radius: 20px;
     padding: 8px 20px;
@@ -137,18 +139,19 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
   }
 
   .blog-header .search-btn:hover {
+    background: #4F46E5;
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
   }
 
   /* 登录按钮：优化默认样式，强化hover */
   .blog-header .login-btn {
-    color: #667eea !important;
-    border-color: #667eea !important;
+    color: #6366F1 !important;
+    border-color: #6366F1 !important;
     background: white !important;
     font-size: 0.95rem;
     padding: 10px 20px;
@@ -159,11 +162,11 @@
   }
 
   .blog-header .login-btn:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border-color: #667eea !important;
+    background: #6366F1 !important;
+    border-color: #6366F1 !important;
     color: white !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
   }
 
   /* 新增：用户头像样式 */
@@ -180,8 +183,8 @@
 
   .user-avatar:hover {
     transform: scale(1.1);
-    border-color: #667eea;
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    border-color: #6366F1;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
   }
 
   .user-info-wrapper {
@@ -237,7 +240,7 @@
 
   .blog-nav .nav a {
     text-align: center;
-    color: #4a5568;
+    color: #333333;
     font-size: 15px;
     font-weight: 600;
     text-decoration: none;
@@ -250,13 +253,13 @@
     gap: 8px;
     position: relative;
     overflow: hidden;
-    background: transparent;
+    background: white;
   }
 
   /* Hover效果：背景色 + 文字颜色变化 + 轻微上浮 */
   .blog-nav .nav a:hover {
-    color: #667eea;
-    background: #f7fafc;
+    color: #6366F1;
+    background: #EDE7F6;
     transform: translateY(-2px);
   }
 
@@ -264,13 +267,14 @@
   .blog-nav .nav a.active {
     color: white !important;
     font-weight: 600;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    background: #6366F1;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
   }
 
   .blog-nav .nav a.active:hover {
+    background: #4F46E5;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
   }
 
   /* 下拉按钮样式 */
@@ -282,7 +286,7 @@
   .blog-nav .dropdown .dropdown-menu {
     border-radius: 16px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.1);
     padding: 12px;
     margin-top: 12px !important;
     background: white;
@@ -293,7 +297,7 @@
   .user-info-wrapper .dropdown-menu {
     border-radius: 16px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.1);
     padding: 12px;
     margin-top: 12px !important;
     background: white;
@@ -305,13 +309,13 @@
     border-radius: 12px;
     transition: all 0.3s ease;
     font-size: 14px;
-    color: #4a5568;
+    color: #333333;
     font-weight: 500;
   }
 
   .blog-nav .dropdown .dropdown-item:hover {
-    color: #667eea;
-    background: #f7fafc;
+    color: #6366F1;
+    background: #EDE7F6;
     transform: translateX(6px);
   }
 
@@ -446,68 +450,70 @@
 
 {% load static %}
 <header class="blog-header py-3">
-  <div class="row flex-nowrap justify-content-between align-items-center">
-    <!-- 左侧：个人中心（登录后保留，未登录隐藏） -->
-    <div class="col-4">
-      {% if user.is_authenticated %}
-      <a class="publish-btn" href="{% url 'article:publish_article' %}">发布文章</a>
-      {% endif %}
-    </div>
-
-    <!-- 中间：博客标题 + Logo -->
-    <div class="col-4 text-center">
-      <span class="blog-header-logo">
-        <span class="logo-icon">知</span>
-        <span>知文汇</span>
-      </span>
-    </div>
-
-    <!-- 右侧：搜索 + 登录/用户信息 -->
-    <div class="col-4 right-col">
-      {% if request.path == '/juejin_hot/' or 'juejin_hot' in request.path %}
-      {# 掘金快讯页面：提交到掘金热文搜索 #}
-      <form action="{% url 'article:juejin_hot' %}" method="get" class="d-flex">
-        {% else %}
-        <form action="{% url 'core:search' %}" method="get" class="d-flex">
-          {% endif %}
-          <div class="search-group">
-            <input type="text" name="keyword" placeholder="搜索文章..." value="{{ keyword|default:'' }}"
-              autocomplete="off" />
-            <button class="search-btn" type="submit">搜索</button>
-          </div>
-        </form>
-
-        {# 核心逻辑：判断用户登录状态 #}
+  <div class="container" style="max-width: 1200px;">
+    <div class="row flex-nowrap justify-content-between align-items-center">
+      <!-- 左侧：个人中心（登录后保留，未登录隐藏） -->
+      <div class="col-4">
         {% if user.is_authenticated %}
-        {# 已登录：显示头像 + 昵称（下拉菜单版） #}
-        <div class="dropdown user-info-wrapper">
-          <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-            style="text-decoration: none;">
-            {% if user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar">
-            {% else %}
-            <img src="/media/avatars/default_avatar.png" alt="默认头像" class="user-avatar">
-            {% endif %}
-            <span class="user-nickname">{{ user.profile.nickname|default:user.username|truncatechars:6 }}</span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="{% url 'users:user_center' %}">个人主页</a></li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li><a class="dropdown-item text-danger" href="{% url 'authentication:logout' %}">退出登录</a></li>
-          </ul>
-        </div>
-        {% else %}
-        {# 未登录：显示登录/注册按钮 #}
-        <a class="btn btn-sm login-btn" href="{% url 'authentication:login' %}">登录 / 注册</a>
+        <a class="publish-btn" href="{% url 'article:publish_article' %}">发布文章</a>
         {% endif %}
+      </div>
+
+      <!-- 中间：博客标题 + Logo -->
+      <div class="col-4 text-center">
+        <span class="blog-header-logo">
+          <span class="logo-icon">知</span>
+          <span>知文汇</span>
+        </span>
+      </div>
+
+      <!-- 右侧：搜索 + 登录/用户信息 -->
+      <div class="col-4 right-col">
+        {% if request.path == '/juejin_hot/' or 'juejin_hot' in request.path %}
+        {# 掘金快讯页面：提交到掘金热文搜索 #}
+        <form action="{% url 'article:juejin_hot' %}" method="get" class="d-flex">
+          {% else %}
+          <form action="{% url 'core:search' %}" method="get" class="d-flex">
+            {% endif %}
+            <div class="search-group">
+              <input type="text" name="keyword" placeholder="搜索文章..." value="{{ keyword|default:'' }}"
+                autocomplete="off" />
+              <button class="search-btn" type="submit">搜索</button>
+            </div>
+          </form>
+
+          {# 核心逻辑：判断用户登录状态 #}
+          {% if user.is_authenticated %}
+          {# 已登录：显示头像 + 昵称（下拉菜单版） #}
+          <div class="dropdown user-info-wrapper">
+            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+              style="text-decoration: none;">
+              {% if user.profile.avatar %}
+              <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar">
+              {% else %}
+              <img src="/media/avatars/default_avatar.png" alt="默认头像" class="user-avatar">
+              {% endif %}
+              <span class="user-nickname">{{ user.profile.nickname|default:user.username|truncatechars:6 }}</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="{% url 'users:user_center' %}">个人主页</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item text-danger" href="{% url 'authentication:logout' %}">退出登录</a></li>
+            </ul>
+          </div>
+          {% else %}
+          {# 未登录：显示登录/注册按钮 #}
+          <a class="btn btn-sm login-btn" href="{% url 'authentication:login' %}">登录 / 注册</a>
+          {% endif %}
+      </div>
     </div>
   </div>
 </header>
 
 <!-- 分类导航区-->
-<nav class="blog-nav">
+<nav class="blog-nav" style="max-width: 1200px; margin: 24px auto;">
   <div class="nav d-flex justify-content-between">
     <!-- 固定入口 -->
     <a class="{% if request.path == '/' %}active{% endif %}" href="/">

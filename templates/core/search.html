@@ -54,93 +54,192 @@
         border-bottom: 1px solid #f1f5f9;
     }
 
+    /* 文章竖型布局 */
+    .article-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
     /* 文章卡片样式 */
-    .article-item {
+    .article-card {
         background: #ffffff;
         border-radius: 16px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-        margin-bottom: 24px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         border: 1px solid rgba(0, 0, 0, 0.06);
         overflow: hidden;
-        padding: 28px;
+        display: flex;
+        flex-direction: row;
     }
 
-    .article-item:hover {
+    .article-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
-    /* 标题样式 */
-    .article-title {
-        font-size: 22px;
+    .article-card-image {
+        width: 250px;
+        min-height: 200px;
+        overflow: hidden;
+        border-right: 1px solid rgba(0, 0, 0, 0.06);
+        background: #f5f5f5;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .article-card-image img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 0.3s ease;
+    }
+
+    .article-card:hover .article-card-image img {
+        transform: scale(1.05);
+    }
+
+    .article-card-content {
+        padding: 24px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .article-card-content>*:last-child {
+        margin-top: auto;
+    }
+
+    /* 标签样式 */
+    .article-card-tags {
+        margin-bottom: 12px;
+    }
+
+    .article-card-tag {
+        display: inline-block;
+        background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+        color: #0066cc;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-right: 8px;
+        margin-bottom: 6px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(0, 102, 204, 0.1);
+    }
+
+    .article-card-tag a {
+        color: #0066cc !important;
+        text-decoration: none;
+    }
+
+    .article-card-tag:hover {
+        background: linear-gradient(135deg, #0066cc 0%, #0056b3 100%);
+        color: #fff;
+        transform: scale(1.05);
+    }
+
+    .article-card-tag:hover a {
+        color: #fff !important;
+    }
+
+    /* 标题 */
+    .article-card-title {
+        font-size: 18px;
         font-weight: 700;
         color: #1a1a1a;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         line-height: 1.4;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        transition: color 0.2s ease;
-        letter-spacing: -0.3px;
     }
 
-    .article-title:hover {
-        color: #0066cc;
-    }
-
-    .article-title a {
-        color: inherit;
+    .article-card-title a {
+        color: #000000 !important;
         text-decoration: none;
+        transition: color 0.2s ease;
     }
 
-    /* 信息栏样式 */
-    .article-info {
-        font-size: 13px;
+    .article-card-title a:hover {
+        color: #64b5f6 !important;
+    }
+
+    /* 信息栏 */
+    .article-card-info {
+        font-size: 12px;
         color: #666;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
         flex-wrap: wrap;
         gap: 4px;
     }
 
-    .article-info a {
+    .article-card-info a {
         text-decoration: none;
         transition: color 0.2s ease;
     }
 
-    .article-info a:hover {
+    .article-card-info a:hover {
         color: #0066cc;
     }
 
-    .article-author {
+    .article-card-author {
         color: #0066cc !important;
         font-weight: 600;
     }
 
-    .article-info .divider {
+    .article-card-info .divider {
         color: #ccc;
         margin: 0 4px;
     }
 
-    /* 摘要样式 */
-    .article-summary {
-        font-size: 15px;
+    /* 摘要 */
+    .article-card-summary {
+        font-size: 14px;
         color: #555;
-        line-height: 1.7;
-        margin-bottom: 18px;
+        line-height: 1.6;
+        margin-bottom: 16px;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
+        flex: 1;
     }
 
-    /* 阅读更多链接 */
+    /* 底部信息 */
+    .article-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #999;
+    }
+
+    .article-card-time {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .article-card-views {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* 继续阅读链接 */
     .read-more {
         font-size: 14px;
-        color: #0066cc !important;
+        color: #64b5f6 !important;
         font-weight: 600;
         text-decoration: none;
         transition: all 0.2s ease;
@@ -165,13 +264,8 @@
 
     /* 高亮样式 */
     .highlight {
-        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-        color: #856404;
-        padding: 2px 8px;
-        border-radius: 3px;
-        font-size: 14px;
-        font-weight: 500;
-        border: 1px solid #ffeaa7;
+        color: #e53935;
+        font-weight: 600;
     }
 
     /* 无结果提示 */
@@ -191,22 +285,42 @@
     }
 
     /* 响应式优化 */
+    @media (max-width: 992px) {
+        .article-card {
+            flex-direction: column;
+            height: auto;
+        }
+
+        .article-card-image {
+            width: 100%;
+            height: 200px;
+            border-right: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+    }
+
     @media (max-width: 768px) {
         .search-input {
             max-width: none;
         }
 
-        .article-item {
-            margin-bottom: 16px;
+        .article-grid {
+            gap: 16px;
+        }
+
+        .article-card {
             border-radius: 12px;
+        }
+
+        .article-card-content {
             padding: 20px;
         }
 
-        .article-title {
+        .article-card-title {
             font-size: 18px;
         }
 
-        .article-summary {
+        .article-card-summary {
             font-size: 14px;
         }
     }
@@ -224,45 +338,57 @@
             </div>
 
             {% if articles %}
-            {% for article in articles %}
-            <div class="article-item">
-                <h2 class="article-title">
-                    {% if article.type != 'local' %}
-                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">
-                        {% else %}
-                        <a href="{{ article.url }}">
-                            {% endif %}
-                            {{ article.title }}
-                        </a>
-                </h2>
-
-                <div class="article-info">
-                    <span class="article-tag">{{ article.source }}</span>
-                    <span class="divider">•</span>
-                    <a href="#" class="article-author">
-                        {{ article.author }}
-                    </a>
-                    <span class="divider">•</span>
-                    <span>{{ article.created_time|date:'Y-m-d' }}</span>
-                    {% if article.read_count %}
-                    <span class="divider">•</span>
-                    <span>👁️ {{ article.read_count }} 阅读</span>
+            <div class="article-grid">
+                {% for article in articles %}
+                <div class="article-card">
+                    {% if article.cover %}
+                    <div class="article-card-image">
+                        <img src="{{ article.cover.url }}" alt="{{ article.title }}">
+                    </div>
                     {% endif %}
+                    <div class="article-card-content">
+                        <div class="article-card-tags">
+                            <span class="article-card-tag">{{ article.source }}</span>
+                        </div>
+                        <h3 class="article-card-title">
+                            {% if article.type != 'local' %}
+                            <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">
+                                {% else %}
+                                <a href="{{ article.url }}">
+                                    {% endif %}
+                                    {{ article.title }}
+                                </a>
+                        </h3>
+
+                        <div class="article-card-info">
+                            <a href="#" class="article-card-author">
+                                {{ article.author }}
+                            </a>
+                            <span class="divider">•</span>
+                            <span>{{ article.created_time|date:'Y-m-d' }}</span>
+                            {% if article.read_count %}
+                            <span class="divider">•</span>
+                            <span>👁️ {{ article.read_count }} 阅读</span>
+                            {% endif %}
+                        </div>
+
+                        <p class="article-card-summary">
+                            {{ article.summary|default:'暂无摘要' }}
+                        </p>
+
+                        <div class="article-card-footer">
+                            {% if article.type != 'local' %}
+                            <a href="{{ article.url }}" class="read-more" target="_blank" rel="noopener noreferrer">
+                                {% else %}
+                                <a href="{{ article.url }}" class="read-more">
+                                    {% endif %}
+                                    继续阅读 →
+                                </a>
+                        </div>
+                    </div>
                 </div>
-
-                <p class="article-summary">
-                    {{ article.summary|default:'暂无摘要' }}
-                </p>
-
-                {% if article.type != 'local' %}
-                <a href="{{ article.url }}" class="read-more" target="_blank" rel="noopener noreferrer">
-                    {% else %}
-                    <a href="{{ article.url }}" class="read-more">
-                        {% endif %}
-                        继续阅读 →
-                    </a>
+                {% endfor %}
             </div>
-            {% endfor %}
             {% else %}
             <div class="no-results">
                 <p>没有找到相关结果</p>
@@ -287,7 +413,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         const keyword = '{{ keyword }}';
         if (keyword) {
-            const elements = document.querySelectorAll('.article-title, .article-summary');
+            const elements = document.querySelectorAll('.article-card-title, .article-card-summary');
             elements.forEach(element => {
                 const content = element.innerHTML;
                 const regex = new RegExp(keyword, 'gi');

@@ -140,14 +140,20 @@ def _build_vector_store_from_db():
         article_info += f"摘要：{a.get('summary', '无摘要')}\n"
         
         # 添加作者信息块（用于作者查询）- 这个块专门用于检索作者的所有文章
+        # 为了提高检索精度，添加多个作者信息块，使用不同的表述方式
         docs.append(Document(
             page_content=f"作者：{author_name}\n文章标题：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "type": "author_info"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info"}
+        ))
+        # 添加另一个作者信息块，使用不同的表述方式，提高检索概率
+        docs.append(Document(
+            page_content=f"{author_name}发布的文章：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info_alt"}
         ))
         # 添加完整文章内容块
         docs.append(Document(
             page_content=article_info,
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "type": "content"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "content"}
         ))
 
     # 文档分割：每700字符一个块，重叠120字符
@@ -268,12 +274,12 @@ def update_vector_store():
         # 添加作者信息块（用于作者查询）
         docs.append(Document(
             page_content=f"作者：{author_name}\n文章标题：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "type": "author_info"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info"}
         ))
         # 添加完整文章内容块
         docs.append(Document(
             page_content=f"标题：{a['title']}\n作者：{author_name}\n发布时间：{_format_time(a.get('published_time'))}\n内容：{a['content']}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "type": "content"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "content"}
         ))
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -288,18 +294,18 @@ def update_vector_store():
     return "向量库已更新"
 
 
-def simple_rag_qa_stream(article_content: str, question: str, request=None):
+def article_rag_qa_stream(article_content: str, question: str, request=None):
     """
-    流式RAG问答（用于全局AI问答）
+    文章详情页专属的流式RAG问答
     
     功能说明：
-    - 基于全站文章内容进行问答
+    - 基于当前文章内容进行问答
     - 支持流式输出，实时显示AI回答
-    - 使用向量检索获取相关文章内容
-    - 支持多轮对话（通过session保存历史记录）
+    - 优先使用当前文章内容，不依赖向量检索
+    - 特别优化了文章总结功能
     
     Args:
-        article_content: 当前文章内容（可选）
+        article_content: 当前文章内容
         question: 用户问题
         request: HTTP请求对象（用于获取session历史记录）
     
@@ -318,6 +324,123 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
 
         from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
         content = (article_content or "")[:6000]
+        history = request.session.get('chat_history', []) if request and hasattr(request, 'session') else []
+
+        # 检查是否是总结文章的请求
+        import re
+        is_summary_request = bool(re.search(r'总结|概括|摘要|概述|总结这篇文章|概括这篇文章|摘要这篇文章|概述这篇文章', question))
+
+        # 系统提示词：定义AI的角色和行为规则
+        system_text = f"""
+        # 角色定位
+        你是【知文汇】博客平台的专属智能问答助手，专注于基于当前文章内容进行问答，所有回答严格基于文章原文，不使用任何外部知识。
+
+        # 核心能力
+        1. 文章理解：深入理解文章内容，准确提取核心信息
+        2. 精准总结：对文章进行结构化、全面的总结
+        3. 内容解析：回答基于文章内容的具体问题
+        4. 细节提取：从文章中提取特定信息和数据
+
+        # 核心铁律（必须严格遵守）
+        1. 只基于当前文章内容回答，无依据则回复「文章中未提及相关内容」
+        2. 绝不编造、杜撰、脑补任何文章中不存在的信息
+        3. 忠实原文，不篡改、不夸张、不主观解读
+        4. 回答简洁专业、条理清晰，能用分点则分点
+        5. 多轮对话需结合历史上下文，但仍严格基于文章内容
+
+        # 文章总结规范
+        - 结构统一：核心观点 + 主要内容 + 关键结论
+        - 内容必须全部来自原文，不添加主观评价
+        - 输出格式：
+          ```
+          文章总结：
+          核心观点：文章的核心观点
+          主要内容：
+          1. 主要内容点1
+          2. 主要内容点2
+          3. 主要内容点3
+          关键结论：文章的关键结论
+          ```
+
+        # 输出格式规范
+        1. 总结文章：结构清晰，分段明确，不用复杂 Markdown
+        2. 技术问答：分点作答，来源标注清楚
+        3. 禁止使用第一人称、口语化、情绪化表达
+        4. 禁止添加开场白、客套话、多余解释
+
+        # 禁止行为
+        - 禁止使用外部知识回答任何问题
+        - 禁止编造文章内容、作者、时间等信息
+        - 禁止主观评论、引申、扩展原文含义
+        """
+
+        # 为总结请求添加特殊提示
+        if is_summary_request:
+            system_text += "\n\n# 特别注意：当用户请求总结当前文章时，请优先使用提供的文章内容进行详细总结，确保覆盖文章的核心观点、主要内容和关键结论。"
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_text),
+            MessagesPlaceholder(variable_name="history"),
+            ("human", "用户问题：{question}"),
+            ("human", "文章内容：\n{content}"),
+        ])
+
+        chain = prompt | llm
+        
+        full_answer = []
+
+        # 流式输出AI回答
+        for chunk in chain.stream({
+            "question": question.strip(),
+            "content": content,
+            "history": history,
+        }):
+            text = chunk if isinstance(chunk, str) else getattr(chunk, "content", "")
+            if text:
+                full_answer.append(text)
+                yield text
+
+        # 保存对话历史到session（最多保存10轮）
+        if request and hasattr(request, 'session'):
+            history.append(("human", question.strip()))
+            history.append(("assistant", "".join(full_answer)))
+            if len(history) > 10:
+                history = history[-10:]
+            request.session['chat_history'] = history
+            request.session.modified = True
+
+    except Exception as e:
+        yield f"服务异常：{str(e)}"
+
+
+def global_rag_qa_stream(question: str, request=None):
+    """
+    首页全站AI功能专属的流式RAG问答
+    
+    功能说明：
+    - 基于全站文章内容进行问答
+    - 支持流式输出，实时显示AI回答
+    - 使用向量检索获取相关文章内容
+    - 特别优化了作者文章查询功能
+    
+    Args:
+        question: 用户问题
+        request: HTTP请求对象（用于获取session历史记录）
+    
+    Yields:
+        str: AI回答的文本片段（流式输出）
+    """
+    try:
+        if not question:
+            yield "请输入有效问题"
+            return
+
+        llm, error = _get_llm()
+        if error:
+            yield error
+            return
+
+        from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
         history = request.session.get('chat_history', []) if request and hasattr(request, 'session') else []
 
         # 系统提示词：定义AI的角色和行为规则
@@ -365,13 +488,16 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
 
         ## 2. 查询「某作者发布了哪些文章」（最高优先级，零容忍漏答）
         - 第一步：逐篇遍历「相关检索内容」，**筛选出所有作者匹配的文章，确保一篇不漏**
-        - 第二步：按发布时间从新到旧排序，完整列出所有匹配文章
+        - 第二步：按发布时间从新到旧排序，**完整列出所有匹配文章，绝对不允许遗漏任何一篇**
         - 强制格式（必须严格遵守，不得修改）：
           ```
           1. 《文章标题1》（2026年04月12日）
           2. 《文章标题2》（2026年04月11日）
           3. 《文章标题3》（2026年04月10日）
+          ...
+          N. 《文章标题N》（2026年04月01日）
           ```
+        - 重要要求：无论有多少篇文章，都必须全部列出，不得省略或只返回部分
 
         ## 3. 查询某日期 / 某月份 / 某时间段的文章
         - 先筛选出全部匹配文章，再完整列出
@@ -434,12 +560,10 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
         - 禁止主观评论、引申、扩展原文含义
         """
 
-            
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_text),
             MessagesPlaceholder(variable_name="history"),
             ("human", "用户问题：{question}"),
-            ("human", "文章内容：\n{content}"),
             ("human", "相关检索内容：\n{retrieved_docs}"),
         ])
 
@@ -449,16 +573,53 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
         retrieved_text = ""
         try:
             vs = _build_vector_store_from_db()
-            # 使用向量检索获取相关文章内容（k=200表示最多检索200个文档块）
-            retrieved_docs = vs.similarity_search(question, k=200)
-            seen_ids = set()
-            unique_docs = []
-            for d in retrieved_docs:
-                aid = d.metadata.get("article_id")
-                if aid not in seen_ids:
-                    seen_ids.add(aid)
-                    unique_docs.append(d)
-            retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
+            
+            # 检查是否是作者查询问题
+            import re
+            author_match = re.search(r'作者(.+?)发布了哪些文章', question)
+            
+            if author_match:
+                # 对于作者查询，使用更精确的检索方式
+                author_name = author_match.group(1).strip()
+                
+                # 直接从数据库获取所有该作者的文章，确保时间信息正确
+                from article.models import Article
+                # 查询该作者的所有已发布文章
+                articles = Article.objects.filter(status="published").select_related("author", "author__profile")
+                author_articles = []
+                for a in articles:
+                    # 获取作者名称（优先使用昵称，其次使用用户名）
+                    article_author = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+                    # 更宽松的匹配方式，确保能匹配到所有相关文章
+                    if author_name in article_author or article_author in author_name:
+                        author_articles.append(a)
+                
+                # 按发布时间从新到旧排序
+                author_articles.sort(key=lambda x: x.published_time, reverse=True)
+                
+                # 构建检索结果
+                retrieved_text = ""
+                for a in author_articles:
+                    # 构建作者信息块
+                    article_author = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+                    doc_content = f"作者：{article_author}\n文章标题：{a.title}\n发布时间：{_format_time(a.published_time)}"
+                    # 添加到检索结果中
+                    retrieved_text += doc_content + "\n\n"
+                
+                # 如果没有匹配的文章，添加提示信息
+                if not author_articles:
+                    retrieved_text = f"未找到作者 {author_name} 的文章"
+            else:
+                # 非作者查询，使用常规相似度搜索
+                retrieved_docs = vs.similarity_search(question, k=200)
+                seen_ids = set()
+                unique_docs = []
+                for d in retrieved_docs:
+                    aid = d.metadata.get("article_id")
+                    if aid not in seen_ids:
+                        seen_ids.add(aid)
+                        unique_docs.append(d)
+                retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
         except Exception as e:
             # 如果向量库构建失败，使用空字符串作为检索内容
             import traceback
@@ -470,7 +631,6 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
         # 流式输出AI回答
         for chunk in chain.stream({
             "question": question.strip(),
-            "content": content,
             "retrieved_docs": retrieved_text,
             "history": history,
         }):
@@ -490,3 +650,25 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
 
     except Exception as e:
         yield f"服务异常：{str(e)}"
+
+
+def simple_rag_qa_stream(article_content: str, question: str, request=None):
+    """
+    兼容旧版本的流式RAG问答（用于全局AI问答）
+    
+    功能说明：
+    - 基于全站文章内容进行问答
+    - 支持流式输出，实时显示AI回答
+    - 使用向量检索获取相关文章内容
+    - 支持多轮对话（通过session保存历史记录）
+    
+    Args:
+        article_content: 当前文章内容（可选）
+        question: 用户问题
+        request: HTTP请求对象（用于获取session历史记录）
+    
+    Yields:
+        str: AI回答的文本片段（流式输出）
+    """
+    # 调用新的全局RAG问答函数
+    return global_rag_qa_stream(question, request)

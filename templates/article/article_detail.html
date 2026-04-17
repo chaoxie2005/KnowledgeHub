@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block style %}
+<link rel="stylesheet" href="/static/css/sidebar.css">
 <style>
   /* 全局容器 */
   .article-detail-container {
@@ -272,21 +273,8 @@
   }
 
   /* AI 问答区域样式 */
-  .ai-qa-section {
-    max-width: 720px;
-    margin: 30px auto;
-    padding-top: 20px;
-    border-top: 1px solid #f3f4f6;
-  }
-
-  .ai-qa-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 12px;
+  .ai-qa-widget {
+    margin-top: 30px;
   }
 
   .ai-qa-box {
@@ -303,6 +291,12 @@
     min-height: 50px;
     font-size: 0.95rem;
     outline: none;
+  }
+
+  .ai-qa-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
   }
 
   .ai-qa-btn {
@@ -718,22 +712,30 @@
   </nav>
 
   <!-- AI 问答 -->
-  <div class="ai-qa-section">
-    <div class="ai-qa-header">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
+  <div class="sidebar-widget ai-qa-widget">
+    <h4 class="widget-title font-italic">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0066cc" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 6px;">
         <path
           d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
         </path>
       </svg>
       AI 文章问答（基于本文内容）
-    </div>
+    </h4>
     <div class="ai-qa-box">
       <textarea id="aiQuestion" class="ai-qa-input" placeholder="输入你的问题，可基于本文内容或全站文章进行搜索"></textarea>
-      <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+      <div class="ai-qa-footer">
         <button id="aiAskBtn" class="ai-qa-btn">发送问题</button>
       </div>
-      <div id="aiAnswer" style="display: none;" class="ai-answer"></div>
+      <div id="aiAnswer" class="ai-answer" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+          <span style="font-weight: 600; color: #0066cc;">AI 回答：</span>
+          <button id="closeAiAnswer"
+            style="background: none; border: none; font-size: 16px; cursor: pointer; color: #6b7280; padding: 0; line-height: 1;">×</button>
+        </div>
+        <div id="aiAnswerContent"></div>
+      </div>
+      {% endif %}
     </div>
   </div>
 
@@ -1093,11 +1095,14 @@
     const articleId = '{{ article.id }}';
     const storageKey = `ai_article_${articleId}_answer`;
 
+    const answerContent = document.getElementById('aiAnswerContent');
+    const closeBtn = document.getElementById('closeAiAnswer');
+
     // 加载保存的回答
     function loadSavedAnswer() {
       const savedAnswer = sessionStorage.getItem(storageKey);
       if (savedAnswer) {
-        answerBox.innerText = savedAnswer;
+        answerContent.innerText = savedAnswer;
         answerBox.style.display = 'block';
       }
     }
@@ -1112,8 +1117,18 @@
       sessionStorage.removeItem(storageKey);
     }
 
+    // 关闭回答框
+    function closeAnswer() {
+      answerBox.style.display = 'none';
+      answerContent.innerText = '';
+      clearSavedAnswer();
+    }
+
     // 页面加载时加载保存的回答
     loadSavedAnswer();
+
+    // 关闭按钮点击事件
+    closeBtn.addEventListener('click', closeAnswer);
 
     document.getElementById('aiAskBtn').addEventListener('click', async () => {
       const btn = document.getElementById('aiAskBtn');
@@ -1124,7 +1139,7 @@
 
       btn.disabled = true;
       btn.textContent = 'AI 输出中...';
-      answerBox.innerText = '';
+      answerContent.innerText = '';
       answerBox.style.display = 'block';
 
       questionEl.value = '';
@@ -1144,14 +1159,14 @@
         if (!res.ok && contentType.includes('application/json')) {
           const data = await res.json();
           const errorMsg = data.msg || data.error || '请求失败';
-          answerBox.innerText = errorMsg;
+          answerContent.innerText = errorMsg;
           saveAnswer(errorMsg);
           return;
         }
 
         if (!res.body) {
           const text = await res.text();
-          answerBox.innerText = text;
+          answerContent.innerText = text;
           saveAnswer(text);
           questionEl.value = '';
           return;
@@ -1165,14 +1180,14 @@
           const { done, value } = await reader.read();
           if (done) break;
           out += decoder.decode(value, { stream: true });
-          answerBox.innerText = out;
+          answerContent.innerText = out;
         }
 
         saveAnswer(out);
         questionEl.value = '';
       } catch (e) {
         const errorMsg = '网络异常，请重试';
-        answerBox.innerText = errorMsg;
+        answerContent.innerText = errorMsg;
         saveAnswer(errorMsg);
       } finally {
         btn.disabled = false;

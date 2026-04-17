@@ -27,7 +27,7 @@ import random
 from utils.redis_client import redis_client
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Prefetch
-from utils.rag_chain import simple_rag_qa, simple_rag_qa_stream
+from utils.rag_chain import simple_rag_qa, simple_rag_qa_stream, article_rag_qa_stream, global_rag_qa_stream
 
 
 def time_it(func):
@@ -114,6 +114,22 @@ def detail(request, article_id):
         redis_client.set(read_count_key, article.read_count)
     redis_client.incr(read_count_key)
     real_read_count = int(redis_client.get(read_count_key))
+    
+    # 定期同步阅读量到数据库（每10次访问同步一次）
+    sync_counter = redis_client.get(f"article:sync_counter:{article_id}")
+    if not sync_counter:
+        redis_client.set(f"article:sync_counter:{article_id}", 0)
+        sync_counter = 0
+    else:
+        sync_counter = int(sync_counter)
+    
+    sync_counter += 1
+    redis_client.set(f"article:sync_counter:{article_id}", sync_counter)
+    
+    if sync_counter % 10 == 0:
+        # 每10次访问同步一次阅读量到数据库
+        article.read_count = real_read_count
+        article.save(update_fields=['read_count'])
 
     # 定义Markdown扩展
     markdown_extensions = [
@@ -435,7 +451,7 @@ def archive_list(request, archive_year, archive_month):
 
 @login_required(login_url="authentication:login")
 def publish_article(request):
-    """发布文章（支持：选择已有标签 + 自定义标签自动创建）"""
+    """发布文章（支持：选择已有标签 + 自定义标签自动创建（暂时有bug，不能正确自定义标签入库））"""
     categories = Category.objects.all()
     tags = Tag.objects.all()
 
@@ -673,7 +689,7 @@ def drafts(request):
 
 @login_required(login_url="authentication:login")
 def edit_draft(request, draft_id):
-    """编辑草稿箱（完整可运行版）"""
+    """编辑草稿箱"""
     article = get_object_or_404(
         Article, id=draft_id, status="draft", author=request.user  # 修正拼写错误
     )
@@ -1058,7 +1074,7 @@ def article_ai_qa(request, article_id):
 
         if request.GET.get("stream") == "1":
             response = StreamingHttpResponse(
-                simple_rag_qa_stream(article.content, question, request),
+                article_rag_qa_stream(article.content, question, request),
                 content_type="text/plain; charset=utf-8",
             )
             response["Cache-Control"] = "no-cache"
@@ -1086,19 +1102,18 @@ def global_ai_qa(request):
         if not question:
             return JsonResponse({"code": 400, "msg": "请输入问题"})
 
-        # 获取所有已发布文章的内容
-        articles = Article.objects.filter(status="published").values_list('content', flat=True)
-        all_content = "\n\n".join(articles)
-
         if request.GET.get("stream") == "1":
             response = StreamingHttpResponse(
-                simple_rag_qa_stream(all_content, question, request),
+                global_rag_qa_stream(question, request),
                 content_type="text/plain; charset=utf-8",
             )
             response["Cache-Control"] = "no-cache"
             response["X-Accel-Buffering"] = "no"
             return response
 
+        # 对于非流式请求，获取所有已发布文章的内容
+        articles = Article.objects.filter(status="published").values_list('content', flat=True)
+        all_content = "\n\n".join(articles)
         answer = simple_rag_qa(all_content, question)
         return JsonResponse({
             "code": 200,

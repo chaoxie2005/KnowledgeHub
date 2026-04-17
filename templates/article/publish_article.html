@@ -99,6 +99,33 @@
       display: block;
     }
 
+    /* 覆盖main-content的overflow设置，允许编辑器高度自由扩展 */
+    .main-content {
+      overflow: visible !important;
+    }
+
+    /* 为编辑器容器添加样式，确保其可以自由扩展 */
+    .form-group {
+      position: relative;
+    }
+
+    /* 为SimpleMDE编辑器添加样式，确保其可以自由扩展 */
+    .CodeMirror {
+      height: auto !important;
+      min-height: 500px;
+      max-height: none !important;
+    }
+
+    .CodeMirror-scroll {
+      height: auto !important;
+      max-height: none !important;
+    }
+
+    .simplemde {
+      height: auto !important;
+      max-height: none !important;
+    }
+
     .dropdown-content a {
       display: block;
       padding: 8px 16px;
@@ -1134,7 +1161,12 @@
         { name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "fa fa-question-circle", title: "Markdown 语法帮助" }
       ],
       autosave: false,
-      status: false
+      status: false,
+      // 增加编辑器高度配置，解决不能下拉的问题
+      minHeight: '500px',
+      maxHeight: '10000px', // 设置一个较大的最大高度
+      autosize: true, // 自动调整大小
+      spellChecker: false
     });
 
     // 强制修复预览按钮问题

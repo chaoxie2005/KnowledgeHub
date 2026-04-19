@@ -74,6 +74,12 @@ class Article(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft', verbose_name='文章状态')
     read_count = models.PositiveBigIntegerField(default=0, verbose_name='阅读量')
     is_top = models.BooleanField(default=False, verbose_name='是否置顶')
+    
+    # 审核相关字段
+    is_audited = models.BooleanField(default=False, verbose_name='是否已审核')
+    audit_passed = models.BooleanField(default=False, verbose_name='是否审核通过')
+    violation_reasons = models.JSONField(default=list, blank=True, verbose_name='违规原因')
+    audit_time = models.DateTimeField(null=True, blank=True, verbose_name='审核时间')
 
     # 时间字段
     created_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
@@ -117,10 +123,9 @@ class Article(models.Model):
         
         # 清除文章详情页缓存
         try:
-            import redis
-            redis_client = redis.Redis(host='localhost', port=6379, db=0)
+            from django.core.cache import cache
             cache_key = f"article:detail:{self.id}"
-            redis_client.delete(cache_key)
+            cache.delete(cache_key)
         except Exception as e:
             pass
         
@@ -154,6 +159,12 @@ class Comment(models.Model):
 
     # 点赞数字段，用于性能优化
     like_count = models.PositiveIntegerField(default=0, verbose_name="点赞数", db_index=True)
+    
+    # 审核相关字段
+    is_audited = models.BooleanField(default=False, verbose_name='是否已审核')
+    audit_passed = models.BooleanField(default=False, verbose_name='是否审核通过')
+    violation_reasons = models.JSONField(default=list, blank=True, verbose_name='违规原因')
+    audit_time = models.DateTimeField(null=True, blank=True, verbose_name='审核时间')
 
     class Meta:
         verbose_name = "评论"

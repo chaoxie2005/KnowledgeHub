@@ -71,6 +71,28 @@
   </ul>
 </div>
 
+<!-- 文章归档 -->
+<div class="sidebar-section"
+  style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
+  <h3 class="sidebar-title"
+    style="color: #0066cc; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
+    文章归档</h3>
+  <ul class="archive-list" style="list-style: none; padding: 0; margin: 0;">
+    {% if archive_data %}
+    {% for archive in archive_data %}
+    <li style="margin-bottom: 12px;">
+      <a href="{% url 'article:archive_list' archive.year archive.month %}"
+        style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">
+        {{ archive.year }}年{{ archive.month }}月 ({{ archive.article_count }})
+      </a>
+    </li>
+    {% endfor %}
+    {% else %}
+    <li style="margin-bottom: 12px; color: #999; font-size: 14px;">暂无归档文章</li>
+    {% endif %}
+  </ul>
+</div>
+
 
 <script>
   // 侧边栏AI问答（流式输出）

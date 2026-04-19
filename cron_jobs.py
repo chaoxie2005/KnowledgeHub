@@ -2,6 +2,8 @@ import os
 import django
 import fcntl
 import atexit
+from datetime import timedelta
+from django.utils import timezone
 
 # 配置Django环境（必须）
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "extraordinaryblog.settings")
@@ -12,6 +14,8 @@ from apscheduler.triggers.cron import CronTrigger
 from article.crawl_juejin import crawl_and_save_juejin_hot  # 导入掘金爬虫核心函数
 from article.crawl_csdn import crawl_and_save_csdn  # 导入CSDN爬虫核心函数
 from utils.rag_chain import _build_vector_store_from_db  # 导入向量库更新函数
+from utils.content_audit import ContentAuditService
+from article.models import Comment, Article
 import logging
 
 _lock_fh = None
@@ -61,6 +65,42 @@ logger = logging.getLogger("掘金爬虫定时任务")
 csdn_logger = logging.getLogger("CSDN爬虫定时任务")
 
 
+def audit_existing_content():
+    """定期审核已发布的内容"""
+    audit_service = ContentAuditService()
+    logger = logging.getLogger("内容审核定时任务")
+    
+    # 审核最近7天的未审核评论
+    recent_comments = Comment.objects.filter(
+        created_at__gte=timezone.now() - timedelta(days=7),
+        is_audited=False
+    )
+    for comment in recent_comments:
+        audit_result = audit_service.audit_content(comment.content, "comment")
+        comment.is_audited = True
+        comment.audit_passed = audit_result['passed']
+        comment.violation_reasons = audit_result['violation_reasons']
+        comment.audit_time = timezone.now()
+        comment.save()
+        if not audit_result['passed']:
+            logger.info(f"评论审核未通过: ID={comment.id}, 原因={audit_result['violation_reasons']}")
+    
+    # 审核最近7天的未审核文章
+    recent_articles = Article.objects.filter(
+        created_at__gte=timezone.now() - timedelta(days=7),
+        is_audited=False
+    )
+    for article in recent_articles:
+        audit_result = audit_service.audit_content(article.content, "article")
+        article.is_audited = True
+        article.audit_passed = audit_result['passed']
+        article.violation_reasons = audit_result['violation_reasons']
+        article.audit_time = timezone.now()
+        article.save()
+        if not audit_result['passed']:
+            logger.info(f"文章审核未通过: ID={article.id}, 原因={audit_result['violation_reasons']}")
+
+
 def start_scheduler():
     """启动定时任务调度器"""
     if not _acquire_lock("/tmp/extraordinaryblog_juejin_scheduler.lock"):
@@ -99,11 +139,20 @@ def start_scheduler():
         misfire_grace_time=300,  # 任务错过执行时，允许延迟5分钟
     )
 
+    # 内容（包含评论和文章）审核定时任务：每半个月执行一次
+    scheduler.add_job(
+        func=audit_existing_content,  # 要执行的审核函数
+        trigger=CronTrigger(day="1,16", hour="0", minute="0"),  # 每月1号和16号零点执行 半个月执行一次
+        id="content_audit",  # 任务唯一ID
+        replace_existing=True,  # 重复启动时替换原有任务
+        misfire_grace_time=300,  # 任务错过执行时，允许延迟5分钟
+    )
+
     # 启动调度器
     try:
         scheduler.start()
-        logger.info("定时任务已启动：掘金爬虫(每天9:00、15:00)，CSDN爬虫(每天10:00、16:00)，向量库更新(每小时)")
-        print("定时任务已启动：掘金爬虫(每天9:00、15:00)，CSDN爬虫(每天10:00、16:00)，向量库更新(每小时)")
+        logger.info("定时任务已启动：掘金爬虫(每天9:00、15:00)，CSDN爬虫(每天10:00、16:00)，向量库更新(每小时)，内容审核(每半个月)")
+        print("定时任务已启动：掘金爬虫(每天9:00、15:00)，CSDN爬虫(每天10:00、16:00)，向量库更新(每小时)，内容审核(每半个月)")
     except Exception as e:
         logger.error(f"定时任务启动失败：{str(e)}")
         scheduler.shutdown()  # 启动失败则关闭调度器

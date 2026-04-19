@@ -20,14 +20,14 @@ import markdown
 from django.views.decorators.http import require_POST
 from .crawl_juejin import crawl_and_save_juejin_hot
 from .ai_utils import optimize_article_title, generate_article_summary
-import redis
 import time
 import sys
 import random
-from utils.redis_client import redis_client
+from django.core.cache import cache
+from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Prefetch
-from utils.rag_chain import simple_rag_qa, simple_rag_qa_stream, article_rag_qa_stream, global_rag_qa_stream
+from utils.rag_chain import simple_rag_qa, simple_rag_qa_stream, article_rag_qa_stream, global_rag_qa_stream, article_rag_qa_stream_react, global_rag_qa_stream_react
 
 
 def time_it(func):
@@ -102,29 +102,50 @@ def detail(request, article_id):
                     comment.parent = parent_comment
                 except Comment.DoesNotExist:
                     comment.parent = None
+            
+            # AI内容审核
+            from utils.content_audit import ContentAuditService
+            audit_service = ContentAuditService()
+            audit_result = audit_service.audit_content(comment.content, "comment")
+            
+            # 设置审核状态
+            comment.is_audited = True
+            comment.audit_passed = audit_result['passed']
+            comment.violation_reasons = audit_result['violation_reasons']
+            comment.audit_time = timezone.now()
+            
+            # 如果审核不通过，显示错误信息
+            if not audit_result['passed']:
+                messages.error(request, f"评论未通过审核：{'; '.join(audit_result['violation_reasons'])}")
+                return redirect("article:detail", article_id=article_id)
+            
+            # 审核通过，保存评论
             comment.save()
 
-            redis_client.delete(cache_key)
+            cache.delete(cache_key)
 
             return redirect("article:detail", article_id=article_id)
 
     # 阅读量自增（无论有没有缓存都要+1）
-    current_read_count = redis_client.get(read_count_key)
+    current_read_count = cache.get(read_count_key)
     if not current_read_count:
-        redis_client.set(read_count_key, article.read_count)
-    redis_client.incr(read_count_key)
-    real_read_count = int(redis_client.get(read_count_key))
+        cache.set(read_count_key, article.read_count)
+    
+    # 使用底层Redis客户端进行incr操作
+    redis_conn = get_redis_connection()
+    redis_conn.incr(read_count_key)
+    real_read_count = int(redis_conn.get(read_count_key))
     
     # 定期同步阅读量到数据库（每10次访问同步一次）
-    sync_counter = redis_client.get(f"article:sync_counter:{article_id}")
+    sync_counter = cache.get(f"article:sync_counter:{article_id}")
     if not sync_counter:
-        redis_client.set(f"article:sync_counter:{article_id}", 0)
+        cache.set(f"article:sync_counter:{article_id}", 0)
         sync_counter = 0
     else:
         sync_counter = int(sync_counter)
     
     sync_counter += 1
-    redis_client.set(f"article:sync_counter:{article_id}", sync_counter)
+    cache.set(f"article:sync_counter:{article_id}", sync_counter)
     
     if sync_counter % 10 == 0:
         # 每10次访问同步一次阅读量到数据库
@@ -140,7 +161,7 @@ def detail(request, article_id):
     ]
 
     # 简化缓存读取逻辑，避免重复反序列化
-    cached_article = redis_client.get(cache_key)
+    cached_article = cache.get(cache_key)
     if cached_article:
         article_data = json.loads(cached_article)
         # 更新阅读量
@@ -180,6 +201,8 @@ def detail(request, article_id):
         last_articles = Article.objects.filter(status="published").order_by("-published_time")[:5]
         categories = Category.objects.all()
         articles = Article.objects.filter(status="published")[:5]
+        # 获取归档数据
+        archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
         
         # 获取评论
         comments = article.comments.filter(parent=None).select_related("user").prefetch_related(
@@ -193,21 +216,21 @@ def detail(request, article_id):
 
         # 性能进阶：为每条评论同步 Redis 点赞数
         for c in comments:
-            redis_count = redis_client.get(f"comment:like_count:{c.id}")
+            redis_count = cache.get(f"comment:like_count:{c.id}")
             if redis_count is not None:
                 c.like_count = int(redis_count)
             else:
                 # 缓存预热 1天小时过期时间
-                redis_client.set(f"comment:like_count:{c.id}", c.like_count, ex=86400 + random.randint(0, 3600))
+                cache.set(f"comment:like_count:{c.id}", c.like_count, timeout=86400 + random.randint(0, 3600))
             
             # 对子评论也进行同步
             if hasattr(c, 'sorted_replies'):
                 for r in c.sorted_replies:
-                    r_redis_count = redis_client.get(f"comment:like_count:{r.id}")
+                    r_redis_count = cache.get(f"comment:like_count:{r.id}")
                     if r_redis_count is not None:
                         r.like_count = int(r_redis_count)
                     else:
-                        redis_client.set(f"comment:like_count:{r.id}", r.like_count, ex=86400 + random.randint(0, 3600))
+                        cache.set(f"comment:like_count:{r.id}", r.like_count, timeout=86400 + random.randint(0, 3600))
 
         # 获取当前用户已点赞的评论ID列表，解决 N+1 问题
         liked_comment_ids = []
@@ -230,6 +253,7 @@ def detail(request, article_id):
             "categories": categories,
             "comments": comments,
             "articles": articles,
+            "archives": archives,
             "liked_comment_ids": liked_comment_ids, # 传递给模板
         }
         return render(request, "article/article_detail.html", context)
@@ -257,6 +281,8 @@ def detail(request, article_id):
     last_articles = Article.objects.filter(status="published").order_by("-published_time")[:5]
     categories = Category.objects.all()
     articles = Article.objects.filter(status="published")[:5]
+    # 获取归档数据
+    archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
     
     # 获取评论
     comments = article.comments.filter(parent=None).select_related("user").prefetch_related(
@@ -270,19 +296,19 @@ def detail(request, article_id):
 
     # 性能进阶：为每条评论同步 Redis 点赞数
     for c in comments:
-        redis_count = redis_client.get(f"comment:like_count:{c.id}")
+        redis_count = cache.get(f"comment:like_count:{c.id}")
         if redis_count is not None:
             c.like_count = int(redis_count)
         else:
-            redis_client.set(f"comment:like_count:{c.id}", c.like_count, ex=86400 + random.randint(0, 3600))
+            cache.set(f"comment:like_count:{c.id}", c.like_count, timeout=86400 + random.randint(0, 3600))
             
         if hasattr(c, 'sorted_replies'):
             for r in c.sorted_replies:
-                r_redis_count = redis_client.get(f"comment:like_count:{r.id}")
+                r_redis_count = cache.get(f"comment:like_count:{r.id}")
                 if r_redis_count is not None:
                     r.like_count = int(r_redis_count)
                 else:
-                    redis_client.set(f"comment:like_count:{r.id}", r.like_count, ex=86400 + random.randint(0, 3600)) # 缓存24小时
+                    cache.set(f"comment:like_count:{r.id}", r.like_count, timeout=86400 + random.randint(0, 3600)) # 缓存24小时
 
     # 获取当前用户已点赞的评论ID列表
     liked_comment_ids = []
@@ -323,7 +349,7 @@ def detail(request, article_id):
         "cover": article.cover.url if article.cover else "",  # 可选：补充封面图路径
     }
     
-    redis_client.set(cache_key, json.dumps(article_data), ex=86400 + random.randint(0, 3600))  # 缓存24小时
+    cache.set(cache_key, json.dumps(article_data), timeout=86400 + random.randint(0, 3600))  # 缓存24小时
     
     context = {
         "article": article_data,
@@ -334,6 +360,7 @@ def detail(request, article_id):
         "categories": categories,
         "comments": comments,
         "articles": articles,
+        "archives": archives,
         "liked_comment_ids": liked_comment_ids, # 传递给模板
     }
     return render(request, "article/article_detail.html", context)
@@ -386,13 +413,16 @@ def category_list(request, category_id):
     ]  # 最新文章列表页
     categories = Category.objects.all()
     about_articles = articles[:5]
+    # 获取归档数据
+    archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
     context = {
-        "category": category,  # 传递分类对象
+        "category": category,  
         "articles": articles,
         "last_articles": last_articles,  # 最新文章列表页
         "hot_list": hot_list,  # 热门文章列表页
         "categories": categories,
         "about_articles": about_articles,
+        "archives": archives,
     }
     return render(request, "article/category_list.html", context)
 
@@ -439,12 +469,15 @@ def archive_list(request, archive_year, archive_month):
     ]  # 最新文章列表页
     categories = Category.objects.all()
     about_articles = articles[:5]
+    # 获取归档数据
+    archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
     context = {
         "articles": articles,
         "last_articles": last_articles,  # 最新文章列表页
         "hot_list": hot_list,  # 热门文章列表页
         "categories": categories,
         "about_articles": about_articles,
+        "archives": archives,
     }
     return render(request, "article/archive_list.html", context)
 
@@ -532,7 +565,27 @@ def publish_article(request):
             article.status = "draft"
             article.published_time = None
 
-        # 8. 保存文章
+        # 9. AI内容审核
+        from utils.content_audit import ContentAuditService
+        audit_service = ContentAuditService()
+        audit_result = audit_service.audit_content(article.content, "article")
+        
+        # 设置审核状态
+        article.is_audited = True
+        article.audit_passed = audit_result['passed']
+        article.violation_reasons = audit_result['violation_reasons']
+        article.audit_time = timezone.now()
+        
+        # 如果审核不通过，显示错误信息
+        if not audit_result['passed']:
+            messages.error(request, f"文章未通过审核：{'; '.join(audit_result['violation_reasons'])}")
+            return render(
+                request,
+                "article/publish_article.html",
+                {"categories": categories, "tags": tags, "values": request.POST},
+            )
+        
+        # 10. 保存文章
         article.save()
 
 
@@ -579,7 +632,7 @@ def juejin_hot(request):
     # 2. 尝试从 Redis 读取分页后的 ID 列表
     id_list = None
     try:
-        cached_data = redis_client.get(cache_key)
+        cached_data = cache.get(cache_key)
         if cached_data:
             id_list = json.loads(cached_data)
     except Exception as e:
@@ -623,14 +676,14 @@ def juejin_hot(request):
         # 写入缓存（仅存 ID 列表）
         try:
             current_ids = [art.id for art in articles.object_list]
-            redis_client.set(cache_key, json.dumps(current_ids), ex=600 + random.randint(0, 3600))
+            cache.set(cache_key, json.dumps(current_ids), timeout=600 + random.randint(0, 3600))
         except Exception:
             pass
 
     # 5. 侧边栏与静态数据缓存优化
     # 5.1 分类列表缓存
     try:
-        cached_categories = redis_client.get(category_cache_key)
+        cached_categories = cache.get(category_cache_key)
     except Exception:
         cached_categories = None
 
@@ -639,13 +692,13 @@ def juejin_hot(request):
     else:
         categories = list(Category.objects.all().values('id', 'name'))
         try:
-            redis_client.set(category_cache_key, json.dumps(categories), ex=3600 + random.randint(0, 3600))
+            cache.set(category_cache_key, json.dumps(categories), timeout=3600 + random.randint(0, 3600))
         except Exception:
             pass
 
     # 5.2 最新 10 篇热榜缓存
     try:
-        cached_last = redis_client.get(last_articles_cache_key)
+        cached_last = cache.get(last_articles_cache_key)
     except Exception:
         cached_last = None
 
@@ -654,7 +707,7 @@ def juejin_hot(request):
     else:
         last_articles = list(JuejinHotArticle.objects.all().order_by('-published_time').values('title', 'original_url')[:10])
         try:
-            redis_client.set(last_articles_cache_key, json.dumps(last_articles), ex=600 + random.randint(0, 3600))
+            cache.set(last_articles_cache_key, json.dumps(last_articles), timeout=600 + random.randint(0, 3600))
         except Exception:
             pass
 
@@ -670,7 +723,7 @@ def juejin_hot(request):
 def drafts(request):
     """草稿箱（Redis 缓存）"""
     cache_key = f"user:{request.user.id}:draft_articles"
-    cached_data = redis_client.get(cache_key)
+    cached_data = cache.get(cache_key)
 
     # ======================
     # 永远优先查数据库，缓存只用来加速，不影响正确性
@@ -682,7 +735,7 @@ def drafts(request):
 
     # 刷新缓存（保证缓存和数据库一致）
     article_ids = list(drafts.values_list("id", flat=True))
-    redis_client.set(cache_key, json.dumps(article_ids), ex=600)
+    cache.set(cache_key, json.dumps(article_ids), timeout=600)
 
     context = {"drafts": drafts}
     return render(request, "article/drafts.html", context)
@@ -767,6 +820,26 @@ def edit_draft(request, draft_id):
         else:
             article.status = "draft"
 
+        # 新增：AI内容审核
+        from utils.content_audit import ContentAuditService
+        audit_service = ContentAuditService()
+        audit_result = audit_service.audit_content(article.content, "article")
+        
+        # 设置审核状态
+        article.is_audited = True
+        article.audit_passed = audit_result['passed']
+        article.violation_reasons = audit_result['violation_reasons']
+        article.audit_time = timezone.now()
+        
+        # 如果审核不通过，显示错误信息
+        if not audit_result['passed']:
+            messages.error(request, f"文章未通过审核：{'; '.join(audit_result['violation_reasons'])}")
+            return render(
+                request,
+                "article/edit_draft.html",
+                {"article": article, "categories": categories, "tags": tags},
+            )
+        
         # 保存修改
         article.save()
 
@@ -803,7 +876,7 @@ def published(request):
     # 2. 刷新缓存（保证缓存最新）
     cache_key = f'user:{request.user.id}:published_articles'
     article_ids = list(publisheds.values_list('id', flat=True))
-    redis_client.set(cache_key, json.dumps(article_ids), ex=600)
+    cache.set(cache_key, json.dumps(article_ids), timeout=600)
 
     context = {
         "publisheds": publisheds,
@@ -894,6 +967,26 @@ def edit_published(request, published_id):
             article.status = "draft"
             article.published_time = None
 
+        # 新增：AI内容审核
+        from utils.content_audit import ContentAuditService
+        audit_service = ContentAuditService()
+        audit_result = audit_service.audit_content(article.content, "article")
+        
+        # 设置审核状态
+        article.is_audited = True
+        article.audit_passed = audit_result['passed']
+        article.violation_reasons = audit_result['violation_reasons']
+        article.audit_time = timezone.now()
+        
+        # 如果审核不通过，显示错误信息
+        if not audit_result['passed']:
+            messages.error(request, f"文章未通过审核：{'; '.join(audit_result['violation_reasons'])}")
+            return render(
+                request,
+                "article/edit_published.html",
+                {"article": article, "categories": categories, "tags": tags},
+            )
+        
         # 保存修改
         article.save()
 
@@ -956,7 +1049,7 @@ def csdn_hot(request):
     # 2. 尝试从 Redis 读取分页后的 ID 列表
     id_list = None
     try:
-        cached_data = redis_client.get(cache_key)
+        cached_data = cache.get(cache_key)
         if cached_data:
             id_list = json.loads(cached_data)
     except Exception as e:
@@ -1000,14 +1093,14 @@ def csdn_hot(request):
         # 写入缓存（仅存 ID 列表）
         try:
             current_ids = [art.id for art in articles.object_list]
-            redis_client.set(cache_key, json.dumps(current_ids), ex=600 + random.randint(0, 3600))
+            cache.set(cache_key, json.dumps(current_ids), timeout=600 + random.randint(0, 3600))
         except Exception:
             pass
 
     # 5. 侧边栏与静态数据缓存优化
     # 5.1 分类列表缓存
     try:
-        cached_categories = redis_client.get(category_cache_key)
+        cached_categories = cache.get(category_cache_key)
     except Exception:
         cached_categories = None
 
@@ -1016,7 +1109,7 @@ def csdn_hot(request):
     else:
         categories = list(Category.objects.all().values('id', 'name'))
         try:
-            redis_client.set(category_cache_key, json.dumps(categories), ex=3600 + random.randint(0, 3600))
+            cache.set(category_cache_key, json.dumps(categories), timeout=3600 + random.randint(0, 3600))
         except Exception:
             pass
 
@@ -1072,15 +1165,26 @@ def article_ai_qa(request, article_id):
         if not question:
             return JsonResponse({"code": 400, "msg": "请输入问题"})
 
+        # 检查是否使用ReAct模式
+        use_react = request.GET.get("react") == "1"
+
         if request.GET.get("stream") == "1":
-            response = StreamingHttpResponse(
-                article_rag_qa_stream(article.content, question, request),
-                content_type="text/plain; charset=utf-8",
-            )
+            # 选择使用传统模式或ReAct模式
+            if use_react:
+                response = StreamingHttpResponse(
+                    article_rag_qa_stream_react(article.content, question, request),
+                    content_type="text/plain; charset=utf-8",
+                )
+            else:
+                response = StreamingHttpResponse(
+                    article_rag_qa_stream(article.content, question, request),
+                    content_type="text/plain; charset=utf-8",
+                )
             response["Cache-Control"] = "no-cache"
             response["X-Accel-Buffering"] = "no"
             return response
 
+        # 非流式请求
         answer = simple_rag_qa(article.content, question)
         return JsonResponse({
             "code": 200,
@@ -1102,11 +1206,21 @@ def global_ai_qa(request):
         if not question:
             return JsonResponse({"code": 400, "msg": "请输入问题"})
 
+        # 检查是否使用ReAct模式
+        use_react = request.GET.get("react") == "1"
+
         if request.GET.get("stream") == "1":
-            response = StreamingHttpResponse(
-                global_rag_qa_stream(question, request),
-                content_type="text/plain; charset=utf-8",
-            )
+            # 选择使用传统模式或ReAct模式
+            if use_react:
+                response = StreamingHttpResponse(
+                    global_rag_qa_stream_react(question, request),
+                    content_type="text/plain; charset=utf-8",
+                )
+            else:
+                response = StreamingHttpResponse(
+                    global_rag_qa_stream(question, request),
+                    content_type="text/plain; charset=utf-8",
+                )
             response["Cache-Control"] = "no-cache"
             response["X-Accel-Buffering"] = "no"
             return response
@@ -1140,11 +1254,14 @@ def comment_like(request, comment_id):
     like_count_key = f"comment:like_count:{comment_id}"
     
     try:
+        # 使用底层Redis客户端
+        redis_conn = get_redis_connection()
+        
         # 1. 检查用户是否已在 Redis 集合中（判断是否点赞）
-        is_liked = redis_client.sismember(likes_set_key, user_id)
+        is_liked = redis_conn.sismember(likes_set_key, user_id)
         
         # 2. 开启 Redis Pipeline (实现事务原子性)
-        pipe = redis_client.pipeline()
+        pipe = redis_conn.pipeline()
         
         if is_liked:
             # 已点赞 -> 取消点赞
@@ -1169,17 +1286,17 @@ def comment_like(request, comment_id):
         pipe.execute()
         
         # 5. 获取最新点赞数（优先从 Redis 获取，兜底从 DB）
-        new_like_count = redis_client.get(like_count_key)
+        new_like_count = cache.get(like_count_key)
         if new_like_count is None:
             comment.refresh_from_db()
             new_like_count = comment.like_count
-            redis_client.set(like_count_key, new_like_count, ex=86400 + random.randint(0, 3600)) # 缓存24小时
+            cache.set(like_count_key, new_like_count, timeout=86400 + random.randint(0, 3600)) # 缓存24小时
         else:
             new_like_count = int(new_like_count)
             # 如果 Redis 里的数是负的（极端并发错误），重置为0
             if new_like_count < 0:
                 new_like_count = 0
-                redis_client.set(like_count_key, 0)
+                cache.set(like_count_key, 0)
         
         return JsonResponse({
             "status": "success", 
@@ -1209,11 +1326,11 @@ def delete_comment(request, comment_id):
     
     try:
         # 1. 清理该评论关联的 Redis 数据
-        redis_client.delete(f"comment:likes:set:{comment_id}")
-        redis_client.delete(f"comment:like_count:{comment_id}")
+        cache.delete(f"comment:likes:set:{comment_id}")
+        cache.delete(f"comment:like_count:{comment_id}")
         
         # 2. 清理文章详情页缓存（因为评论列表变了）
-        redis_client.delete(f"article:detail:{article_id}")
+        cache.delete(f"article:detail:{article_id}")
         
         # 3. 数据库物理删除
         comment.delete()

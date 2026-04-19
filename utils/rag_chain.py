@@ -1,11 +1,15 @@
 """站内文章 RAG（向量检索 + 流式输出）
 已修复：模型错误、base_url错误、额度超限、400报错
+
+基于ReAct模式的RAG对话系统重构
 """
 
 import os
 from dotenv import load_dotenv
 from datetime import datetime
 import pytz
+from typing import TypedDict, List, Optional
+from langchain_core.documents import Document
 
 # 加载环境变量
 load_dotenv()
@@ -13,6 +17,20 @@ load_dotenv()
 # 全局变量：缓存LLM和向量存储实例
 _LLM = None
 _VS = None
+
+
+class RAGState(TypedDict):
+    """RAG系统状态定义"""
+    question: str
+    thoughts: List[str]
+    actions: List[str]
+    observations: List[str]
+    retrieved_docs: List[Document]
+    context: str
+    answer: str
+    step_count: int
+    max_steps: int
+    should_continue: bool
 
 
 def _format_time(utc_time):
@@ -62,17 +80,197 @@ def _get_llm():
     try:
         _LLM = ChatTongyi(
             api_key=api_key,
-            model="qwen-plus-2025-07-28",
+            model="qwen-max",
             temperature=0.1,
             streaming=True,
         )
     except TypeError:
         _LLM = ChatTongyi(
             api_key=api_key,
-            model="qwen-plus-2025-07-28",
+            model="qwen-max",
             temperature=0.1,
         )
     return _LLM, None
+
+
+from langchain_core.tools import tool
+
+
+@tool
+def vector_search_tool(question: str, k: int = 10) -> str:
+    """
+    向量搜索工具：根据问题检索相关文章
+    
+    Args:
+        question: 用户问题
+        k: 检索结果数量
+    
+    Returns:
+        str: 检索到的文章内容
+    """
+    vs = _build_vector_store_from_db()
+    docs = vs.similarity_search(question, k=k)
+    return "\n\n".join([d.page_content for d in docs])
+
+
+@tool
+def author_search_tool(author_name: str) -> str:
+    """
+    作者搜索工具：查询指定作者的所有文章
+    
+    Args:
+        author_name: 作者名称
+    
+    Returns:
+        str: 作者的文章列表
+    """
+    from article.models import Article
+    articles = Article.objects.filter(status="published").select_related("author", "author__profile")
+    author_articles = []
+    for a in articles:
+        article_author = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+        if author_name in article_author or article_author in author_name:
+            author_articles.append(a)
+    
+    author_articles.sort(key=lambda x: x.published_time, reverse=True)
+    
+    result = []
+    for a in author_articles:
+        article_author = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+        content = f"作者：{article_author}\n文章标题：{a.title}\n发布时间：{_format_time(a.published_time)}"
+        result.append(content)
+    
+    if not result:
+        return f"未找到作者 {author_name} 的文章"
+    return "\n\n".join(result)
+
+
+@tool
+def date_search_tool(date_str: str) -> str:
+    """
+    日期搜索工具：查询指定日期的文章
+    
+    Args:
+        date_str: 日期字符串，格式为YYYY-MM-DD
+    
+    Returns:
+        str: 该日期发布的文章列表
+    """
+    from article.models import Article
+    from datetime import datetime
+    
+    try:
+        target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        articles = Article.objects.filter(
+            status="published",
+            published_time__date=target_date
+        ).select_related("author", "author__profile")
+        
+        result = []
+        for a in articles:
+            author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+            content = f"标题：{a.title}\n作者：{author_name}\n发布时间：{_format_time(a.published_time)}"
+            result.append(content)
+        
+        if not result:
+            return f"未找到 {date_str} 发布的文章"
+        return "\n\n".join(result)
+    except Exception as e:
+        return f"日期格式错误，请使用YYYY-MM-DD格式"
+
+
+@tool
+def year_search_tool(year: str) -> str:
+    """
+    年份搜索工具：查询指定年份的文章
+    
+    Args:
+        year: 年份字符串，格式为YYYY
+    
+    Returns:
+        str: 该年份发布的文章列表
+    """
+    from article.models import Article
+    from datetime import datetime
+    
+    try:
+        year_int = int(year)
+        # 查询该年份的所有文章
+        articles = Article.objects.filter(
+            status="published",
+            published_time__year=year_int
+        ).select_related("author", "author__profile")
+        
+        # 按发布时间从新到旧排序
+        articles = articles.order_by('-published_time')
+        
+        result = []
+        for a in articles:
+            author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+            content = f"标题：{a.title}\n作者：{author_name}\n发布时间：{_format_time(a.published_time)}"
+            result.append(content)
+        
+        if not result:
+            return f"未找到 {year} 年发布的文章"
+        return "\n\n".join(result)
+    except Exception as e:
+        return f"年份格式错误，请使用YYYY格式"
+
+
+@tool
+def category_search_tool(category_name: str) -> str:
+    """
+    分类搜索工具：查询指定分类的文章
+    
+    Args:
+        category_name: 分类名称
+    
+    Returns:
+        str: 该分类下的文章列表
+    """
+    from article.models import Article
+    articles = Article.objects.filter(
+        status="published",
+        category__name=category_name
+    ).select_related("author", "author__profile")
+    
+    result = []
+    for a in articles:
+        author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+        content = f"标题：{a.title}\n作者：{author_name}\n发布时间：{_format_time(a.published_time)}"
+        result.append(content)
+    
+    if not result:
+        return f"未找到分类 {category_name} 的文章"
+    return "\n\n".join(result)
+
+
+@tool
+def tag_search_tool(tag_name: str) -> str:
+    """
+    标签搜索工具：查询指定标签的文章
+    
+    Args:
+        tag_name: 标签名称
+    
+    Returns:
+        str: 该标签下的文章列表
+    """
+    from article.models import Article
+    articles = Article.objects.filter(
+        status="published"
+    ).select_related("author", "author__profile").prefetch_related("tags")
+    
+    result = []
+    for a in articles:
+        if any(tag.name == tag_name for tag in a.tags.all()):
+            author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+            content = f"标题：{a.title}\n作者：{author_name}\n发布时间：{_format_time(a.published_time)}"
+            result.append(content)
+    
+    if not result:
+        return f"未找到标签 {tag_name} 的文章"
+    return "\n\n".join(result)
 
 
 def _build_vector_store_from_db():
@@ -90,6 +288,7 @@ def _build_vector_store_from_db():
     Returns:
         Chroma: 向量存储实例
     """
+
     global _VS
     import os, time, shutil
     from article.models import Article
@@ -162,12 +361,16 @@ def _build_vector_store_from_db():
 
     # 使用DashScope的embedding模型
     dashscope_api_key = os.getenv("DASHSCOPE_API_KEY")
-    embeddings = DashScopeEmbeddings(
-        dashscope_api_key=dashscope_api_key,
-        model="text-embedding-v2",
-    )
-
+    
+    if not dashscope_api_key:
+        raise ValueError("DASHSCOPE_API_KEY 环境变量未设置")
+    
     try:
+        embeddings = DashScopeEmbeddings(
+            dashscope_api_key=dashscope_api_key,
+            model="multimodal-embedding-v1",
+        )
+        
         # 尝试构建Chroma向量库
         vs = Chroma.from_documents(
             documents=splits,
@@ -179,16 +382,13 @@ def _build_vector_store_from_db():
         _VS = vs
         return _VS
     except Exception as e:
-        # 如果构建失败，尝试使用内存存储
+        # 提供更详细的错误信息
         import traceback
         traceback.print_exc()
-        # 使用内存存储作为备用方案
-        vs = Chroma.from_documents(
-            documents=splits,
-            embedding=embeddings,
-        )
-        _VS = vs
-        return _VS
+        error_msg = f"向量库构建失败：{str(e)}"
+        if "API key" in str(e) or "DASHSCOPE" in str(e):
+            error_msg = "向量库构建失败：DashScope API 密钥无效或服务不可用"
+        raise Exception(error_msg)
 
 
 def simple_rag_qa(article_content: str, question: str) -> str:
@@ -543,7 +743,8 @@ def global_rag_qa_stream(question: str, request=None):
         - 每条均标注来源文章标题
 
         ## 7. 无匹配内容
-        - 直接回复：「站内文章未提及相关内容」
+        - 如果检索内容包含错误信息（如"系统错误"），直接展示该错误信息
+        - 否则直接回复：「站内文章未提及相关内容」
 
         # 输出格式规范
         1. 列举文章：纯数字序号列表，不加多余符号
@@ -621,10 +822,43 @@ def global_rag_qa_stream(question: str, request=None):
                         unique_docs.append(d)
                 retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
         except Exception as e:
-            # 如果向量库构建失败，使用空字符串作为检索内容
+            # 如果向量库构建失败，尝试从数据库直接获取文章内容作为备用方案
             import traceback
             traceback.print_exc()
-            retrieved_text = ""
+            
+            # 从数据库获取所有已发布文章
+            from article.models import Article
+            articles = Article.objects.filter(status="published").select_related("author", "author__profile", "category").prefetch_related("tags")
+            
+            # 构建文章信息
+            article_contents = []
+            for a in articles:
+                author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
+                category_name = a.category.name if a.category else '未分类'
+                tags = [tag.name for tag in a.tags.all()]
+                tag_names = ', '.join(tags) if tags else '无标签'
+                
+                article_info = f"标题：{a.title}\n"
+                article_info += f"作者：{author_name}\n"
+                article_info += f"分类：{category_name}\n"
+                article_info += f"标签：{tag_names}\n"
+                article_info += f"发布时间：{_format_time(a.published_time)}\n"
+                article_info += f"摘要：{a.summary if a.summary else '无摘要'}\n"
+                article_info += f"内容：{a.content[:500]}..."  # 只取前500字符
+                
+                article_contents.append(article_info)
+            
+            # 构建检索结果
+            retrieved_text = "\n\n".join(article_contents)
+            
+            # 如果没有文章，添加提示信息
+            if not article_contents:
+                retrieved_text = "系统错误：向量库构建失败，且数据库中没有已发布的文章"
+            else:
+                # 添加错误提示，但仍然提供文章内容
+                retrieved_text = f"系统提示：向量库构建失败，使用数据库文章内容作为备用方案\n\n{retrieved_text}"
+
+
         
         full_answer = []
 
@@ -672,3 +906,274 @@ def simple_rag_qa_stream(article_content: str, question: str, request=None):
     """
     # 调用新的全局RAG问答函数
     return global_rag_qa_stream(question, request)
+
+
+from langgraph.graph import StateGraph, END
+from langchain_core.prompts import ChatPromptTemplate
+
+
+def create_react_rag_graph():
+    """
+    创建基于ReAct模式的RAG工作流
+    
+    Returns:
+        Compiled LangGraph workflow
+    """
+    tools = [vector_search_tool, author_search_tool, date_search_tool, year_search_tool, category_search_tool, tag_search_tool]
+    llm, _ = _get_llm()
+    llm_with_tools = llm.bind_tools(tools)
+
+    # 提示词模板
+    reasoner_prompt = ChatPromptTemplate.from_messages([
+        ("system", "使用ReAct模式推理，分析问题并选择合适的工具执行查询。\n" +
+         "你需要：\n" +
+         "1. 分析用户问题的意图\n" +
+         "2. 选择合适的工具进行查询\n" +
+         "3. 规划下一步动作\n" +
+         "4. 当信息充足时，决定是否结束推理"),
+        ("human", "问题：{question}\n" +
+         "历史思考：{thoughts}\n" +
+         "历史行动：{actions}\n" +
+         "历史观察：{observations}\n" +
+         "当前上下文：{context}")
+    ])
+    
+    answer_prompt = ChatPromptTemplate.from_messages([
+        ("system", "仅基于检索内容回答，不编造，标注来源。\n" +
+         "核心规则：\n" +
+         "1. 只依据检索内容回答，无依据则回复「站内文章未提及相关内容」\n" +
+         "2. 不编造、不拓展\n" +
+         "3. 简洁专业、条理清晰\n" +
+         "4. 引用内容必须标注来源：《文章标题》"),
+        ("human", "问题：{question}\n" +
+         "上下文：{context}")
+    ])
+
+    # 节点函数
+    def question_analyzer(state: RAGState) -> RAGState:
+        """问题分析器：识别查询类型"""
+        return {
+            **state,
+            "thoughts": ["分析问题类型，确定检索策略"],
+            "step_count": state["step_count"] + 1
+        }
+
+    def reasoner(state: RAGState) -> RAGState:
+        """思考器：规划推理步骤"""
+        chain = reasoner_prompt | llm_with_tools
+        result = chain.invoke({
+            "question": state["question"],
+            "thoughts": "\n".join(state["thoughts"]),
+            "actions": "\n".join(state["actions"]),
+            "observations": "\n".join(state["observations"]),
+            "context": state["context"]
+        })
+        
+        thoughts = state["thoughts"].copy()
+        thoughts.append(f"思考：{result.content}")
+        
+        return {
+            **state,
+            "thoughts": thoughts,
+            "actions": state["actions"].copy(),
+            "step_count": state["step_count"] + 1
+        }
+
+    def tool_selector(state: RAGState) -> RAGState:
+        """工具选择器：匹配并调用对应检索工具"""
+        try:
+            question = state["question"]
+            result = ""
+            
+            # 根据问题类型选择合适的工具
+            import re
+            
+            # 1. 检查是否是年份查询
+            year_match = re.search(r'(\d{4})年', question)
+            if year_match:
+                year = year_match.group(1)
+                result = year_search_tool.invoke({"year": year})
+            
+            # 2. 检查是否是作者查询
+            elif re.search(r'作者|发布者', question):
+                author_match = re.search(r'作者(.+?)发布', question) or re.search(r'(.+?)发布', question)
+                if author_match:
+                    author_name = author_match.group(1).strip()
+                    result = author_search_tool.invoke({"author_name": author_name})
+                else:
+                    result = vector_search_tool.invoke({"question": question, "k": 10})
+            
+            # 3. 检查是否是分类查询
+            elif re.search(r'分类|类别', question):
+                category_match = re.search(r'分类(.+?)的文章', question) or re.search(r'(.+?)分类', question)
+                if category_match:
+                    category_name = category_match.group(1).strip()
+                    result = category_search_tool.invoke({"category_name": category_name})
+                else:
+                    result = vector_search_tool.invoke({"question": question, "k": 10})
+            
+            # 4. 检查是否是标签查询
+            elif re.search(r'标签', question):
+                tag_match = re.search(r'标签(.+?)的文章', question) or re.search(r'(.+?)标签', question)
+                if tag_match:
+                    tag_name = tag_match.group(1).strip()
+                    result = tag_search_tool.invoke({"tag_name": tag_name})
+                else:
+                    result = vector_search_tool.invoke({"question": question, "k": 10})
+            
+            # 5. 检查是否是日期查询
+            elif re.search(r'日期|时间|什么时候', question):
+                date_match = re.search(r'(\d{4}-\d{2}-\d{2})', question)
+                if date_match:
+                    date_str = date_match.group(1)
+                    result = date_search_tool.invoke({"date_str": date_str})
+                else:
+                    result = vector_search_tool.invoke({"question": question, "k": 10})
+            
+            # 6. 默认使用向量搜索
+            else:
+                result = vector_search_tool.invoke({"question": question, "k": 10})
+            
+            observations = state["observations"].copy()
+            observations.append(f"观察：{result}")
+            
+            return {
+                **state,
+                "observations": observations,
+                "context": state["context"] + "\n" + result,
+                "step_count": state["step_count"] + 1
+            }
+        except Exception as e:
+            return {
+                **state,
+                "observations": state["observations"] + [f"观察：工具调用失败：{str(e)}"],
+                "step_count": state["step_count"] + 1
+            }
+
+    def context_integrator(state: RAGState) -> RAGState:
+        """上下文整合器：合并多轮检索信息"""
+        return {
+            **state,
+            "step_count": state["step_count"] + 1
+        }
+
+    def answer_generator(state: RAGState) -> RAGState:
+        """答案生成器：依据上下文生成规范回答"""
+        chain = answer_prompt | llm
+        result = chain.invoke({
+            "question": state["question"],
+            "context": state["context"]
+        })
+        
+        return {
+            **state,
+            "answer": result.content,
+            "step_count": state["step_count"] + 1
+        }
+
+    def decider(state: RAGState) -> str:
+        """决策器：控制推理循环是否继续"""
+        if state["step_count"] >= state["max_steps"]:
+            return "generate_answer"
+        return "reason" if state["should_continue"] else "generate_answer"
+
+    # 构建工作流
+    workflow = StateGraph(RAGState)
+    workflow.add_node("question_analyzer", question_analyzer)
+    workflow.add_node("reasoner", reasoner)
+    workflow.add_node("tool_selector", tool_selector)
+    workflow.add_node("context_integrator", context_integrator)
+    workflow.add_node("answer_generator", answer_generator)
+
+    workflow.set_entry_point("question_analyzer")
+    workflow.add_edge("question_analyzer", "reasoner")
+    workflow.add_edge("reasoner", "tool_selector")
+    workflow.add_edge("tool_selector", "context_integrator")
+    workflow.add_conditional_edges(
+        "context_integrator",
+        lambda s: "reason" if s["step_count"] < s["max_steps"] and s["should_continue"] else "generate_answer",
+        {"reason": "reasoner", "generate_answer": "answer_generator"}
+    )
+    workflow.add_edge("answer_generator", END)
+    
+    return workflow.compile()
+
+
+def react_rag_qa_stream(question: str, request=None, max_steps=5):
+    """
+    基于ReAct模式的流式RAG问答
+    
+    Args:
+        question: 用户问题
+        request: HTTP请求对象（用于获取session历史记录）
+        max_steps: 最大推理步骤
+    
+    Yields:
+        str: AI回答的文本片段（流式输出）
+    """
+    try:
+        if not question:
+            yield "请输入有效问题"
+            return
+
+        graph = create_react_rag_graph()
+        initial_state = {
+            "question": question,
+            "thoughts": [],
+            "actions": [],
+            "observations": [],
+            "retrieved_docs": [],
+            "context": "",
+            "answer": "",
+            "step_count": 0,
+            "max_steps": max_steps,
+            "should_continue": True
+        }
+        
+        final_state = graph.invoke(initial_state)
+        
+        # 流式输出回答
+        for c in final_state["answer"]:
+            yield c
+        
+        # 保存对话历史
+        if request and hasattr(request, 'session'):
+            history = request.session.get('chat_history', [])
+            history.append(("human", question.strip()))
+            history.append(("assistant", final_state["answer"]))
+            if len(history) > 10:
+                history = history[-10:]
+            request.session['chat_history'] = history
+            request.session.modified = True
+
+    except Exception as e:
+        yield f"服务异常：{str(e)}"
+
+
+def global_rag_qa_stream_react(question: str, request=None):
+    """
+    基于ReAct模式的全局RAG问答
+    
+    Args:
+        question: 用户问题
+        request: HTTP请求对象
+    
+    Yields:
+        str: AI回答的文本片段
+    """
+    return react_rag_qa_stream(question, request)
+
+
+def article_rag_qa_stream_react(article_content: str, question: str, request=None):
+    """
+    基于ReAct模式的文章专属RAG问答
+    
+    Args:
+        article_content: 文章内容
+        question: 用户问题
+        request: HTTP请求对象
+    
+    Yields:
+        str: AI回答的文本片段
+    """
+    return react_rag_qa_stream(question, request)

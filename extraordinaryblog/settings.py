@@ -186,12 +186,15 @@ SIMPLE_JWT = {
 
 
 # Redis 配置
-REDIS_CONFIG = {
-    "host": "127.0.0.1",  # 本地 Redis 地址，固定
-    "port": 6379,  # Redis 默认端口，固定
-    "db": 0,  # 使用第0个数据库，固定
-    "decode_responses": True,  # 自动把 Redis 返回的字节转成字符串，新手必加
-    "password": "",  # 本地 Redis 无密码，留空
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "DECODE_RESPONSES": True,
+        }
+    }
 }
 
 # 启用压缩和缓存

@@ -239,6 +239,7 @@ def save_juejin_article(article_data, juejin_article_id):
             juejin_article_id=juejin_article_id,
             title=optimized_title,
             summary=ai_summary,
+            ai_summary=ai_summary,
             original_url=article_data["url"],
             author=article_data["author"],
             source=article_data["source"],
@@ -298,11 +299,15 @@ def crawl_and_save_juejin_hot():
             author_name = article_author.get("name", "未知作者") if article_author else "未知作者"
             
             article_title = content.get("title", "")
-            article_brief = content.get("brief_content", "")
+            article_brief = content.get("brief", "")
             article_desc = content.get("description", "")
             
             if not article_brief:
                 article_brief = article_desc
+            
+            # 如果仍然没有摘要，使用标题作为摘要
+            if not article_brief:
+                article_brief = article_title
             
             print(f"  标题: {article_title}")
             print(f"  作者: {author_name}")

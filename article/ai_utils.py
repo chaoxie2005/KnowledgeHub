@@ -44,14 +44,14 @@ def _get_llm():
     try:
         _LLM = ChatTongyi(
             api_key=api_key,
-            model="deepseek-r1-distill-qwen-7b",
+            model="qwen-plus",
             temperature=0.8,
             streaming=True,
         )
     except TypeError:
         _LLM = ChatTongyi(
             api_key=api_key,
-            model="deepseek-r1-distill-qwen-7b",
+            model="qwen-plus",
             temperature=0.8,
         )
     return _LLM, None

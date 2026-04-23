@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+
+{% block post %}
+
+<style>
+  /* AI问答页面样式 */
+  .ai-qa-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .ai-qa-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .ai-qa-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 16px;
+  }
+
+  .ai-qa-subtitle {
+    font-size: 16px;
+    color: #666;
+  }
+
+  .ai-qa-main {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 32px;
+    margin-bottom: 32px;
+  }
+
+  .ai-qa-input-container {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .ai-qa-input {
+    width: 100%;
+    padding: 20px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 16px;
+    min-height: 120px;
+    resize: vertical;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .ai-qa-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .ai-qa-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 24px;
+  }
+
+  .ai-qa-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .ai-qa-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .ai-qa-button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .ai-qa-answer {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+
+  .ai-qa-answer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .ai-qa-answer-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .ai-qa-answer-content {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+  }
+
+  .ai-qa-answer-content pre {
+    background: #f1f3f4;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+
+  .ai-qa-answer-content code {
+    font-family: 'Courier New', Courier, monospace;
+    background: #f1f3f4;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .ai-qa-container {
+      padding: 20px 16px;
+    }
+
+    .ai-qa-title {
+      font-size: 24px;
+    }
+
+    .ai-qa-main {
+      padding: 20px;
+    }
+
+    .ai-qa-controls {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .ai-qa-options {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .ai-qa-suggestion-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+  }
+</style>
+
+<div class="ai-qa-container">
+  <div class="ai-qa-header">
+    <h1 class="ai-qa-title">AI问答</h1>
+    <p class="ai-qa-subtitle">输入你的问题，AI将基于全站内容提供准确的答案</p>
+  </div>
+
+  <div class="ai-qa-main">
+    <div class="ai-qa-input-container">
+      <textarea id="aiQuestion" class="ai-qa-input" placeholder="输入提问内容..."></textarea>
+    </div>
+
+    <div class="ai-qa-controls">
+      <button id="aiAskBtn" class="ai-qa-button">
+        <span id="btnText">发送问题</span>
+        <span id="loadingSpinner" class="loading-spinner" style="display: none;"></span>
+      </button>
+    </div>
+
+    <div id="aiAnswer" class="ai-qa-answer" style="display: none;">
+      <div class="ai-qa-answer-header">
+        <h3 class="ai-qa-answer-title">AI 回答</h3>
+        <button id="closeAnswer"
+          style="background: none; border: none; font-size: 16px; color: #999; cursor: pointer;">&times;</button>
+      </div>
+      <div id="aiAnswerContent" class="ai-qa-answer-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // AI问答功能
+  (function () {
+    const aiAskBtn = document.getElementById('aiAskBtn');
+    const aiQuestion = document.getElementById('aiQuestion');
+    const aiAnswer = document.getElementById('aiAnswer');
+    const aiAnswerContent = document.getElementById('aiAnswerContent');
+    const closeAnswer = document.getElementById('closeAnswer');
+    const btnText = document.getElementById('btnText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // 清除保存的回答
+    function clearSavedAnswer() {
+      sessionStorage.removeItem('ai_qa_question');
+      sessionStorage.removeItem('ai_qa_answer');
+    }
+
+    // 关闭回答
+    function closeAnswerFunc() {
+      aiAnswer.style.display = 'none';
+      clearSavedAnswer();
+    }
+
+    // 页面加载时清除之前的回答，确保每次进入都是干净的页面
+    clearSavedAnswer();
+
+    // 关闭按钮事件
+    if (closeAnswer) {
+      closeAnswer.addEventListener('click', closeAnswerFunc);
+    }
+
+    // 发送问题事件
+    if (aiAskBtn) {
+      aiAskBtn.addEventListener('click', async () => {
+        const question = (aiQuestion.value || '').trim();
+
+        if (!question) {
+          alert('请输入问题');
+          return;
+        }
+
+        // 显示加载状态
+        aiAskBtn.disabled = true;
+        btnText.style.display = 'none';
+        loadingSpinner.style.display = 'inline-block';
+        aiAnswerContent.innerHTML = '';
+        aiAnswer.style.display = 'block';
+
+        try {
+          const res = await fetch("{% url 'article:global_ai_qa' %}?stream=1", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: 'question=' + encodeURIComponent(question)
+          });
+
+          const contentType = (res.headers.get('content-type') || '').toLowerCase();
+          if (!res.ok && contentType.includes('application/json')) {
+            const data = await res.json();
+            const errorMsg = data.msg || data.error || '请求失败';
+            aiAnswerContent.innerHTML = errorMsg;
+            saveAnswer(question, errorMsg);
+            return;
+          }
+
+          if (!res.body) {
+            const text = await res.text();
+            aiAnswerContent.innerHTML = text;
+            return;
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let out = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            out += decoder.decode(value, { stream: true });
+            aiAnswerContent.innerHTML = out;
+          }
+        } catch (e) {
+          const errorMsg = '网络异常，请重试';
+          aiAnswerContent.innerHTML = errorMsg;
+        } finally {
+          // 恢复按钮状态
+          aiAskBtn.disabled = false;
+          btnText.style.display = 'inline';
+          loadingSpinner.style.display = 'none';
+        }
+      });
+    }
+  })();
+</script>
+
+{% endblock %}

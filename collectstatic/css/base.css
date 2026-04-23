@@ -1,115 +1,347 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 现代化颜色方案 */
+:root {
+    --primary-color: #6366F1;
+    --primary-dark: #4F46E5;
+    --primary-light: #818CF8;
+    --secondary-color: #10B981;
+    --accent-color: #F59E0B;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-light: #9CA3AF;
+    --background: #F9FAFB;
+    --card-bg: #FFFFFF;
+    --border-color: #E5E7EB;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* 通栏卡片宽度对齐 */
 .col-mb-6 {
     width: 100%;
     max-width: calc(100% - 16px);
-    /* 对齐上面卡片的左右边距 */
     margin: 0 auto;
     /* 居中显示 */
 }
 
-/* hover交互优化（保留颜色变化，无下划线） */
+/* 卡片样式 */
+.card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--primary-light);
+}
+
+/* 文章卡片样式 */
+.article-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    overflow: hidden;
+    position: relative;
+}
+
+.article-card:hover {
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-6px);
+    border-color: var(--primary-color);
+}
+
+/* 文章标题样式 */
+.article-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    transition: var(--transition);
+}
+
+.article-title:hover {
+    color: var(--primary-color);
+}
+
+/* hover交互优化 */
 .stretched-link:hover {
-    color: #0066cc !important;
+    color: var(--primary-color) !important;
     text-decoration: none !important;
 }
 
 /* 作者名样式 */
 .article-author {
-    color: #999;
-    /* 浅灰色，不抢风头 */
+    color: var(--text-secondary);
     text-decoration: none;
-    /* 取消下划线 */
     font-size: 0.85rem;
+    font-weight: 500;
+    transition: var(--transition);
 }
 
 .article-author:hover {
-    color: #666;
-    /* hover时稍深 */
+    color: var(--primary-color);
     text-decoration: none;
 }
 
 /* 时间样式 */
 .article-time {
     font-size: 0.85rem;
-    color: #999;
+    color: var(--text-light);
 }
 
 /* 摘要样式 */
 .article-summary {
-    color: #6c757d;
-    /* 柔和中灰色 */
+    color: var(--text-secondary);
     font-size: 0.9rem;
     line-height: 1.6;
-    /* 舒适行距 */
-    margin-bottom: 10px !important;
-    /* 和按钮拉开间距 */
+    margin-bottom: 1rem !important;
 }
 
 /* 继续阅读按钮 */
 .read-more {
-    color: #0066cc;
-    /* 沉稳蓝色 */
+    color: var(--primary-color);
     text-decoration: none;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .read-more:hover {
-    color: #003366;
-    /* hover加深 */
+    color: var(--primary-dark);
     text-decoration: none;
+    transform: translateX(4px);
+}
+
+.read-more::after {
+    content: '→';
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.read-more:hover::after {
+    transform: translateX(2px);
 }
 
 /* 标签样式优化 */
-.article-tag {
-    font-size: 0.85rem;
-}
-
 .article-tags {
     display: flex;
     gap: 8px;
-    /* 标签之间的间距 */
-    margin-bottom: 10px;
-    /* 和标题的间距 */
+    margin-bottom: 1rem;
     flex-wrap: wrap;
-    /* 标签多的时候自动换行，不会溢出 */
 }
 
 /* 单个标签样式 */
 .article-tag {
-    background-color: #f0f7ff;
-    /* 浅蓝底色，极简不刺眼 */
-    border-radius: 4px;
-    /* 轻微圆角，更精致 */
-    padding: 2px 8px;
-    /* 内边距，让标签有「按钮感」 */
-    font-size: 0.8rem;
-    /* 字号稍小，不抢标题风头 */
-    font-weight: normal;
-    /* 取消粗体，更柔和 */
+    background-color: rgba(99, 102, 241, 0.1);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: var(--transition);
+    border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 /* 标签文字样式 */
 .article-tag a {
-    color: #0066cc !important;
-    /* 主题蓝，和「继续阅读」颜色统一 */
+    color: var(--primary-color) !important;
     text-decoration: none !important;
-    /* 取消下划线 */
 }
 
 /* hover交互：底色加深，有反馈感 */
 .article-tag:hover {
-    background-color: #e0edff;
+    background-color: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
     cursor: pointer;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
 }
 
-/* 暂无标签样式（和普通标签保持一致） */
+/* 暂无标签样式 */
 .no-tag {
-    background-color: #f8f9fa;
-    /* 浅灰底色，区分有内容的标签 */
-    color: #6c757d;
-    /* 灰色文字 */
-    padding: 2px 8px;
+    background-color: #F3F4F6;
+    color: var(--text-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+/* 侧边栏样式 */
+.sidebar-section {
+    background: var(--card-bg) !important;
+    border-radius: var(--border-radius-lg) !important;
+    padding: 1.25rem !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: var(--shadow-md) !important;
+    border: 1px solid var(--border-color) !important;
+    border-left: 4px solid var(--primary-color) !important;
+    transition: var(--transition);
+}
+
+.sidebar-section:hover {
+    box-shadow: var(--shadow-lg) !important;
+    transform: translateY(-2px);
+}
+
+.sidebar-title {
+    color: var(--primary-color) !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 1rem !important;
+    padding-bottom: 0.75rem !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-title::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--primary-color);
+    border-radius: 50%;
+}
+
+/* 侧边栏链接样式 */
+.latest-article-link,
+.hot-article-title a,
+.archive-list a {
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+    display: block !important;
+    transition: var(--transition) !important;
+    padding: 6px 0 !important;
+    border-radius: var(--border-radius-sm) !important;
+    padding-left: 12px !important;
+    position: relative;
+}
+
+.latest-article-link::before,
+.hot-article-title a::before,
+.archive-list a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.latest-article-link:hover,
+.hot-article-title a:hover,
+.archive-list a:hover {
+    color: var(--primary-color) !important;
+    background-color: rgba(99, 102, 241, 0.05) !important;
+    padding-left: 16px !important;
+}
+
+.latest-article-link:hover::before,
+.hot-article-title a:hover::before,
+.archive-list a:hover::before {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .article-card {
+        border-radius: var(--border-radius-md);
+    }
+
+    .sidebar-section {
+        padding: 1rem !important;
+    }
+
+    .article-title {
+        font-size: 1.125rem;
+    }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #F1F1F1;
     border-radius: 4px;
-    font-size: 0.8rem;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-light);
+}
+
+/* 加载动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.article-card {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.article-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.article-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.article-card:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+.article-card:nth-child(5) {
+    animation-delay: 0.4s;
+}
+
+.article-card:nth-child(6) {
+    animation-delay: 0.5s;
 }

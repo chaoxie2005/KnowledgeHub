@@ -326,12 +326,13 @@
     <div class="featured-text">
       <span class="sticky-badge" style="background: linear-gradient(135deg, #4facfe, #00f2fe); margin-bottom: 12px;">🔥
         热门推荐</span>
-      <h2 class="featured-title"><a href="{% url 'article:detail' hot_one.id %}"
+      <h2 class="featured-title"><a href="{% url 'article:detail' article_id=hot_one.id %}"
           style="color: white; text-decoration: none;">{{ hot_one.title }}</a></h2>
       <p class="featured-description">{{ hot_one.summary|truncatechars:100|default:'暂无摘要' }}</p>
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <span class="featured-badge">最新</span>
-        <a href="{% url 'article:detail' hot_one.id %}" class="read-more" style="color: white !important;">继续阅读 →</a>
+        <a href="{% url 'article:detail' article_id=hot_one.id %}" class="read-more"
+          style="color: white !important;">继续阅读 →</a>
       </div>
     </div>
   </div>

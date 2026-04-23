@@ -2,85 +2,60 @@
 
 {% block style%}
 <style>
-  /* 精选文章推荐区域 */
-  .featured-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
+  /* 页面标题区域 */
+  .page-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border-radius: var(--border-radius-lg);
     padding: 32px;
     margin-bottom: 32px;
     color: white;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.3);
   }
 
-  .featured-section::before {
+  .page-header::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20technology%20background%20with%20blue%20and%20purple%20gradient&image_size=landscape_16_9');
+    background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80');
     background-size: cover;
     background-position: center;
-    opacity: 0.1;
+    opacity: 0.15;
     z-index: 0;
   }
 
-  .featured-content {
+  .page-header-content {
     position: relative;
     z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 24px;
   }
 
-  .featured-image {
-    flex-shrink: 0;
-    width: 200px;
-    height: 120px;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .featured-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .featured-text {
-    flex: 1;
-  }
-
-  .featured-title {
-    font-size: 24px;
-    font-weight: 700;
+  .page-title {
+    font-size: 28px;
+    font-weight: 800;
     margin-bottom: 8px;
     line-height: 1.3;
   }
 
-  .featured-description {
+  .page-description {
     font-size: 14px;
     opacity: 0.9;
     margin-bottom: 16px;
     line-height: 1.5;
   }
 
-  .featured-badge {
+  .page-badge {
     background: rgba(255, 255, 255, 0.2);
     color: white;
-    padding: 4px 12px;
+    padding: 6px 16px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     display: inline-block;
+    backdrop-filter: blur(10px);
   }
 
   /* 文章竖型布局 */
@@ -92,26 +67,45 @@
   }
 
   .article-card {
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
     overflow: hidden;
     display: flex;
     flex-direction: row;
+    position: relative;
   }
 
   .article-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-6px);
+    border-color: var(--primary-color);
+  }
+
+  .article-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .article-card:hover::before {
+    transform: scaleX(1);
   }
 
   .article-card-image {
-    width: 250px;
-    min-height: 200px;
+    width: 280px;
+    min-height: 220px;
     overflow: hidden;
-    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    border-right: 1px solid var(--border-color);
     background: #f5f5f5;
     position: relative;
     flex-shrink: 0;
@@ -125,11 +119,11 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    transition: transform 0.3s ease;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .article-card:hover .article-card-image img {
-    transform: scale(1.05);
+    transform: scale(1.1);
   }
 
   .article-card-content {
@@ -146,95 +140,103 @@
   /* 标签样式 */
   .article-card-tags {
     margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .article-card-tag {
-    display: inline-block;
-    background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
-    color: #6366F1;
-    padding: 4px 12px;
+    background-color: rgba(99, 102, 241, 0.1);
     border-radius: 20px;
-    font-size: 12px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
     font-weight: 500;
-    margin-right: 8px;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(99, 102, 204, 0.1);
+    transition: var(--transition);
+    border: 1px solid rgba(99, 102, 241, 0.2);
   }
 
   .article-card-tag a {
-    color: #6366F1 !important;
-    text-decoration: none;
+    color: var(--primary-color) !important;
+    text-decoration: none !important;
   }
 
   .article-card-tag:hover {
-    background: #6366F1;
-    color: #fff;
-    transform: scale(1.05);
+    background-color: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
   }
 
   .article-card-tag:hover a {
-    color: #fff !important;
+    color: var(--primary-dark) !important;
+  }
+
+  .no-tag {
+    background-color: #F3F4F6;
+    color: var(--text-light);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: 1px solid var(--border-color);
   }
 
   /* 标题 */
   .article-card-title {
-    font-size: 18px;
+    font-size: 1.25rem;
     font-weight: 700;
+    color: var(--text-primary);
     margin-bottom: 12px;
     line-height: 1.4;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    transition: var(--transition);
   }
 
   .article-card-title a {
-    color: #000000 !important;
-    text-decoration: none;
-    transition: color 0.2s ease;
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    transition: var(--transition);
   }
 
   .article-card-title a:hover {
-    color: #64b5f6 !important;
+    color: var(--primary-color) !important;
   }
 
   /* 信息栏 */
   .article-card-info {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 12px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 8px;
   }
 
   .article-card-info a {
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: var(--transition);
   }
 
   .article-card-info a:hover {
-    color: #6366F1;
+    color: var(--primary-color);
   }
 
   .article-card-author {
-    color: #6366F1 !important;
+    color: var(--primary-color) !important;
     font-weight: 600;
   }
 
   .article-card-info .divider {
-    color: #ccc;
-    margin: 0 4px;
+    color: var(--text-light);
+    margin: 0 2px;
   }
 
   /* 摘要 */
   .article-card-summary {
-    font-size: 14px;
-    color: #555;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
     line-height: 1.6;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -247,8 +249,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
-    color: #999;
+    font-size: 0.85rem;
+    color: var(--text-light);
   }
 
   .article-card-time {
@@ -265,29 +267,97 @@
 
   /* 继续阅读链接 */
   .read-more {
-    font-size: 14px;
-    color: #64b5f6 !important;
+    font-size: 0.9rem;
+    color: var(--primary-color) !important;
     font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
+    text-decoration: none !important;
+    transition: var(--transition);
     display: inline-flex;
     align-items: center;
     gap: 4px;
   }
 
   .read-more:hover {
-    gap: 8px;
-    color: #42a5f5 !important;
+    color: var(--primary-dark) !important;
+    transform: translateX(6px);
   }
 
   .read-more::after {
     content: '→';
-    transition: transform 0.2s ease;
+    transition: var(--transition);
   }
 
   .read-more:hover::after {
-    transform: translateX(4px);
+    transform: translateX(3px);
   }
+
+  /* 空状态样式 */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 2px dashed var(--border-color);
+    margin-top: 40px;
+  }
+
+  .empty-state h3 {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
+
+  .empty-state-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+    display: inline-block;
+  }
+
+  .empty-state-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    color: white;
+  }
+
+  /* 加载动画 */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .article-card {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .article-card:nth-child(1) { animation-delay: 0.1s; }
+  .article-card:nth-child(2) { animation-delay: 0.2s; }
+  .article-card:nth-child(3) { animation-delay: 0.3s; }
+  .article-card:nth-child(4) { animation-delay: 0.4s; }
+  .article-card:nth-child(5) { animation-delay: 0.5s; }
+  .article-card:nth-child(6) { animation-delay: 0.6s; }
 
   /* 响应式优化 */
   @media (max-width: 992px) {
@@ -298,29 +368,35 @@
 
     .article-card-image {
       width: 100%;
-      height: 200px;
+      height: 220px;
       border-right: none;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .page-header {
+      padding: 24px;
+    }
+
+    .page-title {
+      font-size: 24px;
     }
   }
 
   @media (max-width: 768px) {
-    .featured-section {
-      padding: 24px;
-    }
-
-    .featured-content {
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .featured-image {
-      width: 100%;
-      height: 160px;
-    }
-
     .article-grid {
       gap: 16px;
+    }
+
+    .article-card-content {
+      padding: 16px;
+    }
+
+    .article-card-title {
+      font-size: 1.125rem;
+    }
+
+    .empty-state {
+      padding: 40px 16px;
     }
   }
 </style>
@@ -328,21 +404,25 @@
 
 {% block post %}
 <!-- 分类页面标题 -->
-<div class="featured-section">
-  <div class="featured-content">
-    <div class="featured-text">
-      <h2 class="featured-title">{{ category.name|default:'未知分类' }} - 文章分类</h2>
-      <p class="featured-description">查看所有属于 {{ category.name|default:'未知分类' }} 分类的文章</p>
-      <span class="featured-badge">{{ articles.paginator.count }} 篇文章</span>
-    </div>
+<div class="page-header">
+  <div class="page-header-content">
+    <h2 class="page-title">{{ category.name|default:'未知分类' }} - 文章分类</h2>
+    <p class="page-description">查看所有属于 {{ category.name|default:'未知分类' }} 分类的文章</p>
+    <span class="page-badge">{{ articles.paginator.count }} 篇文章</span>
   </div>
 </div>
 
 <!-- 文章网格 -->
 <div class="article-grid">
   {% if not articles %}
-  <div class="col-12 text-center py-5" style="color: #6c757d; font-size: 1rem;">
-    暂无文章，快来发布你的第一篇文章吧～
+  <div class="empty-state">
+    <h3>暂无文章</h3>
+    <p>该分类下还没有文章，快来发布第一篇吧～</p>
+    {% if user.is_authenticated %}
+    <a href="{% url 'article:publish_article' %}" class="empty-state-btn">发布文章</a>
+    {% else %}
+    <a href="{% url 'authentication:login' %}" class="empty-state-btn">登录/注册</a>
+    {% endif %}
   </div>
   {% else %}
   {% for article in articles %}
@@ -359,12 +439,13 @@
         <span class="article-card-tag"><a href="#">{{ tag.name }}</a></span>
         {% endfor %}
         {% else %}
-        <span class="article-card-tag" style="background: #f5f5f5; color: #999;">暂无标签</span>
+        <span class="article-card-tag no-tag">暂无标签</span>
         {% endif %}
       </div>
-      <h3 class="article-card-title"><a href="{% url 'article:detail' article.id %}">{{ article.title }}</a></h3>
+      <h3 class="article-card-title"><a href="{% url 'article:detail' article_id=article.id %}">{{ article.title }}</a>
+      </h3>
       <div class="article-card-info">
-        <a href="{% url 'users:user_detail' article.author.id %}" class="article-card-author">
+        <a href="{% url 'users:user_detail' user_id=article.author.id %}" class="article-card-author">
           {{ article.author.profile.nickname|default:article.author.username }}
         </a>
         <span class="divider">•</span>
@@ -372,7 +453,7 @@
       </div>
       <p class="article-card-summary">{{ article.summary|truncatechars:100|default:'暂无摘要' }}</p>
       <div class="article-card-footer">
-        <a href="{% url 'article:detail' article.id %}" class="read-more">继续阅读 →</a>
+        <a href="{% url 'article:detail' article_id=article.id %}" class="read-more">继续阅读</a>
       </div>
     </div>
   </div>

@@ -13,7 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import ArticleSerializer, CategorySerializer, CommentSerializer
 import os
 import json
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import markdown
@@ -1339,6 +1339,119 @@ def delete_comment(request, comment_id):
     except Exception as e:
         return JsonResponse({"status": "error", "msg": str(e)}, status=500)
 
+
+def download_markdown(request, article_id):
+    """下载文章Markdown文件"""
+    article = get_object_or_404(Article, pk=article_id)
+    content = article.content
+    response = HttpResponse(content, content_type='text/markdown; charset=utf-8')
+    # 对中文文件名进行URL编码
+    import urllib.parse
+    encoded_filename = urllib.parse.quote(f"{article.title}.md")
+    response['Content-Disposition'] = f'attachment; filename="{encoded_filename}"'
+    return response
+
+def download_PDF(request, article_id):
+    """下载文章PDF文件（支持缓存）"""
+    article = get_object_or_404(Article, pk=article_id)
+    
+    # 检查是否有缓存的PDF
+    pdf_cache_key = f"pdf:content:{article_id}:{article.updated_time.timestamp()}"
+    cached_pdf = cache.get(pdf_cache_key)
+    
+    if cached_pdf:
+        # 直接返回缓存的PDF
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{article.title}.pdf"'
+        response.write(cached_pdf)
+        return response
+    
+    # 没有缓存，实时生成
+    import markdown
+    from weasyprint import HTML
+    from io import BytesIO
+    
+    html_content = markdown.markdown(article.content, extensions=['extra', 'codehilite'])
+    
+    full_html = f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{article.title}</title>
+        <style>
+            @font-face {{
+                font-family: 'Noto Sans CJK SC';
+                src: local('Noto Sans CJK SC'), local('NotoSansCJK-Regular');
+            }}
+            body {{
+                font-family: 'Noto Sans CJK SC', 'WenQuanYi Micro Hei', 'DejaVu Sans', 'Symbola', sans-serif;
+                line-height: 1.6;
+                margin: 20px;
+                color: #333;
+            }}
+            h1, h2, h3, h4, h5, h6 {{
+                font-family: 'Noto Sans CJK SC', 'WenQuanYi Micro Hei', 'DejaVu Sans', 'Symbola', sans-serif;
+                color: #2c3e50;
+                margin-top: 1.5em;
+                margin-bottom: 0.5em;
+            }}
+            p {{
+                margin-bottom: 1em;
+            }}
+            code {{
+                background: #f4f4f4;
+                padding: 2px 4px;
+                border-radius: 3px;
+                font-family: 'Noto Sans CJK SC', 'WenQuanYi Micro Hei', 'DejaVu Sans', 'Symbola', monospace;
+            }}
+            pre {{
+                background: #f4f4f4;
+                padding: 10px;
+                border-radius: 5px;
+                overflow-x: auto;
+            }}
+            pre code {{
+                background: none;
+                padding: 0;
+            }}
+            blockquote {{
+                border-left: 4px solid #3498db;
+                padding-left: 10px;
+                margin: 1em 0;
+                color: #666;
+            }}
+            img {{
+                max-width: 100%;
+                height: auto;
+            }}
+        </style>
+    </head>
+    <body>
+        <h1>{article.title}</h1>
+        <p><em>发布时间: {article.published_time.strftime('%Y-%m-%d %H:%M')}</em></p>
+        {html_content}
+    </body>
+    </html>
+    '''
+    
+    pdf_buffer = BytesIO()
+    try:
+        HTML(string=full_html).write_pdf(pdf_buffer)
+    except Exception as e:
+        print(f"PDF生成失败: {e}")
+        return HttpResponse("PDF生成失败", status=500)
+    pdf_buffer.seek(0)
+    
+    pdf_content = pdf_buffer.read()
+    
+    # 缓存PDF
+    cache.set(pdf_cache_key, pdf_content, timeout=86400)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{article.title}.pdf"'
+    response.write(pdf_content)
+    return response
 
 
 def comment_management(request):

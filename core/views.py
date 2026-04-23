@@ -214,3 +214,37 @@ def search(request):
     }
     
     return render(request, "core/search.html", context)
+
+
+def ai_qa(request):
+    """AI问答页面"""
+    # 侧边栏数据
+    last_articles = Article.objects.filter(status="published").order_by(
+        "-published_time"
+    )[:5]  # 最新文章列表页
+
+    hot_articles = Article.objects.filter(status="published").order_by("-read_count")[:5]
+    hot_list = hot_articles[:5]
+
+    categories = Category.objects.all()
+
+    # 文章归档
+    archive_data = (
+        Article.objects.filter(status="published")
+        .annotate(
+            year=ExtractYear("published_time"), month=ExtractMonth("published_time")
+        )
+        .values("year", "month")
+        .annotate(article_count=Count("id"))
+        .order_by("-year", "-month")
+    )
+    
+    # 上下文数据
+    context = {
+        "last_articles": last_articles,  # 最新文章列表页
+        "hot_list": hot_list,  # 热门文章列表页
+        "categories": categories,
+        "archive_data": archive_data,
+    }
+    
+    return render(request, "core/ai_qa.html", context)

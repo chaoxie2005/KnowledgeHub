@@ -214,7 +214,7 @@
           {% for published in publisheds %}
             <div class="draft-card">
               <div class="draft-header">
-                <a href="{% url 'article:detail' published.id %}" class="draft-title">
+                <a href="{% url 'article:detail' article_id=published.id %}" class="draft-title">
                   {{ published.title|default:'无标题发布' }}</a>
               </div>
               <div class="draft-meta">
@@ -231,7 +231,7 @@
                 {% endfor %}
               </div>
               <div class="draft-actions">
-                <a href="{% url 'article:edit_published' published.id %}" class="draft-btn btn-edit">编辑</a>
+                <a href="{% url 'article:edit_published' published_id=published.id %}" class="draft-btn btn-edit">编辑</a>
                 <button class="draft-btn btn-delete deleteBtn" publishedID="{{ published.id }}">删除</button>
               </div>
             </div>

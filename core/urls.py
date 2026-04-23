@@ -6,4 +6,5 @@ app_name = "core" # 命名空间
 urlpatterns = [
     path('', views.index, name='index'), # 博客首页
     path('search/', views.search, name='search'), # 搜索功能
+    path('ai-qa/', views.ai_qa, name='ai_qa'), # AI问答页面
 ]

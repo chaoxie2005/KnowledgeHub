@@ -1,32 +1,5 @@
 {% load static %}
 
-<!-- 固定布流 -->
-<div class="sidebar-section"
-  style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
-  <!-- AI 全站问答 -->
-  <h3 class="sidebar-title"
-    style="color: #0066cc; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
-    AI 全站问答</h3>
-  <div class="ai-qa-box">
-    <textarea id="sidebarAiQuestion" class="ai-qa-input"
-      style="width: 100%; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; font-size: 14px; min-height: 80px; margin-bottom: 12px; outline: none; transition: border-color 0.2s ease;"
-      placeholder="输入你的问题，可在全站内容中搜索答案"></textarea>
-    <div class="ai-qa-footer" style="display: flex; justify-content: flex-end;">
-      <button id="sidebarAiAskBtn" class="ai-qa-btn"
-        style="background: #0066cc; color: white; border: none; border-radius: 20px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">发送问题</button>
-    </div>
-    <div id="sidebarAiAnswer" class="ai-answer"
-      style="display: none; margin-top: 12px; padding: 16px; background: #f8f9fa; border-radius: 8px; font-size: 14px; line-height: 1.5; border: 1px solid #e9ecef;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <span style="font-weight: 600; color: #0066cc;">AI 回答：</span>
-        <button id="closeAiAnswer"
-          style="background: none; border: none; font-size: 16px; color: #999; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
-      </div>
-      <div id="aiAnswerContent"></div>
-    </div>
-  </div>
-</div>
-
 <!-- 最新文章 -->
 <div class="sidebar-section"
   style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
@@ -37,7 +10,7 @@
     {% block latest-articles %}
     {% for article in last_articles %}
     <li class="latest-article-item" style="margin-bottom: 12px;">
-      <a href="{% url 'article:detail' article.id %}" class="latest-article-link"
+      <a href="{% url 'article:detail' article_id=article.id %}" class="latest-article-link"
         style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
     </li>
     {% empty %}
@@ -59,13 +32,14 @@
     <li class="hot-article-item" style="margin-bottom: 12px;">
       <div class="hot-article-content">
         <h4 class="hot-article-title" style="margin: 0;">
-          <a href="{% url 'article:detail' article.id %}"
+          <a href="{% url 'article:detail' article_id=article.id %}"
             style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
         </h4>
       </div>
     </li>
     {% empty %}
-    <li class="hot-article-item" style="margin-bottom: 12px; color: #999; font-size: 14px;">暂无热门文章</li>
+    <li class="hot-article-item" style="margin-bottom: 12px; color: #999; font-size: 14px;">暂无热门文章
+    </li>
     {% endfor %}
     {% endblock %}
   </ul>
@@ -92,114 +66,3 @@
     {% endif %}
   </ul>
 </div>
-
-
-<script>
-  // 侧边栏AI问答（流式输出）
-  (function () {
-    const sidebarAiAskBtn = document.getElementById('sidebarAiAskBtn');
-    const answerBox = document.getElementById('sidebarAiAnswer');
-    const aiAnswerContent = document.getElementById('aiAnswerContent');
-    const closeAiAnswer = document.getElementById('closeAiAnswer');
-
-    // 加载保存的回答
-    function loadSavedAnswer() {
-      const savedAnswer = sessionStorage.getItem('ai_sidebar_answer');
-      if (savedAnswer) {
-        aiAnswerContent.innerText = savedAnswer;
-        answerBox.style.display = 'block';
-      }
-    }
-
-    // 保存回答到sessionStorage
-    function saveAnswer(answer) {
-      sessionStorage.setItem('ai_sidebar_answer', answer);
-    }
-
-    // 清除保存的回答
-    function clearSavedAnswer() {
-      sessionStorage.removeItem('ai_sidebar_answer');
-    }
-
-    // 关闭回答
-    function closeAnswer() {
-      answerBox.style.display = 'none';
-      clearSavedAnswer();
-    }
-
-    // 页面加载时加载保存的回答
-    loadSavedAnswer();
-
-    // 关闭按钮事件
-    if (closeAiAnswer) {
-      closeAiAnswer.addEventListener('click', closeAnswer);
-    }
-
-    if (sidebarAiAskBtn) {
-      sidebarAiAskBtn.addEventListener('click', async () => {
-        const btn = sidebarAiAskBtn;
-        const questionEl = document.getElementById('sidebarAiQuestion');
-        const question = (questionEl.value || '').trim();
-
-        if (!question) { alert('请输入问题'); return; }
-
-        btn.disabled = true;
-        btn.textContent = 'AI 输出中...';
-        aiAnswerContent.innerText = '';
-        answerBox.style.display = 'block';
-
-        questionEl.value = '';
-        clearSavedAnswer();
-
-        try {
-          const res = await fetch("{% url 'article:global_ai_qa' %}?stream=1", {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: 'question=' + encodeURIComponent(question)
-          });
-
-          const contentType = (res.headers.get('content-type') || '').toLowerCase();
-          if (!res.ok && contentType.includes('application/json')) {
-            const data = await res.json();
-            const errorMsg = data.msg || data.error || '请求失败';
-            aiAnswerContent.innerText = errorMsg;
-            saveAnswer(errorMsg);
-            return;
-          }
-
-          if (!res.body) {
-            const text = await res.text();
-            aiAnswerContent.innerText = text;
-            saveAnswer(text);
-            return;
-          }
-
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder('utf-8');
-          let out = '';
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            out += decoder.decode(value, { stream: true });
-            aiAnswerContent.innerText = out;
-          }
-
-          saveAnswer(out);
-          questionEl.value = '';
-        } catch (e) {
-          const errorMsg = '网络异常，请重试';
-          aiAnswerContent.innerText = errorMsg;
-          saveAnswer(errorMsg);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = '发送问题';
-          questionEl.value = '';
-        }
-      });
-    }
-  })();
-</script>

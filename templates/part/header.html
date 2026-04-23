@@ -538,6 +538,9 @@
       </ul>
     </div>
     {% endif %}
+    <a class="{% if 'ai-qa' in request.path %}active{% endif %}" href="{% url 'core:ai_qa' %}">
+      <span>🤖</span> AI问答
+    </a>
   </div>
 </nav>
 

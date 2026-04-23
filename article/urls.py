@@ -40,4 +40,6 @@ urlpatterns = [
     path("comment/like/<int:comment_id>/", views.comment_like, name="comment_like"),
     path("comment/delete/<int:comment_id>/", views.delete_comment, name="delete_comment"),
     path('comment_management/', views.comment_management, name='comment_management'), # 评论管理
+    path('download_markdown/<int:article_id>/', views.download_markdown, name='download_markdown'), # 导出markdown文件
+    path('download_PDF/<int:article_id>/', views.download_PDF, name='download_PDF'), # 导出PDF文件
 ]

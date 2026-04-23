@@ -10,7 +10,7 @@
     {% block latest-articles %}
     {% for article in last_articles %}
     <li class="latest-article-item" style="margin-bottom: 12px;">
-      <a href="{% url 'article:detail' article.id %}" class="latest-article-link"
+      <a href="{% url 'article:detail' article_id=article.id %}" class="latest-article-link"
         style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
     </li>
     {% endfor %}
@@ -30,7 +30,7 @@
     <li class="hot-article-item" style="margin-bottom: 12px;">
       <div class="hot-article-content">
         <h4 class="hot-article-title" style="margin: 0;">
-          <a href="{% url 'article:detail' article.id %}"
+          <a href="{% url 'article:detail' article_id=article.id %}"
             style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
         </h4>
       </div>

@@ -186,6 +186,9 @@
   </div>
 
   <div class="ai-qa-main">
+    <div class="ai-qa-history" id="aiChatHistory" style="margin-bottom: 24px; max-height: 400px; overflow-y: auto;">
+    </div>
+
     <div class="ai-qa-input-container">
       <textarea id="aiQuestion" class="ai-qa-input" placeholder="输入提问内容..."></textarea>
     </div>
@@ -195,15 +198,9 @@
         <span id="btnText">发送问题</span>
         <span id="loadingSpinner" class="loading-spinner" style="display: none;"></span>
       </button>
-    </div>
-
-    <div id="aiAnswer" class="ai-qa-answer" style="display: none;">
-      <div class="ai-qa-answer-header">
-        <h3 class="ai-qa-answer-title">AI 回答</h3>
-        <button id="closeAnswer"
-          style="background: none; border: none; font-size: 16px; color: #999; cursor: pointer;">&times;</button>
-      </div>
-      <div id="aiAnswerContent" class="ai-qa-answer-content"></div>
+      <button id="clearHistoryBtn" class="ai-qa-button" style="background: #6c757d; margin-left: 12px;">
+        清空历史
+      </button>
     </div>
   </div>
 </div>
@@ -212,31 +209,78 @@
   // AI问答功能
   (function () {
     const aiAskBtn = document.getElementById('aiAskBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     const aiQuestion = document.getElementById('aiQuestion');
-    const aiAnswer = document.getElementById('aiAnswer');
-    const aiAnswerContent = document.getElementById('aiAnswerContent');
-    const closeAnswer = document.getElementById('closeAnswer');
+    const aiChatHistory = document.getElementById('aiChatHistory');
     const btnText = document.getElementById('btnText');
     const loadingSpinner = document.getElementById('loadingSpinner');
 
-    // 清除保存的回答
-    function clearSavedAnswer() {
-      sessionStorage.removeItem('ai_qa_question');
-      sessionStorage.removeItem('ai_qa_answer');
+    // 从sessionStorage加载对话历史
+    function loadChatHistory() {
+      const history = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
+      renderChatHistory(history);
+      return history;
     }
 
-    // 关闭回答
-    function closeAnswerFunc() {
-      aiAnswer.style.display = 'none';
-      clearSavedAnswer();
+    // 保存对话历史到sessionStorage
+    function saveChatHistory(history) {
+      sessionStorage.setItem('ai_chat_history', JSON.stringify(history));
     }
 
-    // 页面加载时清除之前的回答，确保每次进入都是干净的页面
-    clearSavedAnswer();
+    // 渲染对话历史
+    function renderChatHistory(history) {
+      aiChatHistory.innerHTML = '';
+      history.forEach(item => {
+        // 渲染用户问题
+        const userMessage = document.createElement('div');
+        userMessage.style.cssText = 'display: flex; justify-content: flex-end; margin-bottom: 12px;';
+        userMessage.innerHTML = `
+          <div style="background: #e3f2fd; padding: 12px; border-radius: 12px; max-width: 80%;">
+            <strong style="color: #1976d2;">你：</strong>
+            <p>${item.question}</p>
+          </div>
+        `;
+        aiChatHistory.appendChild(userMessage);
 
-    // 关闭按钮事件
-    if (closeAnswer) {
-      closeAnswer.addEventListener('click', closeAnswerFunc);
+        // 渲染AI回答
+        const aiMessage = document.createElement('div');
+        aiMessage.style.cssText = 'display: flex; justify-content: flex-start; margin-bottom: 12px;';
+        aiMessage.innerHTML = `
+          <div style="background: #f5f5f5; padding: 12px; border-radius: 12px; max-width: 80%;">
+            <strong style="color: #4caf50;">AI：</strong>
+            <p>${item.answer}</p>
+          </div>
+        `;
+        aiChatHistory.appendChild(aiMessage);
+      });
+      // 滚动到底部
+      aiChatHistory.scrollTop = aiChatHistory.scrollHeight;
+    }
+
+    // 添加新的对话到历史
+    function addToChatHistory(question, answer) {
+      const history = loadChatHistory();
+      history.push({ question, answer });
+      // 只保留最近10轮对话
+      if (history.length > 10) {
+        history.shift();
+      }
+      saveChatHistory(history);
+      renderChatHistory(history);
+    }
+
+    // 清空对话历史
+    function clearChatHistory() {
+      sessionStorage.removeItem('ai_chat_history');
+      renderChatHistory([]);
+    }
+
+    // 页面加载时加载对话历史
+    loadChatHistory();
+
+    // 清空历史按钮事件
+    if (clearHistoryBtn) {
+      clearHistoryBtn.addEventListener('click', clearChatHistory);
     }
 
     // 发送问题事件
@@ -253,10 +297,15 @@
         aiAskBtn.disabled = true;
         btnText.style.display = 'none';
         loadingSpinner.style.display = 'inline-block';
-        aiAnswerContent.innerHTML = '';
-        aiAnswer.style.display = 'block';
+
+        // 先添加用户问题到对话历史
+        const tempHistory = loadChatHistory();
+        tempHistory.push({ question, answer: 'AI 正在思考...' });
+        saveChatHistory(tempHistory);
+        renderChatHistory(tempHistory);
 
         try {
+          console.log('Sending request...');
           const res = await fetch("{% url 'article:global_ai_qa' %}?stream=1", {
             method: 'POST',
             headers: {
@@ -265,40 +314,93 @@
             },
             body: 'question=' + encodeURIComponent(question)
           });
+          console.log('Response received:', res);
 
           const contentType = (res.headers.get('content-type') || '').toLowerCase();
-          if (!res.ok && contentType.includes('application/json')) {
-            const data = await res.json();
-            const errorMsg = data.msg || data.error || '请求失败';
-            aiAnswerContent.innerHTML = errorMsg;
-            saveAnswer(question, errorMsg);
-            return;
+          console.log('Content type:', contentType);
+
+          if (!res.ok) {
+            console.log('Response not ok:', res.status, res.statusText);
+            if (contentType.includes('application/json')) {
+              const data = await res.json();
+              const errorMsg = data.msg || data.error || '请求失败';
+              console.log('Error message:', errorMsg);
+              // 更新对话历史，替换临时消息
+              const history = loadChatHistory();
+              history.pop(); // 移除临时消息
+              history.push({ question, answer: errorMsg });
+              saveChatHistory(history);
+              renderChatHistory(history);
+              return;
+            } else {
+              const text = await res.text();
+              console.log('Error text:', text);
+              // 更新对话历史，替换临时消息
+              const history = loadChatHistory();
+              history.pop(); // 移除临时消息
+              history.push({ question, answer: '请求失败：' + text });
+              saveChatHistory(history);
+              renderChatHistory(history);
+              return;
+            }
           }
 
           if (!res.body) {
+            console.log('No response body');
             const text = await res.text();
-            aiAnswerContent.innerHTML = text;
+            console.log('Response text:', text);
+            // 更新对话历史，替换临时消息
+            const history = loadChatHistory();
+            history.pop(); // 移除临时消息
+            history.push({ question, answer: text });
+            saveChatHistory(history);
+            renderChatHistory(history);
             return;
           }
 
+          console.log('Starting to read stream...');
           const reader = res.body.getReader();
           const decoder = new TextDecoder('utf-8');
           let out = '';
 
           while (true) {
             const { done, value } = await reader.read();
+            console.log('Read chunk:', done, value ? value.length : 0);
             if (done) break;
-            out += decoder.decode(value, { stream: true });
-            aiAnswerContent.innerHTML = out;
+            const chunk = decoder.decode(value, { stream: true });
+            console.log('Decoded chunk:', chunk);
+            out += chunk;
+            // 实时更新对话历史中的AI回答
+            const history = loadChatHistory();
+            history.pop(); // 移除临时消息
+            history.push({ question, answer: out });
+            saveChatHistory(history);
+            renderChatHistory(history);
           }
+
+          console.log('Stream complete. Full response:', out);
+          // 最终更新对话历史
+          const history = loadChatHistory();
+          history.pop(); // 移除临时消息
+          history.push({ question, answer: out });
+          saveChatHistory(history);
+          renderChatHistory(history);
         } catch (e) {
+          console.error('Error:', e);
           const errorMsg = '网络异常，请重试';
-          aiAnswerContent.innerHTML = errorMsg;
+          // 更新对话历史，替换临时消息
+          const history = loadChatHistory();
+          history.pop(); // 移除临时消息
+          history.push({ question, answer: errorMsg });
+          saveChatHistory(history);
+          renderChatHistory(history);
         } finally {
           // 恢复按钮状态
           aiAskBtn.disabled = false;
           btnText.style.display = 'inline';
           loadingSpinner.style.display = 'none';
+          // 清空输入框
+          aiQuestion.value = '';
         }
       });
     }

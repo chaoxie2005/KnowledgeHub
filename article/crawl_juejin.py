@@ -146,7 +146,7 @@ def get_content(url):
 
 
 def parse_article_detail(html_content):
-    """解析文章详情，返回结构化数据（适配新模型）"""
+    """解析文章详情，返回结构化数据"""
     result = {
         "title": "",
         "summary": "",
@@ -228,12 +228,13 @@ def save_juejin_article(article_data, juejin_article_id):
             optimized_title = article_data["title"]
 
         try:
-            ai_summary = generate_article_summary(
-                article_data.get("content") or article_data.get("summary", "")
-            )
+            # 确保传入的内容不为空
+            content_for_ai = article_data.get("content") or article_data.get("summary", "") or article_data["title"]
+            ai_summary = generate_article_summary(content_for_ai)
         except Exception as e:
             print(f"AI摘要生成失败，使用原始摘要: {e}")
-            ai_summary = article_data.get("summary", "")
+            # 降级处理：使用原始摘要，如果原始摘要也为空，则使用标题
+            ai_summary = article_data.get("summary", "") or article_data["title"]
 
         article = JuejinHotArticle(
             juejin_article_id=juejin_article_id,
@@ -317,6 +318,9 @@ def crawl_and_save_juejin_hot():
                 print("  跳过：没有标题")
                 continue
 
+            # 确保content不为空，使用标题作为最终fallback
+            content_for_ai = article_brief or article_title or ""
+            
             article_data = {
                 "title": article_title,
                 "summary": article_brief or article_title,
@@ -324,7 +328,7 @@ def crawl_and_save_juejin_hot():
                 "author": author_name,
                 "source": "掘金",
                 "published_time": timezone.now(),
-                "content": article_brief or article_title,
+                "content": content_for_ai,
             }
 
             if save_juejin_article(article_data, juejin_article_id):

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 {% load static %}
+{% load cache %}
 
 <head>
   <meta charset="utf-8" />
@@ -31,10 +32,18 @@
 
         {# 侧边栏 #}
         <aside class="col-lg-3 blog-sidebar">
-          {% include 'part/sidebar/sidebar.html' %}
+          {% cache 3600 sidebar %}
+            {% include 'part/sidebar/sidebar.html' %}
+          {% endcache %}
         </aside>
       </div>
     </div>
   </main>
 
-  <script src='{% static ' js/sweetalert.min.js'%}'></script>
+  <!-- Bootstrap core JavaScript -->
+  <script src='{% static "js/jquery.min.js" %}'></script>
+  <script src='{% static "js/bootstrap.bundle.min.js" %}'></script>
+  <script src='{% static "js/sweetalert.min.js" %}'></script>
+</body>
+
+</html>

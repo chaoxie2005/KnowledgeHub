@@ -1,44 +1,52 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  {% load static %}
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>知文汇-掘金快讯</title>
-    <!-- Bootstrap core CSS -->
-    <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
-    {% block style %}
-    {% endblock %}
-  </head>
-  <body>
-    <div class="container">
-      {% include 'part/messages.html' %}
-      {# 头部分 #}
-      {% include 'part/header.html' %}
-    </div>
+{% load static %}
 
-    <main role="main" class="container">
-      <div class="row">
-        <div class="col-md-8 blog-main">
-          {% block post %}
-            文章列表页
-          {% endblock %}
-        </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>知文汇-掘金快讯</title>
+  <!-- Bootstrap core CSS -->
+  <link rel="shortcut icon" href="{% static 'img/logo.png' %}" type="image/x-icon">
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+  {% block style %}
+  {% endblock %}
+</head>
 
-        {# 侧边栏 #}
-        <aside class="col-md-4 blog-sidebar">
-          {% include 'part/sidebar/juejin_hot_sidebar.html' %}
-        </aside>
+<body>
+  <div class="container">
+    {% include 'part/messages.html' %}
+    {# 头部分 #}
+    {% include 'part/header.html' %}
+  </div>
+
+  <main role="main" class="container">
+    <div class="row">
+      <div class="col-md-8 blog-main">
+        {% block post %}
+        文章列表页
+        {% endblock %}
       </div>
-    </main>
 
-    {# 博客底部 #}
-    <footer class="blog-footer">
-      {% comment %} {% include 'part/bottom.html' %} {% endcomment %}
-    </footer>
-  </body>
+      {# 侧边栏 #}
+      <aside class="col-md-4 blog-sidebar">
+        {% include 'part/sidebar/juejin_hot_sidebar.html' %}
+      </aside>
+    </div>
+  </main>
+
+  {# 博客底部 #}
+  <footer class="blog-footer">
+    {% comment %} {% include 'part/bottom.html' %} {% endcomment %}
+  </footer>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src='{% static "js/jquery.min.js" %}'></script>
+  <script src='{% static "js/bootstrap.bundle.min.js" %}'></script>
+  <script src='{% static "js/sweetalert.min.js" %}'></script>
+</body>
+
 </html>
 
 

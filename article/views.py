@@ -204,11 +204,17 @@ def detail(request, article_id):
         # 获取归档数据
         archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
         
-        # 获取评论
+        # 获取评论（递归获取所有层级的回复）
         comments = article.comments.filter(parent=None).select_related("user").prefetch_related(
             Prefetch(
                 "replies",
-                queryset=Comment.objects.select_related("user").order_by("created_time"),
+                queryset=Comment.objects.select_related("user").prefetch_related(
+                    Prefetch(
+                        "replies",
+                        queryset=Comment.objects.select_related("user").order_by("created_time"),
+                        to_attr="sorted_replies"
+                    )
+                ).order_by("created_time"),
                 to_attr="sorted_replies"
             ),
             "comment_likes"  # 预加载点赞
@@ -284,11 +290,17 @@ def detail(request, article_id):
     # 获取归档数据
     archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
     
-    # 获取评论
+    # 获取评论（递归获取所有层级的回复）
     comments = article.comments.filter(parent=None).select_related("user").prefetch_related(
         Prefetch(
             "replies",
-            queryset=Comment.objects.select_related("user").order_by("created_time"),
+            queryset=Comment.objects.select_related("user").prefetch_related(
+                Prefetch(
+                    "replies",
+                    queryset=Comment.objects.select_related("user").order_by("created_time"),
+                    to_attr="sorted_replies"
+                )
+            ).order_by("created_time"),
             to_attr="sorted_replies"
         ),
         "comment_likes"  # 预加载点赞
@@ -478,6 +490,12 @@ def archive_list(request, archive_year, archive_month):
         "categories": categories,
         "about_articles": about_articles,
         "archives": archives,
+        "year": archive_year,
+        "month": archive_month,
+        "article": {
+            "year": archive_year,
+            "month": archive_month
+        }
     }
     return render(request, "article/archive_list.html", context)
 
@@ -1010,7 +1028,7 @@ def delete_published(request, published_id):
     messages.success(request, "文章删除成功！")
     return redirect(to="core:index")
 
-# 图片上传接口（注意：csrf_exempt 是因为前端已经传了 CSRF Token，这里简化处理）
+# 图片上传接口（csrf_exempt 是因为前端已经传了 CSRF Token，这里简化处理）
 @csrf_exempt
 def upload_image(request):
     if request.method == "POST":

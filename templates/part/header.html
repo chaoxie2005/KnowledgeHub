@@ -46,14 +46,16 @@
   .blog-header-logo {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     color: #1a202c !important;
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 800 !important;
     text-decoration: none;
     letter-spacing: -0.5px;
     transition: all 0.3s ease;
     position: relative;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .blog-header-logo:hover {
@@ -61,15 +63,15 @@
   }
 
   .blog-header-logo .logo-icon {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     background: #6366F1;
-    border-radius: 18px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
     transition: all 0.3s ease;
@@ -85,19 +87,22 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 20px;
-    flex-shrink: 0;
+    gap: 16px;
+    flex-shrink: 1;
+    min-width: 0;
   }
 
   /* 搜索组：强制一行显示 */
   .blog-header .search-group {
     display: flex;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    flex-grow: 0;
     background: #f7fafc;
     border-radius: 25px;
     padding: 4px;
     transition: all 0.3s ease;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    min-width: 0;
   }
 
   .blog-header .search-group:focus-within {
@@ -106,15 +111,18 @@
 
   /* 搜索框样式：优化颜色和交互 */
   .blog-header input[name='keyword'] {
-    padding: 10px 20px;
+    padding: 10px 16px;
     border: none;
     border-radius: 20px;
-    font-size: 0.95rem;
-    width: 220px;
+    font-size: 0.9rem;
+    width: 180px;
+    max-width: 220px;
     outline: none;
     transition: all 0.3s ease;
     color: #4a5568;
     background: transparent;
+    min-width: 0;
+    flex-shrink: 1;
   }
 
   .blog-header input[name='keyword']::placeholder {
@@ -123,7 +131,8 @@
   }
 
   .blog-header input[name='keyword']:focus {
-    width: 280px;
+    width: 220px;
+    max-width: 260px;
   }
 
   /* 搜索按钮：优化默认/hover样式 */
@@ -319,10 +328,55 @@
     transform: translateX(6px);
   }
 
+  /* 主题切换按钮样式 */
+  .theme-toggle-btn {
+    background: #f7fafc;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    font-size: 18px;
+  }
+
+  .theme-toggle-btn:hover {
+    background: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+  }
+
   /* 响应式布局优化：解决移动端换行问题 */
-  @media (max-width: 992px) {
+  @media (max-width: 1200px) {
     .blog-header-logo {
       font-size: 1.6rem;
+    }
+
+    .blog-header-logo .logo-icon {
+      width: 44px;
+      height: 44px;
+      font-size: 22px;
+    }
+
+    .blog-header input[name='keyword'] {
+      width: 160px;
+      max-width: 200px;
+    }
+
+    .blog-header input[name='keyword']:focus {
+      width: 200px;
+      max-width: 240px;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .blog-header-logo {
+      font-size: 1.5rem;
+      gap: 8px;
     }
 
     .blog-header-logo .logo-icon {
@@ -332,16 +386,34 @@
     }
 
     .blog-header input[name='keyword'] {
-      width: 180px;
+      width: 140px;
+      max-width: 180px;
+      padding: 8px 14px;
     }
 
     .blog-header input[name='keyword']:focus {
-      width: 220px;
+      width: 180px;
+      max-width: 220px;
+    }
+
+    .blog-header .search-btn {
+      padding: 6px 16px;
+      font-size: 0.85rem;
     }
 
     .blog-nav .nav a {
       padding: 10px 20px !important;
       font-size: 14px;
+    }
+
+    .theme-toggle-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+    }
+
+    .blog-header .right-col {
+      gap: 12px;
     }
   }
 
@@ -377,20 +449,23 @@
     }
 
     .blog-header input[name='keyword'] {
-      width: 140px;
-      padding: 8px 16px;
+      width: 120px;
+      max-width: 160px;
+      padding: 8px 14px;
     }
 
     .blog-header input[name='keyword']:focus {
-      width: 180px;
+      width: 160px;
+      max-width: 200px;
     }
 
     .blog-header .search-btn {
-      padding: 6px 16px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
     }
 
     .blog-header .login-btn {
-      padding: 8px 16px;
+      padding: 8px 14px;
       font-size: 0.85rem;
     }
 
@@ -417,7 +492,13 @@
     }
 
     .blog-header .right-col {
-      gap: 12px;
+      gap: 10px;
+    }
+
+    .theme-toggle-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 14px;
     }
   }
 
@@ -434,17 +515,964 @@
     }
 
     .blog-header input[name='keyword'] {
-      width: 120px;
+      width: 100px;
+      max-width: 140px;
+      padding: 6px 12px;
     }
 
     .blog-header input[name='keyword']:focus {
-      width: 150px;
+      width: 140px;
+      max-width: 180px;
+    }
+
+    .blog-header .search-btn {
+      padding: 4px 12px;
+      font-size: 0.75rem;
     }
 
     .blog-nav .nav a {
       padding: 6px 12px !important;
       font-size: 12px;
     }
+
+    .theme-toggle-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+
+    .user-nickname {
+      display: none;
+    }
+
+    .blog-header .right-col {
+      gap: 8px;
+    }
+  }
+
+  /* 暗黑主题样式 */
+  body.dark-theme {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .blog-header {
+    background: rgba(26, 26, 26, 0.98);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  body.dark-theme .blog-header-logo {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .blog-header-logo:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .search-group {
+    background: #2d2d2d;
+  }
+
+  body.dark-theme input[name='keyword'] {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme input[name='keyword']::placeholder {
+    color: #6b7280;
+  }
+
+  body.dark-theme .login-btn {
+    color: #818cf8 !important;
+    border-color: #818cf8 !important;
+    background: #2d2d2d !important;
+  }
+
+  body.dark-theme .login-btn:hover {
+    background: #818cf8 !important;
+    border-color: #818cf8 !important;
+    color: #1a1a1a !important;
+  }
+
+  body.dark-theme .user-info-wrapper {
+    background: #2d2d2d;
+  }
+
+  body.dark-theme .user-info-wrapper:hover {
+    background: #374151;
+  }
+
+  body.dark-theme .user-nickname {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .blog-nav .nav {
+    background: #2d2d2d;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  body.dark-theme .blog-nav .nav a {
+    color: #e0e0e0;
+    background: #2d2d2d;
+  }
+
+  body.dark-theme .blog-nav .nav a:hover {
+    color: #818cf8;
+    background: #374151;
+  }
+
+  body.dark-theme .blog-nav .nav a.active {
+    color: #1a1a1a !important;
+    background: #818cf8;
+  }
+
+  body.dark-theme .blog-nav .nav a.active:hover {
+    background: #6366f1;
+  }
+
+  body.dark-theme .blog-nav .dropdown .dropdown-menu {
+    background: #2d2d2d;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  body.dark-theme .user-info-wrapper .dropdown-menu {
+    background: #2d2d2d;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  body.dark-theme .blog-nav .dropdown .dropdown-item {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .blog-nav .dropdown .dropdown-item:hover {
+    color: #818cf8;
+    background: #374151;
+  }
+
+  body.dark-theme .blog-nav .dropdown .dropdown-toggle {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .blog-nav .dropdown .dropdown-toggle:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .theme-toggle-btn {
+    background: #2d2d2d;
+  }
+
+  body.dark-theme .theme-toggle-btn:hover {
+    background: #374151;
+  }
+
+  /* 侧边栏暗黑主题样式 */
+  body.dark-theme .sidebar-section {
+    background: #2d2d2d;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-left: 4px solid #818cf8;
+  }
+
+  body.dark-theme .sidebar-title {
+    color: #818cf8;
+    border-bottom: 1px solid #374151;
+  }
+
+  body.dark-theme .latest-article-link {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .latest-article-link:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .hot-article-title a {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .hot-article-title a:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .archive-list a {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .archive-list a:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .archive-list li {
+    color: #999;
+  }
+
+  /* 文章卡片暗黑主题样式 */
+  body.dark-theme .card {
+    background: #2d2d2d;
+    border: 1px solid #374151;
+  }
+
+  body.dark-theme .card-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .card-text {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .card-footer {
+    background: #374151;
+    border-top: 1px solid #4b5563;
+  }
+
+  body.dark-theme .card-footer small {
+    color: #9ca3af;
+  }
+
+  /* 主内容区域暗黑主题样式 */
+  body.dark-theme .blog-main {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme h1,
+  body.dark-theme h2,
+  body.dark-theme h3,
+  body.dark-theme h4,
+  body.dark-theme h5,
+  body.dark-theme h6 {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme p {
+    color: #d1d5db;
+  }
+
+  body.dark-theme a {
+    color: #818cf8;
+  }
+
+  body.dark-theme a:hover {
+    color: #6366f1;
+  }
+
+  /* 按钮暗黑主题样式 */
+  body.dark-theme .btn {
+    background: #374151;
+    color: #e0e0e0;
+    border: 1px solid #4b5563;
+  }
+
+  body.dark-theme .btn:hover {
+    background: #4b5563;
+    color: #ffffff;
+  }
+
+  /* 文章详情页暗黑主题样式 */
+  body.dark-theme .article-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .article-meta-info {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .article-category {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .no-category {
+    color: #6b7280 !important;
+  }
+
+  body.dark-theme .article-summary {
+    background: #2d2d2d;
+    border-left: 4px solid #818cf8;
+    color: #d1d5db;
+  }
+
+  body.dark-theme .article-tags-label {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .article-tag {
+    background-color: #374151;
+    color: #818cf8;
+    border: 1px solid #4b5563;
+  }
+
+  body.dark-theme .no-tag {
+    color: #6b7280;
+  }
+
+  body.dark-theme .article-content {
+    color: #e0e0e0;
+  }
+
+  /* Markdown 暗黑主题样式 */
+  body.dark-theme .markdown-body {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .markdown-body p {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .markdown-body pre {
+    background: #2d2d2d;
+  }
+
+  body.dark-theme .markdown-body code {
+    background: #374151;
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .markdown-body h1,
+  body.dark-theme .markdown-body h2,
+  body.dark-theme .markdown-body h3,
+  body.dark-theme .markdown-body h4,
+  body.dark-theme .markdown-body h5,
+  body.dark-theme .markdown-body h6 {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .markdown-body blockquote {
+    border-left: 4px solid #818cf8;
+    background: #2d2d2d;
+    color: #d1d5db;
+  }
+
+  body.dark-theme .markdown-body ul,
+  body.dark-theme .markdown-body ol {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .markdown-body th,
+  body.dark-theme .markdown-body td {
+    border: 1px solid #4b5563;
+    color: #d1d5db;
+  }
+
+  body.dark-theme .markdown-body th {
+    background: #374151;
+  }
+
+  body.dark-theme .codehilite {
+    background: #2d2d2d;
+  }
+
+  /* 翻页暗黑主题样式 */
+  body.dark-theme .article-nav-pagination .page-link {
+    color: #818cf8;
+    background-color: #2d2d2d;
+    border: 1px solid #4b5563;
+  }
+
+  body.dark-theme .article-nav-pagination .page-item:not(.disabled) .page-link:hover {
+    background-color: #374151;
+    border-color: #818cf8;
+  }
+
+  body.dark-theme .article-nav-pagination .page-item.disabled .page-link {
+    color: #6b7280;
+    background-color: #2d2d2d;
+    border-color: #4b5563;
+  }
+
+  /* AI 问答区域暗黑主题样式 */
+  body.dark-theme .ai-qa-main {
+    background: #2d2d2d;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  body.dark-theme .ai-qa-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .ai-qa-subtitle {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .ai-qa-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .ai-qa-input:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+  }
+
+  body.dark-theme .ai-qa-input::placeholder {
+    color: #6b7280;
+  }
+
+  body.dark-theme .ai-qa-button {
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  }
+
+  body.dark-theme .ai-qa-button:hover {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  }
+
+  body.dark-theme .ai-qa-button:disabled {
+    background: #6b7280;
+  }
+
+  body.dark-theme .ai-qa-answer {
+    background: #374151;
+  }
+
+  body.dark-theme .ai-qa-answer-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .ai-qa-answer-content {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .ai-qa-answer-content pre {
+    background: #2d2d2d;
+  }
+
+  body.dark-theme .ai-qa-answer-content code {
+    background: #4b5563;
+    color: #e0e0e0;
+  }
+
+  /* 对话历史消息气泡暗黑主题样式 */
+  body.dark-theme #aiChatHistory div[style*="background: #e3f2fd"] {
+    background: #312e81 !important;
+  }
+
+  body.dark-theme #aiChatHistory div[style*="background: #e3f2fd"] strong {
+    color: #a5b4fc !important;
+  }
+
+  body.dark-theme #aiChatHistory div[style*="background: #e3f2fd"] p {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme #aiChatHistory div[style*="background: #f5f5f5"] {
+    background: #374151 !important;
+  }
+
+  body.dark-theme #aiChatHistory div[style*="background: #f5f5f5"] strong {
+    color: #86efac !important;
+  }
+
+  body.dark-theme #aiChatHistory div[style*="background: #f5f5f5"] p {
+    color: #e0e0e0 !important;
+  }
+
+  /* 评论区暗黑主题样式 */
+  body.dark-theme .comment-section {
+    border-top: 1px solid #374151 !important;
+  }
+
+  body.dark-theme .comment-title {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .comment-count {
+    color: #9ca3af !important;
+  }
+
+  body.dark-theme .comment-input-wrapper {
+    background: #2d2d2d !important;
+    border: 1px solid #4b5563 !important;
+  }
+
+  body.dark-theme .comment-input {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .comment-input::placeholder {
+    color: #6b7280;
+  }
+
+  body.dark-theme .comment-submit-btn {
+    background: #818cf8 !important;
+  }
+
+  body.dark-theme .comment-submit-btn:hover {
+    background: #6366f1 !important;
+  }
+
+  body.dark-theme .comment-cancel-btn {
+    background: #374151 !important;
+    color: #9ca3af !important;
+  }
+
+  body.dark-theme .comment-cancel-btn:hover {
+    background: #4b5563 !important;
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .comment-login-tip {
+    background: #2d2d2d !important;
+    border: 1px solid #4b5563 !important;
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .comment-login-tip a {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .comment-item {
+    border-bottom: 1px solid #374151 !important;
+  }
+
+  body.dark-theme .comment-username {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .comment-username:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .comment-author-tag {
+    background: #374151 !important;
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .comment-time {
+    color: #6b7280 !important;
+  }
+
+  body.dark-theme .comment-text {
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .comment-actions {
+    color: #6b7280 !important;
+  }
+
+  body.dark-theme .comment-action:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .comment-action.delete-btn:hover {
+    color: #ef4444 !important;
+  }
+
+  body.dark-theme .comment-action.like-btn.active {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .reply-item {
+    border-top: 1px solid #374151;
+  }
+
+  body.dark-theme .reply-username {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .empty-comment {
+    color: #6b7280 !important;
+  }
+
+  body.dark-theme .comment-reply-form {
+    background: #2d2d2d !important;
+  }
+
+  /* 图片放大遮罩暗黑主题样式 */
+  body.dark-theme .article-img-viewer {
+    background: rgba(0, 0, 0, 0.98) !important;
+  }
+
+  body.dark-theme .article-img-viewer img {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* 文章卡片暗黑主题样式 */
+  body.dark-theme .article-card {
+    background: #2d2d2d;
+    border-color: #374151;
+  }
+
+  body.dark-theme .article-card:hover {
+    border-color: #818cf8;
+  }
+
+  body.dark-theme .article-card::before {
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+  }
+
+  body.dark-theme .article-card-image {
+    background: #1a1a1a;
+    border-right-color: #374151;
+  }
+
+  body.dark-theme .article-card-tag {
+    background-color: rgba(129, 140, 248, 0.1);
+    border-color: rgba(129, 140, 248, 0.2);
+  }
+
+  body.dark-theme .article-card-tag a {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .article-card-tag:hover {
+    background-color: rgba(129, 140, 248, 0.2);
+    border-color: #818cf8;
+  }
+
+  body.dark-theme .article-card-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .article-card-title a {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .article-card-title a:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .article-card-info {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .article-card-info .divider {
+    color: #6b7280;
+  }
+
+  body.dark-theme .article-card-author {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .article-card-author:hover {
+    color: #6366f1 !important;
+  }
+
+  body.dark-theme .article-card-summary {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .article-card-footer {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .read-more {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .read-more:hover {
+    color: #6366f1 !important;
+  }
+
+  /* 空状态暗黑主题样式 */
+  body.dark-theme .empty-state {
+    background: #2d2d2d;
+    border-color: #374151;
+  }
+
+  body.dark-theme .empty-state h3 {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .empty-state p {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .empty-state-btn {
+    background: #818cf8;
+  }
+
+  body.dark-theme .empty-state-btn:hover {
+    background: #6366f1;
+  }
+
+  /* 顶部文章区域暗黑主题样式 */
+  body.dark-theme .top-article {
+    background: #2d2d2d;
+    border-color: #374151;
+  }
+
+  body.dark-theme .top-article-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .top-article-title a {
+    color: #e0e0e0 !important;
+  }
+
+  body.dark-theme .top-article-title a:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .top-article-summary {
+    color: #d1d5db;
+  }
+
+  /* 分页暗黑主题样式 */
+  body.dark-theme .pagination {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .pagination .page-item .page-link {
+    background: #2d2d2d;
+    border-color: #374151;
+    color: #9ca3af;
+  }
+
+  body.dark-theme .pagination .page-item .page-link:hover {
+    background: #374151;
+    border-color: #818cf8;
+    color: #818cf8;
+  }
+
+  body.dark-theme .pagination .page-item.active .page-link {
+    background: #818cf8;
+    border-color: #818cf8;
+    color: #1a1a1a;
+  }
+
+  body.dark-theme .pagination .page-item.disabled .page-link {
+    background: #2d2d2d;
+    border-color: #374151;
+    color: #6b7280;
+  }
+
+  /* 章节标题暗黑主题样式 */
+  body.dark-theme .section-header {
+    border-bottom-color: #374151;
+  }
+
+  body.dark-theme .section-header::after {
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+  }
+
+  body.dark-theme .section-icon {
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+  }
+
+  body.dark-theme .section-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .section-subtitle {
+    color: #9ca3af;
+  }
+
+  /* CSDN和掘金列表页暗黑主题样式 */
+  /* CSDN卡片 */
+  body.dark-theme .csdn-card {
+    background: #2d2d2d;
+    border-color: #374151;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  body.dark-theme .csdn-card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  body.dark-theme .csdn-card .article-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .csdn-card .article-title:hover {
+    color: #fc5531;
+  }
+
+  body.dark-theme .csdn-card .article-info {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .csdn-card .article-info .divider {
+    color: #6b7280;
+  }
+
+  body.dark-theme .csdn-card .article-author {
+    color: #fc5531 !important;
+  }
+
+  body.dark-theme .csdn-card .article-summary {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .csdn-card .read-more {
+    color: #fc5531 !important;
+  }
+
+  body.dark-theme .csdn-card .read-more:hover {
+    color: #e64a19 !important;
+  }
+
+  /* 掘金卡片 */
+  body.dark-theme .juejin-card {
+    background: #2d2d2d;
+    border-color: #374151;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  body.dark-theme .juejin-card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  body.dark-theme .juejin-card .article-title {
+    color: #e0e0e0;
+  }
+
+  body.dark-theme .juejin-card .article-title:hover {
+    color: #0ea5e9;
+  }
+
+  body.dark-theme .juejin-card .article-info {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .juejin-card .article-info .divider {
+    color: #6b7280;
+  }
+
+  body.dark-theme .juejin-card .article-author {
+    color: #0ea5e9 !important;
+  }
+
+  body.dark-theme .juejin-card .article-summary {
+    color: #d1d5db;
+  }
+
+  body.dark-theme .juejin-card .read-more {
+    color: #0ea5e9 !important;
+  }
+
+  body.dark-theme .juejin-card .read-more:hover {
+    color: #0284c7 !important;
+  }
+
+  body.dark-theme .juejin-card .article-tag {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    border-color: rgba(14, 165, 233, 0.2);
+  }
+
+  body.dark-theme .juejin-card .article-tag a {
+    color: #0ea5e9 !important;
+  }
+
+  body.dark-theme .juejin-card .article-tag:hover {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #fff;
+  }
+
+  body.dark-theme .juejin-card .article-tag:hover a {
+    color: #fff !important;
+  }
+
+  body.dark-theme .juejin-card .no-tag {
+    color: #6b7280;
+  }
+
+  /* CSDN和掘金侧边栏暗黑主题样式 */
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm {
+    background: #2d2d2d !important;
+    border-color: #374151 !important;
+  }
+
+  /* CSDN侧边栏 */
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #fc5531"] {
+    border-left: 4px solid #fc5531 !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #fc5531"] h4 {
+    color: #fc5531 !important;
+    border-bottom-color: #374151 !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #fc5531"] small {
+    color: #9ca3af !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #fc5531"] ol li a {
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #fc5531"] ol li a:hover {
+    color: #fc5531 !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #fc5531"] .text-muted {
+    color: #6b7280 !important;
+  }
+
+  /* 掘金侧边栏 */
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #0ea5e9"] {
+    border-left: 4px solid #0ea5e9 !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #0ea5e9"] h4 {
+    color: #0ea5e9 !important;
+    border-bottom-color: #374151 !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #0ea5e9"] small {
+    color: #9ca3af !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #0ea5e9"] ol li a {
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #0ea5e9"] ol li a:hover {
+    color: #0ea5e9 !important;
+  }
+
+  body.dark-theme .p-4.mb-3.bg-light.rounded.shadow-sm[style*="border-left: 4px solid #0ea5e9"] .text-muted {
+    color: #6b7280 !important;
+  }
+
+  /* 空状态暗黑主题样式 */
+  body.dark-theme .col-12.text-center.py-5 {
+    color: #9ca3af !important;
+  }
+
+  /* 所有侧边栏暗黑主题样式 */
+  body.dark-theme .sidebar-section {
+    background: #2d2d2d !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    border-left: 4px solid #818cf8 !important;
+  }
+
+  body.dark-theme .sidebar-title {
+    color: #818cf8 !important;
+    border-bottom: 1px solid #374151 !important;
+  }
+
+  body.dark-theme .latest-article-link {
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .latest-article-link:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .hot-article-title a {
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .hot-article-title a:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .archive-list li a {
+    color: #d1d5db !important;
+  }
+
+  body.dark-theme .archive-list li a:hover {
+    color: #818cf8 !important;
+  }
+
+  body.dark-theme .latest-article-item {
+    color: #6b7280 !important;
+  }
+
+  body.dark-theme .hot-article-item {
+    color: #6b7280 !important;
+  }
+
+  body.dark-theme .archive-list li {
+    color: #6b7280 !important;
   }
 </style>
 
@@ -482,12 +1510,17 @@
             </div>
           </form>
 
+          {# 主题切换按钮 #}
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="切换主题">
+            <span class="theme-icon">🌙</span>
+          </button>
+
           {# 核心逻辑：判断用户登录状态 #}
           {% if user.is_authenticated %}
           {# 已登录：显示头像 + 昵称（下拉菜单版） #}
           <div class="dropdown user-info-wrapper">
-            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-              style="text-decoration: none;">
+            <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
+              aria-expanded="false" style="text-decoration: none;">
               {% if user.profile.avatar %}
               <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar">
               {% else %}
@@ -495,13 +1528,11 @@
               {% endif %}
               <span class="user-nickname">{{ user.profile.nickname|default:user.username|truncatechars:6 }}</span>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="{% url 'users:user_center' %}">个人主页</a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item text-danger" href="{% url 'authentication:logout' %}">退出登录</a></li>
-            </ul>
+            <div class="dropdown-menu dropdown-menu-end">
+              <a class="dropdown-item" href="{% url 'users:user_center' %}">个人主页</a>
+              <hr class="dropdown-divider">
+              <a class="dropdown-item text-danger" href="{% url 'authentication:logout' %}">退出登录</a>
+            </div>
           </div>
           {% else %}
           {# 未登录：显示登录/注册按钮 #}
@@ -512,6 +1543,7 @@
   </div>
 </header>
 
+<!-- 分类导航区-->
 <!-- 分类导航区-->
 <nav class="blog-nav" style="max-width: 1200px; margin: 24px auto;">
   <div class="nav d-flex justify-content-between">
@@ -525,24 +1557,112 @@
     <a class="{% if 'csdn_hot' in request.path %}active{% endif %}" href="{% url 'article:csdn_hot' %}">
       <span>📱</span> CSDN快讯
     </a>
-    <!-- 分类下拉菜单 -->
+
     {% if categories %}
     <div class="dropdown">
-      <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <button class="dropdown-toggle" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false"
+        style="background: none; border: none; color: #333333; font-size: 15px; font-weight: 600; padding: 12px 28px; border-radius: 16px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
         <span>📂</span> 更多
-      </a>
-      <ul class="dropdown-menu">
+      </button>
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton1"
+        style="border-radius: 16px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15); border: 1px solid rgba(99, 102, 241, 0.1); padding: 12px; margin-top: 12px; background: white; z-index: 1000; max-height: 400px; overflow-y: auto; min-width: 180px;">
         {% for category in categories %}
-        <li><a class="dropdown-item" href="{% url 'article:category_list' category.id %}">{{ category.name }}</a></li>
+        <a class="dropdown-item" href="{% url 'article:category_list' category.id %}"
+          style="display: block; width: 100%; padding: 12px 20px; border-radius: 12px; transition: all 0.3s ease; font-size: 14px; color: #333333; font-weight: 500; text-decoration: none;"
+          onmouseover="this.style.color='#6366F1'; this.style.background='#EDE7F6'; this.style.transform='translateX(6px)';"
+          onmouseout="this.style.color='#333333'; this.style.background='transparent'; this.style.transform='translateX(0)';">
+          {{ category.name }}
+        </a>
         {% endfor %}
-      </ul>
+      </div>
     </div>
     {% endif %}
+
     <a class="{% if 'ai-qa' in request.path %}active{% endif %}" href="{% url 'core:ai_qa' %}">
       <span>🤖</span> AI问答
     </a>
   </div>
 </nav>
 
-{# 必须引入Bootstrap JS，否则下拉菜单无法展开 #}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+{# 主题切换脚本 #}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+    const body = document.body;
+
+    // 加载保存的主题
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      body.classList.add('dark-theme');
+      themeIcon.textContent = '☀️';
+    }
+
+    // 主题切换事件
+    themeToggle.addEventListener('click', function () {
+      body.classList.toggle('dark-theme');
+
+      // 切换图标
+      if (body.classList.contains('dark-theme')) {
+        themeIcon.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        themeIcon.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      }
+    });
+
+    // 更新下拉框主题
+    function updateDropdownTheme() {
+      const dropdownMenus = document.querySelectorAll('.dropdown-menu');
+      const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+      if (body.classList.contains('dark-theme')) {
+        dropdownMenus.forEach(menu => {
+          menu.style.background = '#2d2d2d';
+          menu.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+        });
+        dropdownItems.forEach(item => {
+          item.style.color = '#e0e0e0';
+          item.onmouseover = function () {
+            this.style.color = '#818cf8';
+            this.style.background = '#374151';
+            this.style.transform = 'translateX(6px)';
+          };
+          item.onmouseout = function () {
+            this.style.color = '#e0e0e0';
+            this.style.background = 'transparent';
+            this.style.transform = 'translateX(0)';
+          };
+        });
+      } else {
+        dropdownMenus.forEach(menu => {
+          menu.style.background = 'white';
+          menu.style.border = '1px solid rgba(99, 102, 241, 0.1)';
+        });
+        dropdownItems.forEach(item => {
+          item.style.color = '#333333';
+          item.onmouseover = function () {
+            this.style.color = '#6366F1';
+            this.style.background = '#EDE7F6';
+            this.style.transform = 'translateX(6px)';
+          };
+          item.onmouseout = function () {
+            this.style.color = '#333333';
+            this.style.background = 'transparent';
+            this.style.transform = 'translateX(0)';
+          };
+        });
+      }
+    }
+
+    // 初始加载时更新主题
+    updateDropdownTheme();
+
+    // 主题切换时更新主题
+    themeToggle.addEventListener('click', updateDropdownTheme);
+  });
+</script>

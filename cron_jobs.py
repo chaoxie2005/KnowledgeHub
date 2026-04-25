@@ -133,7 +133,7 @@ def start_scheduler():
     # 添加定时任务：每小时更新一次向量库
     scheduler.add_job(
         func=_build_vector_store_from_db,  # 要执行的向量库更新函数
-        trigger=CronTrigger(minute="0"),  # 每小时整点执行
+        trigger=CronTrigger(minute="0", hour="*/2"),  # 每2小时整点执行
         id="vector_store_update",  # 任务唯一ID
         replace_existing=True,  # 重复启动时替换原有任务
         misfire_grace_time=300,  # 任务错过执行时，允许延迟5分钟

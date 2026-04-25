@@ -1,6 +1,4 @@
 """站内文章 RAG（向量检索 + 流式输出）
-已修复：模型错误、base_url错误、额度超限、400报错
-
 基于ReAct模式的RAG对话系统重构
 """
 
@@ -291,7 +289,7 @@ def _build_vector_store_from_db():
 
     global _VS
     import os, time, shutil
-    from article.models import Article
+    from article.models import Article, JuejinHotArticle, CSDNArticle
     from langchain_core.documents import Document
     from langchain_text_splitters import RecursiveCharacterTextSplitter
     from langchain_community.vectorstores import Chroma
@@ -320,6 +318,8 @@ def _build_vector_store_from_db():
 
     # 构建文档列表，为每篇文章添加作者信息块
     docs = []
+    
+    # 添加本地文章
     for a in qs:
         author_name = a.get('author__profile__nickname') or a.get('author__username', '未知')
         category_name = a.get('category__name', '未分类')
@@ -337,22 +337,73 @@ def _build_vector_store_from_db():
         article_info += f"创建时间：{_format_time(a.get('created_time'))}\n"
         article_info += f"更新时间：{_format_time(a.get('updated_time'))}\n"
         article_info += f"摘要：{a.get('summary', '无摘要')}\n"
+        article_info += f"内容：{a.get('content', '无内容')}\n"
         
         # 添加作者信息块（用于作者查询）- 这个块专门用于检索作者的所有文章
         # 为了提高检索精度，添加多个作者信息块，使用不同的表述方式
         docs.append(Document(
             page_content=f"作者：{author_name}\n文章标题：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info", "source": "本地文章"}
         ))
         # 添加另一个作者信息块，使用不同的表述方式，提高检索概率
         docs.append(Document(
             page_content=f"{author_name}发布的文章：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info_alt"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info_alt", "source": "本地文章"}
         ))
         # 添加完整文章内容块
         docs.append(Document(
             page_content=article_info,
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "content"}
+            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "content", "source": "本地文章"}
+        ))
+    
+    # 添加掘金热榜文章
+    juejin_articles = JuejinHotArticle.objects.all().select_related().prefetch_related("tags")
+    for article in juejin_articles:
+        author_name = article.author or '未知'
+        tags = [tag.name for tag in article.tags.all()]
+        tag_names = ', '.join(tags) if tags else '无标签'
+        
+        # 构建掘金文章信息
+        article_info = f"标题：{article.title}\n"
+        article_info += f"作者：{author_name}\n"
+        article_info += f"标签：{tag_names}\n"
+        article_info += f"来源：{article.source or '掘金'}\n"
+        article_info += f"发布时间：{_format_time(article.published_time)}\n"
+        article_info += f"爬取时间：{_format_time(article.crawl_time)}\n"
+        article_info += f"摘要：{article.summary or article.ai_summary or '无摘要'}\n"
+        article_info += f"原文链接：{article.original_url}\n"
+        
+        # 添加掘金文章到向量库
+        docs.append(Document(
+            page_content=f"作者：{author_name}\n文章标题：{article.title}\n发布时间：{_format_time(article.published_time)}\n来源：掘金",
+            metadata={"article_id": article.juejin_article_id, "title": article.title, "author": author_name, "published_time": _format_time(article.published_time), "type": "author_info", "source": "掘金"}
+        ))
+        docs.append(Document(
+            page_content=article_info,
+            metadata={"article_id": article.juejin_article_id, "title": article.title, "author": author_name, "published_time": _format_time(article.published_time), "type": "content", "source": "掘金"}
+        ))
+    
+    # 添加CSDN文章
+    csdn_articles = CSDNArticle.objects.all()
+    for article in csdn_articles:
+        author_name = article.author or '未知'
+        
+        # 构建CSDN文章信息
+        article_info = f"标题：{article.title}\n"
+        article_info += f"作者：{author_name}\n"
+        article_info += f"来源：{article.source or 'CSDN'}\n"
+        article_info += f"爬取时间：{_format_time(article.crawl_time)}\n"
+        article_info += f"摘要：{article.summary or '无摘要'}\n"
+        article_info += f"原文链接：{article.original_url}\n"
+        
+        # 添加CSDN文章到向量库
+        docs.append(Document(
+            page_content=f"作者：{author_name}\n文章标题：{article.title}\n来源：CSDN",
+            metadata={"article_id": article.csdn_article_id, "title": article.title, "author": author_name, "published_time": _format_time(article.crawl_time), "type": "author_info", "source": "CSDN"}
+        ))
+        docs.append(Document(
+            page_content=article_info,
+            metadata={"article_id": article.csdn_article_id, "title": article.title, "author": author_name, "published_time": _format_time(article.crawl_time), "type": "content", "source": "CSDN"}
         ))
 
     # 文档分割：每700字符一个块，重叠120字符
@@ -827,12 +878,16 @@ def global_rag_qa_stream(question: str, request=None):
             traceback.print_exc()
             
             # 从数据库获取所有已发布文章
-            from article.models import Article
-            articles = Article.objects.filter(status="published").select_related("author", "author__profile", "category").prefetch_related("tags")
+            from article.models import Article, JuejinHotArticle, CSDNArticle
             
             # 构建文章信息
             article_contents = []
-            for a in articles:
+            total_length = 0
+            max_length = 25000  # 限制总长度，留一些余量
+            
+            # 添加本地文章（最多10篇）
+            local_articles = Article.objects.filter(status="published").select_related("author", "author__profile", "category").prefetch_related("tags")[:10]
+            for a in local_articles:
                 author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
                 category_name = a.category.name if a.category else '未分类'
                 tags = [tag.name for tag in a.tags.all()]
@@ -844,9 +899,59 @@ def global_rag_qa_stream(question: str, request=None):
                 article_info += f"标签：{tag_names}\n"
                 article_info += f"发布时间：{_format_time(a.published_time)}\n"
                 article_info += f"摘要：{a.summary if a.summary else '无摘要'}\n"
-                article_info += f"内容：{a.content[:500]}..."  # 只取前500字符
+                article_info += f"内容：{a.content[:1000]}..."  # 限制内容长度
+                article_info += f"来源：本地文章\n"
                 
-                article_contents.append(article_info)
+                # 检查长度
+                if total_length + len(article_info) < max_length:
+                    article_contents.append(article_info)
+                    total_length += len(article_info)
+                else:
+                    break
+            
+            # 添加掘金热榜文章（最多20篇）
+            if total_length < max_length:
+                juejin_articles = JuejinHotArticle.objects.all().select_related().prefetch_related("tags")[:20]
+                for article in juejin_articles:
+                    author_name = article.author or '未知'
+                    tags = [tag.name for tag in article.tags.all()]
+                    tag_names = ', '.join(tags) if tags else '无标签'
+                    
+                    article_info = f"标题：{article.title}\n"
+                    article_info += f"作者：{author_name}\n"
+                    article_info += f"标签：{tag_names}\n"
+                    article_info += f"来源：{article.source or '掘金'}\n"
+                    article_info += f"发布时间：{_format_time(article.published_time)}\n"
+                    article_info += f"爬取时间：{_format_time(article.crawl_time)}\n"
+                    article_info += f"摘要：{article.summary or article.ai_summary or '无摘要'}\n"
+                    article_info += f"原文链接：{article.original_url}\n"
+                    
+                    # 检查长度
+                    if total_length + len(article_info) < max_length:
+                        article_contents.append(article_info)
+                        total_length += len(article_info)
+                    else:
+                        break
+            
+            # 添加CSDN文章（最多20篇）
+            if total_length < max_length:
+                csdn_articles = CSDNArticle.objects.all()[:20]
+                for article in csdn_articles:
+                    author_name = article.author or '未知'
+                    
+                    article_info = f"标题：{article.title}\n"
+                    article_info += f"作者：{author_name}\n"
+                    article_info += f"来源：{article.source or 'CSDN'}\n"
+                    article_info += f"爬取时间：{_format_time(article.crawl_time)}\n"
+                    article_info += f"摘要：{article.summary or '无摘要'}\n"
+                    article_info += f"原文链接：{article.original_url}\n"
+                    
+                    # 检查长度
+                    if total_length + len(article_info) < max_length:
+                        article_contents.append(article_info)
+                        total_length += len(article_info)
+                    else:
+                        break
             
             # 构建检索结果
             retrieved_text = "\n\n".join(article_contents)
@@ -863,18 +968,29 @@ def global_rag_qa_stream(question: str, request=None):
         full_answer = []
 
         # 流式输出AI回答
-        for chunk in chain.stream({
-            "question": question.strip(),
-            "retrieved_docs": retrieved_text,
-            "history": history,
-        }):
-            text = chunk if isinstance(chunk, str) else getattr(chunk, "content", "")
-            if text:
-                full_answer.append(text)
-                yield text
+        try:
+            # 尝试获取流式响应
+            result = chain.stream({
+                "question": question.strip(),
+                "retrieved_docs": retrieved_text,
+                "history": history,
+            })
+            
+            # 检查result是否是可迭代对象
+            if hasattr(result, '__iter__'):
+                for chunk in result:
+                    text = chunk if isinstance(chunk, str) else getattr(chunk, "content", "")
+                    if text:
+                        full_answer.append(text)
+                        yield text
+            else:
+                # 如果不是可迭代对象，直接yield结果
+                yield str(result)
+        except Exception as e:
+            yield f"流式输出失败：{str(e)}"
 
         # 保存对话历史到session（最多保存10轮）
-        if request and hasattr(request, 'session'):
+        if request and hasattr(request, 'session') and hasattr(request.session, 'modified'):
             history.append(("human", question.strip()))
             history.append(("assistant", "".join(full_answer)))
             if len(history) > 10:

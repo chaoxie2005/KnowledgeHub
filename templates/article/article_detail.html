@@ -790,8 +790,7 @@
     {% if article.cover %}
     <img src="{{ article.cover }}" alt="{{ article.title }}" loading="lazy" />
     {% else %}
-    <img src="https://picsum.photos/seed/{{ article.id }}/200/300?random=1000" alt="{{ article.title }}"
-      loading="lazy" />
+    <img src="https://picsum.photos/seed/{{ article.id }}/200/300?random=1000" alt="{{ article.title }}" loading="lazy" />
     {% endif %}
   </div>
 
@@ -848,17 +847,12 @@
       AI 文章问答（基于本文内容）
     </h4>
     <div class="ai-qa-box">
+      <div id="aiChatHistory" class="ai-qa-history" style="margin-bottom: 12px; max-height: 300px; overflow-y: auto;">
+      </div>
       <textarea id="aiQuestion" class="ai-qa-input" placeholder="输入你的问题，可基于本文内容或全站文章进行搜索"></textarea>
       <div class="ai-qa-footer">
         <button id="aiAskBtn" class="ai-qa-btn">发送问题</button>
-      </div>
-      <div id="aiAnswer" class="ai-answer" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-          <span style="font-weight: 600; color: #0066cc;">AI 回答：</span>
-          <button id="closeAiAnswer"
-            style="background: none; border: none; font-size: 16px; cursor: pointer; color: #6b7280; padding: 0; line-height: 1;">×</button>
-        </div>
-        <div id="aiAnswerContent"></div>
+        <button id="clearHistoryBtn" class="ai-qa-btn" style="background: #6c757d; margin-left: 8px;">清空历史</button>
       </div>
     </div>
   </div>
@@ -970,19 +964,19 @@
                   <span class="comment-time">{{ reply.created_time|date:'Y-m-d H:i' }}</span>
                 </div>
                 <div class="comment-text">
-                  <a class="reply-username" href="{% url 'users:user_detail' comment.user.id %}">
-                    @{{ comment.user.profile.nickname|default:comment.user.username }}
+                  <a class="reply-username" href="{% url 'users:user_detail' reply.parent.user.id %}">
+                    @{{ reply.parent.user.profile.nickname|default:reply.parent.user.username }}
                   </a>
                   {{ reply.content|linebreaksbr }}
                 </div>
                 <div class="comment-actions">
-                  <div class="comment-action like-btn {% if reply.id in liked_comment_ids %}active{% endif %}"
-                    data-comment-id="{{ reply.id }}">
+                  <div class="comment-action like-btn {% if reply.id in liked_comment_ids %}
+                  active{% endif %}" data-comment-id="{{ reply.id }}">
                     <i class="bi bi-hand-thumbs-up{% if reply.id in liked_comment_ids %}-fill{% endif %}"></i>
                     <span class="like-text">点赞</span>
                     <span class="like-count">{{ reply.like_count|default:"0" }}</span>
                   </div>
-                  <div class="comment-action" onclick="toggleReplyForm('{{ comment.id }}')">
+                  <div class="comment-action" onclick="toggleReplyForm('{{ reply.id }}')">
                     <i class="bi bi-chat-dots"></i>
                     <span>回复</span>
                   </div>
@@ -993,8 +987,91 @@
                     <span>删除</span>
                   </div>
                 </div>
+                <div class="comment-reply-form" id="reply-form-{{ reply.id }}">
+                  <form method="post" action="{% url 'article:detail' article.id %}">
+                    {% csrf_token %}
+                    <textarea name="content" class="comment-input" style="min-height: 32px;"
+                      placeholder="回复 {{ reply.user.profile.nickname|default:reply.user.username }}"></textarea>
+                    <input type="hidden" name="parent" value="{{ reply.id }}" />
+                    <div class="comment-input-footer">
+                      <button type="submit" class="comment-submit-btn"
+                        style="padding: 4px 12px; font-size: 0.85rem;">发送回复</button>
+                      <button type="button" class="comment-cancel-btn"
+                        onclick="toggleReplyForm('{{ reply.id }}')">取消</button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
+            {% if reply.replies.all %}
+            <div class="comment-replies">
+              {% for sub_reply in reply.replies.all %}
+              <div class="reply-item" id="reply-{{ sub_reply.id }}">
+                <div class="comment-main">
+                  <div class="comment-avatar">
+                    {% if sub_reply.user.profile.avatar %}
+                    <img src="{{ sub_reply.user.profile.avatar.url }}" alt="{{ sub_reply.user.username }}"
+                      loading="lazy" />
+                    {% else %}
+                    <img
+                      src="https://p3-passport.byteimg.com/avatar/aweme_100/avatar-{{ sub_reply.user.id }}~100x100.png"
+                      alt="默认头像" loading="lazy" />
+                    {% endif %}
+                  </div>
+                  <div class="comment-content">
+                    <div class="comment-user-info">
+                      <a class="comment-username" href="{% url 'users:user_detail' sub_reply.user.id %}">
+                        {{ sub_reply.user.profile.nickname|default:sub_reply.user.username }}
+                      </a>
+                      {% if sub_reply.user == article.author %}
+                      <span class="comment-author-tag">作者</span>
+                      {% endif %}
+                      <span class="comment-time">{{ sub_reply.created_time|date:'Y-m-d H:i' }}</span>
+                    </div>
+                    <div class="comment-text">
+                      <a class="reply-username" href="{% url 'users:user_detail' sub_reply.parent.user.id %}">
+                        @{{ sub_reply.parent.user.profile.nickname|default:sub_reply.parent.user.username }}
+                      </a>
+                      {{ sub_reply.content|linebreaksbr }}
+                    </div>
+                    <div class="comment-actions">
+                      <div class="comment-action like-btn {% if sub_reply.id in liked_comment_ids %}
+                      active{% endif %}" data-comment-id="{{ sub_reply.id }}">
+                        <i class="bi bi-hand-thumbs-up{% if sub_reply.id in liked_comment_ids %}-fill{% endif %}"></i>
+                        <span class="like-text">点赞</span>
+                        <span class="like-count">{{ sub_reply.like_count|default:"0" }}</span>
+                      </div>
+                      <div class="comment-action" onclick="toggleReplyForm('{{ sub_reply.id }}')">
+                        <i class="bi bi-chat-dots"></i>
+                        <span>回复</span>
+                      </div>
+                      <div class="comment-action delete-btn"
+                        style="display: {% if user.is_authenticated and user.id == sub_reply.user_id or user.id == article.author_id or user.is_superuser %}flex{% else %}none{% endif %} !important;"
+                        onclick="deleteComment('{{ sub_reply.id }}', 'reply-{{ sub_reply.id }}')">
+                        <i class="bi bi-trash"></i>
+                        <span>删除</span>
+                      </div>
+                    </div>
+                    <div class="comment-reply-form" id="reply-form-{{ sub_reply.id }}">
+                      <form method="post" action="{% url 'article:detail' article.id %}">
+                        {% csrf_token %}
+                        <textarea name="content" class="comment-input" style="min-height: 32px;"
+                          placeholder="回复 {{ sub_reply.user.profile.nickname|default:sub_reply.user.username }}"></textarea>
+                        <input type="hidden" name="parent" value="{{ sub_reply.id }}" />
+                        <div class="comment-input-footer">
+                          <button type="submit" class="comment-submit-btn"
+                            style="padding: 4px 12px; font-size: 0.85rem;">发送回复</button>
+                          <button type="button" class="comment-cancel-btn"
+                            onclick="toggleReplyForm('{{ sub_reply.id }}')">取消</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
           </div>
           {% endfor %}
         </div>
@@ -1301,44 +1378,83 @@
 
   // AI 问答（流式输出）
   (function () {
-    const answerBox = document.getElementById('aiAnswer');
     const articleId = '{{ article.id }}';
-    const storageKey = `ai_article_${articleId}_answer`;
+    const chatHistoryKey = `ai_article_${articleId}_chat_history`;
 
-    const answerContent = document.getElementById('aiAnswerContent');
-    const closeBtn = document.getElementById('closeAiAnswer');
+    const chatHistory = document.getElementById('aiChatHistory');
 
-    // 加载保存的回答
-    function loadSavedAnswer() {
-      const savedAnswer = sessionStorage.getItem(storageKey);
-      if (savedAnswer) {
-        answerContent.innerText = savedAnswer;
-        answerBox.style.display = 'block';
+    // 从sessionStorage加载对话历史
+    function loadChatHistory() {
+      const history = JSON.parse(sessionStorage.getItem(chatHistoryKey) || '[]');
+      renderChatHistory(history);
+      return history;
+    }
+
+    // 保存对话历史到sessionStorage
+    function saveChatHistory(history) {
+      sessionStorage.setItem(chatHistoryKey, JSON.stringify(history));
+    }
+
+    // 渲染对话历史
+    function renderChatHistory(history) {
+      if (chatHistory) {
+        chatHistory.innerHTML = '';
+        history.forEach(item => {
+          // 渲染用户问题
+          const userMessage = document.createElement('div');
+          userMessage.style.cssText = 'display: flex; justify-content: flex-end; margin-bottom: 12px;';
+          userMessage.innerHTML = `
+            <div style="background: #e3f2fd; padding: 12px; border-radius: 12px; max-width: 80%;">
+              <strong style="color: #1976d2;">你：</strong>
+              <p>${item.question}</p>
+            </div>
+          `;
+          chatHistory.appendChild(userMessage);
+
+          // 渲染AI回答
+          const aiMessage = document.createElement('div');
+          aiMessage.style.cssText = 'display: flex; justify-content: flex-start; margin-bottom: 12px;';
+          aiMessage.innerHTML = `
+            <div style="background: #f5f5f5; padding: 12px; border-radius: 12px; max-width: 80%;">
+              <strong style="color: #4caf50;">AI：</strong>
+              <p>${item.answer}</p>
+            </div>
+          `;
+          chatHistory.appendChild(aiMessage);
+        });
+        // 滚动到底部
+        chatHistory.scrollTop = chatHistory.scrollHeight;
       }
     }
 
-    // 保存回答到sessionStorage
-    function saveAnswer(answer) {
-      sessionStorage.setItem(storageKey, answer);
+    // 添加新的对话到历史
+    function addToChatHistory(question, answer) {
+      const history = loadChatHistory();
+      history.push({ question, answer });
+      // 只保留最近10轮对话
+      if (history.length > 10) {
+        history.shift();
+      }
+      saveChatHistory(history);
+      renderChatHistory(history);
     }
 
-    // 清除保存的回答
-    function clearSavedAnswer() {
-      sessionStorage.removeItem(storageKey);
+    // 清空对话历史
+    function clearChatHistory() {
+      sessionStorage.removeItem(chatHistoryKey);
+      if (chatHistory) {
+        chatHistory.innerHTML = '';
+      }
     }
 
-    // 关闭回答框
-    function closeAnswer() {
-      answerBox.style.display = 'none';
-      answerContent.innerText = '';
-      clearSavedAnswer();
+    // 页面加载时加载对话历史
+    loadChatHistory();
+
+    // 清空历史按钮点击事件
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    if (clearHistoryBtn) {
+      clearHistoryBtn.addEventListener('click', clearChatHistory);
     }
-
-    // 页面加载时加载保存的回答
-    loadSavedAnswer();
-
-    // 关闭按钮点击事件
-    closeBtn.addEventListener('click', closeAnswer);
 
     document.getElementById('aiAskBtn').addEventListener('click', async () => {
       const btn = document.getElementById('aiAskBtn');
@@ -1349,11 +1465,12 @@
 
       btn.disabled = true;
       btn.textContent = 'AI 输出中...';
-      answerContent.innerText = '';
-      answerBox.style.display = 'block';
 
-      questionEl.value = '';
-      clearSavedAnswer();
+      // 先添加用户问题到对话历史
+      const tempHistory = loadChatHistory();
+      tempHistory.push({ question, answer: 'AI 正在思考...' });
+      saveChatHistory(tempHistory);
+      renderChatHistory(tempHistory);
 
       try {
         const res = await fetch("{% url 'article:article_ai_qa' article.id %}?stream=1", {
@@ -1369,16 +1486,23 @@
         if (!res.ok && contentType.includes('application/json')) {
           const data = await res.json();
           const errorMsg = data.msg || data.error || '请求失败';
-          answerContent.innerText = errorMsg;
-          saveAnswer(errorMsg);
+          // 更新对话历史，替换临时消息
+          const history = loadChatHistory();
+          history.pop(); // 移除临时消息
+          history.push({ question, answer: errorMsg });
+          saveChatHistory(history);
+          renderChatHistory(history);
           return;
         }
 
         if (!res.body) {
           const text = await res.text();
-          answerContent.innerText = text;
-          saveAnswer(text);
-          questionEl.value = '';
+          // 更新对话历史，替换临时消息
+          const history = loadChatHistory();
+          history.pop(); // 移除临时消息
+          history.push({ question, answer: text });
+          saveChatHistory(history);
+          renderChatHistory(history);
           return;
         }
 
@@ -1390,15 +1514,28 @@
           const { done, value } = await reader.read();
           if (done) break;
           out += decoder.decode(value, { stream: true });
-          answerContent.innerText = out;
+          // 实时更新对话历史中的AI回答
+          const history = loadChatHistory();
+          history.pop(); // 移除临时消息
+          history.push({ question, answer: out });
+          saveChatHistory(history);
+          renderChatHistory(history);
         }
 
-        saveAnswer(out);
-        questionEl.value = '';
+        // 最终更新对话历史
+        const history = loadChatHistory();
+        history.pop(); // 移除临时消息
+        history.push({ question, answer: out });
+        saveChatHistory(history);
+        renderChatHistory(history);
       } catch (e) {
         const errorMsg = '网络异常，请重试';
-        answerContent.innerText = errorMsg;
-        saveAnswer(errorMsg);
+        // 更新对话历史，替换临时消息
+        const history = loadChatHistory();
+        history.pop(); // 移除临时消息
+        history.push({ question, answer: errorMsg });
+        saveChatHistory(history);
+        renderChatHistory(history);
       } finally {
         btn.disabled = false;
         btn.textContent = '发送问题';

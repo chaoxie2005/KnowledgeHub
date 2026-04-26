@@ -215,16 +215,20 @@
     const btnText = document.getElementById('btnText');
     const loadingSpinner = document.getElementById('loadingSpinner');
 
+    // 获取用户ID，实现会话隔离
+    const userId = '{{ user.id|default:"anonymous" }}';
+    const chatHistoryKey = `ai_chat_history_${userId}`;
+
     // 从sessionStorage加载对话历史
     function loadChatHistory() {
-      const history = JSON.parse(sessionStorage.getItem('ai_chat_history') || '[]');
+      const history = JSON.parse(sessionStorage.getItem(chatHistoryKey) || '[]');
       renderChatHistory(history);
       return history;
     }
 
     // 保存对话历史到sessionStorage
     function saveChatHistory(history) {
-      sessionStorage.setItem('ai_chat_history', JSON.stringify(history));
+      sessionStorage.setItem(chatHistoryKey, JSON.stringify(history));
     }
 
     // 渲染对话历史
@@ -271,7 +275,7 @@
 
     // 清空对话历史
     function clearChatHistory() {
-      sessionStorage.removeItem('ai_chat_history');
+      sessionStorage.removeItem(chatHistoryKey);
       renderChatHistory([]);
     }
 

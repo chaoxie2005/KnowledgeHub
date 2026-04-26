@@ -17,6 +17,7 @@ router.register(r"comments", CommentViewSet)  # 评论 API
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("__debug__/", include("debug_toolbar.urls")),  # SQL查询分析
     path("", include("core.urls")),
     path("authentication/", include("authentication.urls")),  # 登录模块
     path("article/", include("article.urls")),  # 文章模块

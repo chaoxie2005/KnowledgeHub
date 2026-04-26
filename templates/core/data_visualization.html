@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}数据可视化 - 知文汇{% endblock %}
+
+{% block post %}
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h1 class="card-title text-center mb-4">数据可视化分析</h1>
+
+        <!-- 数据概览 -->
+        <div class="row mb-6">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white text-center p-3">
+                    <h3>文章总数</h3>
+                    <p class="display-4">{{ local_count }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white text-center p-3">
+                    <h3>分类数量</h3>
+                    <p class="display-4">{{ categories|length }}</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white text-center p-3">
+                    <h3>热门文章</h3>
+                    <p class="display-4">10</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 文章分类分布 -->
+            <div class="col-md-6 mb-8">
+                <h3 class="h5 mb-4 font-weight-bold text-center">文章分类分布</h3>
+                <div id="categoryChart" style="width: 100%; height: 300px;"></div>
+            </div>
+
+            <!-- 文章来源分布 -->
+            <div class="col-md-6 mb-8">
+                <h3 class="h5 mb-4 font-weight-bold text-center">文章来源分布</h3>
+                <div id="sourceChart" style="width: 100%; height: 300px;"></div>
+            </div>
+
+            <!-- 文章发布趋势 -->
+            <div class="col-md-6 mb-8">
+                <h3 class="h5 mb-4 font-weight-bold text-center">文章发布趋势</h3>
+                <div id="timeChart" style="width: 100%; height: 300px;"></div>
+            </div>
+
+            <!-- 热门文章阅读量 -->
+            <div class="col-md-6 mb-8">
+                <h3 class="h5 mb-4 font-weight-bold text-center">热门文章阅读量</h3>
+                <div id="hotArticleChart" style="width: 100%; height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ECharts 库 -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<script>
+    function showEmptyState(containerId, message) {
+        const container = document.getElementById(containerId);
+        if (container) {
+            container.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-inbox" style="font-size: 3rem;"></i><p class="mt-3">' + message + '</p></div>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const categoryData = {{ category_data|safe }};
+    const sourceData = {{ source_data|safe }};
+    const timeData = {{ time_data|safe }};
+    const hotArticleData = {{ hot_article_data|safe }};
+
+    if (categoryData && categoryData.length > 0) {
+        const categoryChart = echarts.init(document.getElementById('categoryChart'));
+        const categoryOption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: categoryData.map(item => item.name),
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            series: [{
+                name: '文章数量',
+                type: 'pie',
+                radius: '55%',
+                center: ['60%', '55%'],
+                data: categoryData.map(item => ({ name: item.name, value: item.article_count })),
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 5,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.2)'
+                    }
+                }
+            }]
+        };
+        categoryChart.setOption(categoryOption);
+    } else {
+        showEmptyState('categoryChart', '暂无分类数据');
+    }
+
+    if (sourceData && sourceData.length > 0) {
+        const sourceChart = echarts.init(document.getElementById('sourceChart'));
+        const sourceOption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: sourceData.map(item => item.name),
+                textStyle: {
+                    fontSize: 12
+                }
+            },
+            series: [{
+                name: '文章数量',
+                type: 'pie',
+                radius: ['40%', '65%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 8,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '16',
+                        fontWeight: 'bold'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: sourceData
+            }]
+        };
+        sourceChart.setOption(sourceOption);
+    } else {
+        showEmptyState('sourceChart', '暂无来源数据');
+    }
+
+    if (timeData && timeData.length > 0) {
+        const timeChart = echarts.init(document.getElementById('timeChart'));
+        const xAxisData = timeData.map(item => `${item.year}-${item.month.toString().padStart(2, '0')}`);
+        const seriesData = timeData.map(item => item.article_count);
+
+        const timeOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: xAxisData,
+                axisLabel: {
+                    rotate: 45,
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '文章数量',
+                nameTextStyle: {
+                    fontSize: 12
+                }
+            },
+            series: [{
+                data: seriesData,
+                type: 'line',
+                smooth: true,
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(128, 182, 245, 0.6)' },
+                        { offset: 1, color: 'rgba(128, 182, 245, 0.1)' }
+                    ])
+                },
+                itemStyle: {
+                    color: '#409EFF'
+                }
+            }]
+        };
+        timeChart.setOption(timeOption);
+    } else {
+        showEmptyState('timeChart', '暂无发布趋势数据');
+    }
+
+    if (hotArticleData && hotArticleData.length > 0) {
+        const hotArticleChart = echarts.init(document.getElementById('hotArticleChart'));
+        const hotXAxisData = hotArticleData.map(item => item.title);
+        const hotSeriesData = hotArticleData.map(item => item.read_count);
+
+        const hotArticleOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                formatter: function (params) {
+                    if (params && params.length > 0) {
+                        return '<div style="max-width: 300px; word-wrap: break-word;">' + params[0].name + '<br/>阅读量: ' + params[0].value + '</div>';
+                    }
+                    return '';
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: hotXAxisData,
+                axisLabel: {
+                    rotate: 45,
+                    interval: 0,
+                    fontSize: 11,
+                    formatter: function (value) {
+                        if (value.length > 8) {
+                            return value.substring(0, 8) + '...';
+                        }
+                        return value;
+                    }
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '阅读量',
+                nameTextStyle: {
+                    fontSize: 12
+                }
+            },
+            series: [{
+                data: hotSeriesData,
+                type: 'bar',
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#83bff6' },
+                        { offset: 0.5, color: '#188df0' },
+                        { offset: 1, color: '#188df0' }
+                    ])
+                }
+            }]
+        };
+        hotArticleChart.setOption(hotArticleOption);
+    } else {
+        showEmptyState('hotArticleChart', '暂无热门文章数据');
+    }
+
+    window.addEventListener('resize', function () {
+        const charts = [
+            echarts.getInstanceByDom(document.getElementById('categoryChart')),
+            echarts.getInstanceByDom(document.getElementById('sourceChart')),
+            echarts.getInstanceByDom(document.getElementById('timeChart')),
+            echarts.getInstanceByDom(document.getElementById('hotArticleChart'))
+        ];
+        charts.forEach(chart => {
+            if (chart) chart.resize();
+        });
+    });
+    });
+</script>
+{% endblock post %}

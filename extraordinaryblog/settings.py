@@ -15,6 +15,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
+# 调试工具栏配置
+INTERNAL_IPS = ['127.0.0.1', '114.132.246.217']  # 你的访问IP
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -22,6 +25,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "debug_toolbar",  # SQL查询分析
     "core",  # 博客核心 全局配置
     "authentication",  # 用户认证模块
     "article",  # 文章模块
@@ -32,6 +36,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  # SQL查询分析
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

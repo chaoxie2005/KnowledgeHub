@@ -356,3 +356,72 @@ def ai_qa(request):
     }
     
     return render(request, "core/ai_qa.html", context)
+
+
+def data_visualization(request):
+    """数据可视化页面"""
+    # 侧边栏数据
+    last_articles = Article.objects.filter(status="published").order_by(
+        "-published_time"
+    )[:5]  # 最新文章列表页
+
+    hot_articles = Article.objects.filter(status="published").order_by("-read_count")[:5]
+    hot_list = hot_articles[:5]
+
+    categories = Category.objects.all()
+
+    # 文章归档
+    archive_data = (
+        Article.objects.filter(status="published")
+        .annotate(
+            year=ExtractYear("published_time"), month=ExtractMonth("published_time")
+        )
+        .values("year", "month")
+        .annotate(article_count=Count("id"))
+        .order_by("-year", "-month")
+    )
+    
+    # 准备可视化数据
+    # 1. 文章分类分布
+    category_data = list(Category.objects.annotate(article_count=Count('article')).values('name', 'article_count'))
+    
+    # 2. 文章发布时间趋势
+    time_data = list(
+        Article.objects.filter(status="published")
+        .annotate(year=ExtractYear("published_time"), month=ExtractMonth("published_time"))
+        .values("year", "month")
+        .annotate(article_count=Count("id"))
+        .order_by("year", "month")
+    )
+    
+    # 3. 文章来源分布
+    local_count = Article.objects.filter(status="published").count()
+    juejin_count = JuejinHotArticle.objects.count()
+    csdn_count = CSDNArticle.objects.count()
+    source_data = [
+        {"name": "本地文章", "value": local_count},
+        {"name": "掘金", "value": juejin_count},
+        {"name": "CSDN", "value": csdn_count}
+    ]
+    
+    # 4. 热门文章阅读量
+    hot_article_data = list(
+        Article.objects.filter(status="published")
+        .order_by("-read_count")[:10]
+        .values("title", "read_count")
+    )
+    
+    # 上下文数据
+    context = {
+        "last_articles": last_articles,  # 最新文章列表页
+        "hot_list": hot_list,  # 热门文章列表页
+        "categories": categories,
+        "archive_data": archive_data,
+        "category_data": category_data,
+        "time_data": time_data,
+        "source_data": source_data,
+        "hot_article_data": hot_article_data,
+        "local_count": local_count,  # 文章总数
+    }
+    
+    return render(request, "core/data_visualization.html", context)

@@ -575,7 +575,10 @@ def article_rag_qa_stream(article_content: str, question: str, request=None):
 
         from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
         content = (article_content or "")[:6000]
-        history = request.session.get('chat_history', []) if request and hasattr(request, 'session') else []
+        # 获取用户ID，实现会话隔离
+        user_id = str(request.user.id) if request and hasattr(request, 'user') and hasattr(request.user, 'id') else 'anonymous'
+        history_key = f'chat_history_{user_id}'
+        history = request.session.get(history_key, []) if request and hasattr(request, 'session') else []
 
         # 检查是否是总结文章的请求
         import re
@@ -657,7 +660,7 @@ def article_rag_qa_stream(article_content: str, question: str, request=None):
             history.append(("assistant", "".join(full_answer)))
             if len(history) > 10:
                 history = history[-10:]
-            request.session['chat_history'] = history
+            request.session[history_key] = history
             request.session.modified = True
 
     except Exception as e:
@@ -692,7 +695,10 @@ def global_rag_qa_stream(question: str, request=None):
             return
 
         from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-        history = request.session.get('chat_history', []) if request and hasattr(request, 'session') else []
+        # 获取用户ID，实现会话隔离
+        user_id = str(request.user.id) if request and hasattr(request, 'user') and hasattr(request.user, 'id') else 'anonymous'
+        history_key = f'chat_history_{user_id}'
+        history = request.session.get(history_key, []) if request and hasattr(request, 'session') else []
 
         # 系统提示词：定义AI的角色和行为规则
         system_text = f"""
@@ -995,7 +1001,7 @@ def global_rag_qa_stream(question: str, request=None):
             history.append(("assistant", "".join(full_answer)))
             if len(history) > 10:
                 history = history[-10:]
-            request.session['chat_history'] = history
+            request.session[history_key] = history
             request.session.modified = True
 
     except Exception as e:

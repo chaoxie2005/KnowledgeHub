@@ -1379,7 +1379,8 @@
   // AI 问答（流式输出）
   (function () {
     const articleId = '{{ article.id }}';
-    const chatHistoryKey = `ai_article_${articleId}_chat_history`;
+    const userId = '{{ user.id|default:"anonymous" }}';
+    const chatHistoryKey = `ai_article_${articleId}_${userId}_chat_history`;
 
     const chatHistory = document.getElementById('aiChatHistory');
 

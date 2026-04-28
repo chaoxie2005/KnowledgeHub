@@ -303,3 +303,108 @@ class CSDNArticle(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.csdn_article_id})"
+
+
+class QuizQuestion(models.Model):
+    """文章测验题（每篇文章可生成多道题）"""
+
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name="quiz_questions", verbose_name="关联文章"
+    )
+    question = models.TextField(verbose_name="题目")
+    option_a = models.CharField(max_length=255, verbose_name="选项A")
+    option_b = models.CharField(max_length=255, verbose_name="选项B")
+    option_c = models.CharField(max_length=255, verbose_name="选项C")
+    option_d = models.CharField(max_length=255, verbose_name="选项D")
+    correct_option = models.CharField(max_length=1, verbose_name="正确答案")
+    explanation = models.TextField(blank=True, default="", verbose_name="解析")
+    knowledge_point = models.CharField(max_length=120, blank=True, default="", verbose_name="知识点")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+
+    class Meta:
+        verbose_name = "文章测验题"
+        verbose_name_plural = "文章测验题"
+        ordering = ["-created_time"]
+        indexes = [
+            models.Index(fields=["article", "-created_time"], name="idx_quiz_article_time"),
+        ]
+
+    def __str__(self):
+        return f"{self.article.title[:20]} - {self.question[:20]}"
+
+
+class QuizAttempt(models.Model):
+    """用户作答记录"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="quiz_attempts", verbose_name="用户")
+    question = models.ForeignKey(
+        QuizQuestion, on_delete=models.CASCADE, related_name="attempts", verbose_name="题目"
+    )
+    selected_option = models.CharField(max_length=1, verbose_name="用户答案")
+    is_correct = models.BooleanField(default=False, verbose_name="是否正确")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="作答时间")
+
+    class Meta:
+        verbose_name = "作答记录"
+        verbose_name_plural = "作答记录"
+        ordering = ["-created_time"]
+        indexes = [
+            models.Index(fields=["user", "-created_time"], name="idx_attempt_user_time"),
+            models.Index(fields=["question", "user"], name="idx_attempt_q_user"),
+        ]
+
+
+class WrongQuestionRecord(models.Model):
+    """错题本记录"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wrong_questions", verbose_name="用户")
+    question = models.ForeignKey(
+        QuizQuestion, on_delete=models.CASCADE, related_name="wrong_records", verbose_name="错题"
+    )
+    selected_option = models.CharField(max_length=1, verbose_name="错误答案")
+    correct_option = models.CharField(max_length=1, verbose_name="正确答案")
+    knowledge_point = models.CharField(max_length=120, blank=True, default="", verbose_name="知识点")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="记录时间")
+    resolved = models.BooleanField(default=False, verbose_name="是否已掌握")
+
+    class Meta:
+        verbose_name = "错题本"
+        verbose_name_plural = "错题本"
+        ordering = ["-created_time"]
+        indexes = [
+            models.Index(fields=["user", "resolved", "-created_time"], name="idx_wrong_user_res_time"),
+        ]
+
+
+class StudyPlan(models.Model):
+    """学习计划（当前支持7天计划）"""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="study_plans", verbose_name="用户")
+    title = models.CharField(max_length=120, default="7天学习计划", verbose_name="计划名称")
+    total_days = models.PositiveIntegerField(default=7, verbose_name="总天数")
+    start_date = models.DateField(verbose_name="开始日期")
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+
+    class Meta:
+        verbose_name = "学习计划"
+        verbose_name_plural = "学习计划"
+        ordering = ["-created_time"]
+
+
+class StudyPlanItem(models.Model):
+    """学习计划的每日任务"""
+
+    plan = models.ForeignKey(StudyPlan, on_delete=models.CASCADE, related_name="items", verbose_name="学习计划")
+    day_index = models.PositiveIntegerField(verbose_name="第几天")
+    article = models.ForeignKey(
+        Article, on_delete=models.SET_NULL, null=True, blank=True, related_name="study_plan_items", verbose_name="推荐文章"
+    )
+    target_minutes = models.PositiveIntegerField(default=20, verbose_name="目标学习分钟")
+    is_checked_in = models.BooleanField(default=False, verbose_name="是否已打卡")
+    checked_in_at = models.DateTimeField(null=True, blank=True, verbose_name="打卡时间")
+
+    class Meta:
+        verbose_name = "学习计划任务"
+        verbose_name_plural = "学习计划任务"
+        ordering = ["day_index"]
+        unique_together = [["plan", "day_index"]]

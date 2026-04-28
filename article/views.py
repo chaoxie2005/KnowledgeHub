@@ -1,8 +1,24 @@
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Article, Category, Tag, Comment, CommentLike, JuejinHotArticle, CSDNArticle
+
+logger = logging.getLogger(__name__)
+from .models import (
+    Article,
+    Category,
+    Tag,
+    Comment,
+    CommentLike,
+    JuejinHotArticle,
+    CSDNArticle,
+    QuizQuestion,
+    QuizAttempt,
+    WrongQuestionRecord,
+    StudyPlan,
+    StudyPlanItem,
+)
 from .forms import CommentForm
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage, EmptyPage
-from django.db.models import Q, F
+from django.db.models import Q, F, Count
 from django.utils.text import gettext_lazy as _
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -13,21 +29,30 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import ArticleSerializer, CategorySerializer, CommentSerializer
 import os
 import json
+import concurrent.futures
 from django.http import JsonResponse, StreamingHttpResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import markdown
 from django.views.decorators.http import require_POST
 from .crawl_juejin import crawl_and_save_juejin_hot
-from .ai_utils import optimize_article_title, generate_article_summary
+from .ai_utils import optimize_article_title, generate_article_summary, _get_llm as ai_utils_get_llm
 import time
 import sys
 import random
+from datetime import timedelta
 from django.core.cache import cache
 from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Prefetch
-from utils.rag_chain import simple_rag_qa, article_rag_qa_stream, global_rag_qa_stream, article_rag_qa_stream_react, global_rag_qa_stream_react
+from utils.rag_chain import (
+    simple_rag_qa,
+    article_rag_qa_stream,
+    global_rag_qa_stream,
+    article_rag_qa_stream_react,
+    global_rag_qa_stream_react,
+    _get_llm as rag_get_llm,
+)
 
 
 def time_it(func):
@@ -634,6 +659,32 @@ def publish_article(request):
 @time_it
 def juejin_hot(request):
     """稀土掘金热榜（前端展示与缓存逻辑）"""
+    def ensure_juejin_summaries(article_list):
+        """保障掘金文章都能展示摘要（优先已有摘要，其次AI生成，最后标题兜底）"""
+        for art in article_list:
+            current_summary = (art.summary or "").strip() or (art.ai_summary or "").strip()
+            if current_summary:
+                continue
+            try:
+                base_text = (art.title or "").strip()
+                if not base_text:
+                    base_text = "该文章暂无可用摘要内容"
+                generated = generate_article_summary(base_text)
+                generated = (generated or "").strip()
+                if not generated or generated == "暂无摘要":
+                    generated = base_text
+                art.summary = generated[:500]
+                art.ai_summary = generated
+                art.save(update_fields=["summary", "ai_summary"])
+            except Exception:
+                fallback = (art.title or "暂无摘要").strip()
+                art.summary = fallback[:500]
+                art.ai_summary = fallback
+                try:
+                    art.save(update_fields=["summary", "ai_summary"])
+                except Exception:
+                    pass
+
     page = request.GET.get("page", 1)
     keyword = request.GET.get("keyword", "").strip()
     try:
@@ -672,6 +723,7 @@ def juejin_hot(request):
             # 使用虚拟列表模拟分页器
             paginator = Paginator(range(total_count), 5)
             articles = paginator.page(page)
+            ensure_juejin_summaries(articles_list)
             articles.object_list = articles_list
         except Exception as e:
             print(f"处理缓存数据异常: {e}", flush=True)
@@ -690,6 +742,7 @@ def juejin_hot(request):
             articles = paginator.page(page)
         except (PageNotAnInteger, EmptyPage):
             articles = paginator.page(1)
+        ensure_juejin_summaries(articles.object_list)
 
         # 写入缓存（仅存 ID 列表）
         try:
@@ -1229,6 +1282,25 @@ def global_ai_qa(request):
         question = request.POST.get("question", "").strip()
         if not question:
             return JsonResponse({"code": 400, "msg": "请输入问题"})
+        history_raw = request.POST.get("history", "").strip()
+        parsed_history = None
+        if history_raw:
+            try:
+                history_data = json.loads(history_raw)
+                if isinstance(history_data, list):
+                    normalized = []
+                    for item in history_data[-10:]:
+                        if not isinstance(item, dict):
+                            continue
+                        q = (item.get("question") or "").strip()
+                        a = (item.get("answer") or "").strip()
+                        if q:
+                            normalized.append(("human", q))
+                        if a:
+                            normalized.append(("assistant", a))
+                    parsed_history = normalized
+            except Exception:
+                parsed_history = None
 
         # 检查是否使用ReAct模式
         use_react = request.GET.get("react") == "1"
@@ -1242,7 +1314,7 @@ def global_ai_qa(request):
                 )
             else:
                 response = StreamingHttpResponse(
-                    global_rag_qa_stream(question, request),
+                    global_rag_qa_stream(question, request, history_override=parsed_history),
                     content_type="text/plain; charset=utf-8",
                 )
             response["Cache-Control"] = "no-cache"
@@ -1262,6 +1334,17 @@ def global_ai_qa(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"code": 500, "msg": f"服务异常：{str(e)}"})
+
+
+@require_POST
+def clear_ai_history(request):
+    """清空服务端会话历史，确保新对话生效"""
+    user_id = str(request.user.id) if hasattr(request, "user") and hasattr(request.user, "id") else "anonymous"
+    history_key = f"chat_history_{user_id}"
+    if hasattr(request, "session"):
+        request.session[history_key] = []
+        request.session.modified = True
+    return JsonResponse({"code": 200, "msg": "会话历史已清空"})
     
 
 @require_POST
@@ -1481,3 +1564,439 @@ def download_PDF(request, article_id):
 def comment_management(request):
     """评论管理"""
     return render(request, 'article/comment_management.html')
+
+
+def _fallback_quiz_questions(article):
+    """当LLM不可用时，使用固定模板生成题目，保证功能可用"""
+    base = article.summary or article.content[:400]
+    short_title = article.title[:30]
+    return [
+        {
+            "question": f"《{short_title}》最核心解决的问题是什么？",
+            "options": {
+                "A": "提升前端页面动画表现",
+                "B": "围绕文章主题完成技术问题分析与实现",
+                "C": "只讨论数据库表结构设计",
+                "D": "仅介绍团队管理经验",
+            },
+            "answer": "B",
+            "explanation": "文章的核心通常是围绕主题问题提出方案并给出实现路径。",
+            "knowledge_point": "主题理解",
+        },
+        {
+            "question": "学习这篇文章时，最推荐的方式是什么？",
+            "options": {
+                "A": "只看标题，不看正文",
+                "B": "先看摘要，再结合正文和问答复盘",
+                "C": "只收藏，不实践",
+                "D": "只看评论区",
+            },
+            "answer": "B",
+            "explanation": "先建立框架再深入细节，有助于提高理解效率。",
+            "knowledge_point": "学习方法",
+        },
+        {
+            "question": f"以下哪项最可能属于《{short_title}》的关键知识点？",
+            "options": {
+                "A": "随机娱乐资讯",
+                "B": "与主题相关的技术实现细节",
+                "C": "纯文学赏析",
+                "D": "体育赛事总结",
+            },
+            "answer": "B",
+            "explanation": "技术文章的关键知识点通常是与主题直接相关的实现细节。",
+            "knowledge_point": "关键知识点识别",
+        },
+        {
+            "question": "如果你要将本文内容用于项目实践，第一步最合理的是？",
+            "options": {
+                "A": "提炼目标场景与输入输出",
+                "B": "直接上线到生产环境",
+                "C": "忽略边界条件",
+                "D": "删除原有代码后再说",
+            },
+            "answer": "A",
+            "explanation": "先明确场景和目标，再进行实现更稳妥。",
+            "knowledge_point": "工程实践",
+        },
+        {
+            "question": "关于本文学习复盘，以下做法最佳的是？",
+            "options": {
+                "A": "不做记录",
+                "B": "记录关键结论、错题和下一步行动",
+                "C": "只截图保存",
+                "D": "只记住术语",
+            },
+            "answer": "B",
+            "explanation": "复盘应覆盖结论、薄弱点和行动计划，形成学习闭环。",
+            "knowledge_point": "学习复盘",
+        },
+    ]
+
+
+def _generate_quiz_by_llm(article):
+    try:
+        # 优先复用问答链路使用的同一LLM配置，避免“问答可用但出题不可用”
+        llm, error = rag_get_llm()
+        if error:
+            logger.warning("【出题LLM初始化失败】%s", error)
+            return None
+
+        try:
+            from langchain_core.prompts import ChatPromptTemplate
+        except ModuleNotFoundError as e:
+            logger.warning("【出题LLM依赖缺失】%s", e)
+            return None
+
+        prompt = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                "你是一位出题老师。请基于文章内容生成5道单选题，覆盖核心概念、实现细节和实践要点。"
+                "必须输出合法JSON数组，每个元素格式为："
+                "{{\"question\":\"...\",\"options\":{{\"A\":\"...\",\"B\":\"...\",\"C\":\"...\",\"D\":\"...\"}},"
+                "\"answer\":\"A|B|C|D\",\"explanation\":\"...\",\"knowledge_point\":\"...\"}}。"
+                "不要输出除JSON以外的任何文字。",
+            ),
+            ("human", "文章标题：{title}\n文章内容：{content}"),
+        ])
+        chain = prompt | llm
+        
+        # 由于LLM配置为流式输出模式，需要使用stream()方法收集完整响应
+        # 不能使用invoke()，因为流式模式下invoke()返回的result.content可能为空
+        text = ""
+        for chunk in chain.stream({"title": article.title, "content": article.content[:4000]}):
+            # 兼容不同类型的chunk返回值（字符串或带content属性的对象）
+            chunk_text = chunk if isinstance(chunk, str) else getattr(chunk, "content", "")
+            text += chunk_text
+        
+        text = text.strip()
+        if not text:
+            logger.warning("【出题LLM返回为空】流式收集结果为空")
+            return None
+            
+        # 兼容模型输出 ```json ... ``` 包裹格式
+        if text.startswith("```"):
+            text = text.replace("```json", "").replace("```", "").strip()
+        start = text.find("[")
+        end = text.rfind("]")
+        if start == -1 or end == -1:
+            logger.warning("【出题LLM返回格式异常】未找到JSON数组，原始输出前200字符：%s", text[:200])
+            return None
+        payload = text[start : end + 1]
+        parsed = json.loads(payload)
+        if not isinstance(parsed, list) or len(parsed) < 5:
+            logger.warning("【出题LLM返回题目不足】期望5题，实际%d题", len(parsed) if isinstance(parsed, list) else 0)
+            return None
+        return parsed[:5]
+    except Exception as e:
+        logger.exception("【出题LLM异常】%s", e)
+        return None
+
+
+@login_required(login_url="authentication:login")
+@require_POST
+def generate_article_quiz(request, article_id):
+    """功能A：为文章生成5道测验题"""
+    article = get_object_or_404(Article, id=article_id, status="published")
+    force_regen = request.POST.get("force") == "1"
+    logger.info("【出题请求】文章ID: %d, 文章标题: %s, 强制重新生成: %s", article_id, article.title, force_regen)
+
+    if force_regen:
+        QuizQuestion.objects.filter(article=article).delete()
+        logger.info("【出题请求】已删除文章 %d 的现有题目", article_id)
+
+    existing = list(QuizQuestion.objects.filter(article=article).order_by("-created_time")[:5])
+    if len(existing) >= 5 and not force_regen:
+        logger.info("【出题请求】使用缓存题目，数量: %d", len(existing))
+        data = [
+            {
+                "id": q.id,
+                "question": q.question,
+                "options": {"A": q.option_a, "B": q.option_b, "C": q.option_c, "D": q.option_d},
+                "knowledge_point": q.knowledge_point,
+            }
+            for q in existing
+        ]
+        return JsonResponse({"code": 200, "questions": data, "msg": "已返回现有题目"})
+
+    generated = None
+    try:
+        # 避免第三方LLM偶发阻塞导致前端一直等待，这里设置超时自动降级
+        # 增加超时时间到60秒，因为流式输出可能较慢
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(_generate_quiz_by_llm, article)
+            generated = future.result(timeout=60)
+    except concurrent.futures.TimeoutError:
+        logger.warning("【出题请求】LLM调用超时（超过60秒），使用降级模板")
+        generated = None
+    except Exception as e:
+        logger.warning("【出题请求】LLM调用异常: %s", str(e))
+        generated = None
+
+    if generated:
+        logger.info("【出题请求】LLM成功生成 %d 道题目", len(generated))
+    else:
+        logger.warning("【出题请求】LLM生成失败，使用降级模板")
+        
+    generated = generated or _fallback_quiz_questions(article)
+    created_questions = []
+    for item in generated[:5]:
+        options = item.get("options", {})
+        answer = (item.get("answer") or "A").upper()
+        if answer not in ("A", "B", "C", "D"):
+            answer = "A"
+        q = QuizQuestion.objects.create(
+            article=article,
+            question=item.get("question", "这篇文章最重要的知识点是什么？"),
+            option_a=options.get("A", "选项A"),
+            option_b=options.get("B", "选项B"),
+            option_c=options.get("C", "选项C"),
+            option_d=options.get("D", "选项D"),
+            correct_option=answer,
+            explanation=item.get("explanation", ""),
+            knowledge_point=item.get("knowledge_point", ""),
+        )
+        created_questions.append(
+            {
+                "id": q.id,
+                "question": q.question,
+                "options": {"A": q.option_a, "B": q.option_b, "C": q.option_c, "D": q.option_d},
+                "knowledge_point": q.knowledge_point,
+            }
+        )
+    return JsonResponse({"code": 200, "questions": created_questions, "msg": "题目生成成功"})
+
+
+@login_required(login_url="authentication:login")
+@require_POST
+def submit_quiz_answer(request, question_id):
+    """功能B：提交答案并写入错题本"""
+    question = get_object_or_404(QuizQuestion, id=question_id)
+    selected = (request.POST.get("selected_option", "") or "").upper().strip()
+    if selected not in ("A", "B", "C", "D"):
+        return JsonResponse({"code": 400, "msg": "答案选项无效"})
+
+    is_correct = selected == question.correct_option
+    QuizAttempt.objects.create(
+        user=request.user,
+        question=question,
+        selected_option=selected,
+        is_correct=is_correct,
+    )
+
+    if is_correct:
+        WrongQuestionRecord.objects.filter(user=request.user, question=question, resolved=False).update(resolved=True)
+    else:
+        WrongQuestionRecord.objects.create(
+            user=request.user,
+            question=question,
+            selected_option=selected,
+            correct_option=question.correct_option,
+            knowledge_point=question.knowledge_point,
+        )
+
+    return JsonResponse(
+        {
+            "code": 200,
+            "is_correct": is_correct,
+            "correct_option": question.correct_option,
+            "explanation": question.explanation,
+            "knowledge_point": question.knowledge_point,
+        }
+    )
+
+
+@login_required(login_url="authentication:login")
+def wrong_question_book(request):
+    """功能B：错题本列表（保留历史，支持反复刷题）"""
+    include_resolved = request.GET.get("include_resolved", "1") == "1"
+    base_qs = WrongQuestionRecord.objects.filter(user=request.user).select_related("question", "question__article")
+    if not include_resolved:
+        base_qs = base_qs.filter(resolved=False)
+    else:
+        base_qs = base_qs.filter(resolved=True)
+    records = base_qs.order_by("-created_time")
+
+    data = []
+    grouped = {}
+    for r in records:
+        item = {
+            "record_id": r.id,
+            "article_id": r.question.article_id,
+            "article_title": r.question.article.title,
+            "question_id": r.question.id,
+            "question": r.question.question,
+            "selected_option": r.selected_option,
+            "correct_option": r.correct_option,
+            "knowledge_point": r.knowledge_point or r.question.knowledge_point,
+            "explanation": r.question.explanation,
+            "resolved": r.resolved,
+            "created_time": r.created_time.strftime("%Y-%m-%d %H:%M"),
+            "options": {
+                "A": r.question.option_a,
+                "B": r.question.option_b,
+                "C": r.question.option_c,
+                "D": r.question.option_d,
+            },
+        }
+        data.append(item)
+
+        qid = r.question_id
+        if qid not in grouped:
+            grouped[qid] = {
+                "question_id": qid,
+                "question": r.question.question,
+                "article_title": r.question.article.title,
+                "knowledge_point": r.knowledge_point or r.question.knowledge_point,
+                "correct_option": r.correct_option,
+                "resolved": r.resolved,
+                "attempts": [],
+                "options": {
+                    "A": r.question.option_a,
+                    "B": r.question.option_b,
+                    "C": r.question.option_c,
+                    "D": r.question.option_d,
+                },
+            }
+        grouped[qid]["attempts"].append(
+            {
+                "record_id": r.id,
+                "selected_option": r.selected_option,
+                "resolved": r.resolved,
+                "created_time": r.created_time.strftime("%Y-%m-%d %H:%M"),
+            }
+        )
+        # 只要还有未掌握记录，就标记为未掌握，避免“刷新后看不到”
+        grouped[qid]["resolved"] = grouped[qid]["resolved"] and r.resolved
+
+    return JsonResponse({"code": 200, "records": data, "grouped_records": list(grouped.values())})
+
+
+@login_required(login_url="authentication:login")
+@require_POST
+def create_or_get_study_plan(request):
+    """功能C：创建/获取学习计划（支持7天自动推荐 + 自定义计划）"""
+    today = timezone.localdate()
+    custom_items_raw = request.POST.get("custom_items", "").strip()
+    plan_id = request.POST.get("plan_id", "").strip()
+
+    if custom_items_raw:
+        try:
+            custom_items = json.loads(custom_items_raw)
+            if not isinstance(custom_items, list) or not custom_items:
+                return JsonResponse({"code": 400, "msg": "自定义计划数据格式无效"})
+        except Exception:
+            return JsonResponse({"code": 400, "msg": "自定义计划解析失败"})
+
+        title = (request.POST.get("title", "") or "").strip() or "自定义学习计划"
+        start_date_str = (request.POST.get("start_date", "") or "").strip()
+        start_date = today
+        if start_date_str:
+            try:
+                start_date = timezone.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            except Exception:
+                start_date = today
+
+        plan = StudyPlan.objects.create(
+            user=request.user,
+            title=title,
+            total_days=max(1, len(custom_items)),
+            start_date=start_date,
+        )
+        for idx, item in enumerate(custom_items, start=1):
+            article_id = item.get("article_id")
+            minutes = item.get("target_minutes", 20)
+            article = Article.objects.filter(id=article_id, status="published").first() if article_id else None
+            try:
+                minutes = int(minutes)
+            except Exception:
+                minutes = 20
+            minutes = max(5, min(minutes, 300))
+            StudyPlanItem.objects.create(plan=plan, day_index=idx, article=article, target_minutes=minutes)
+    else:
+        plan = None
+        if plan_id:
+            plan = StudyPlan.objects.filter(id=plan_id, user=request.user).prefetch_related("items__article").first()
+        if not plan:
+            plan = StudyPlan.objects.filter(user=request.user).prefetch_related("items__article").order_by("-created_time").first()
+
+        if not plan:
+            plan = StudyPlan.objects.create(user=request.user, title="7天学习计划", total_days=7, start_date=today)
+            candidates = list(Article.objects.filter(status="published").order_by("-read_count", "-published_time")[:30])
+            if not candidates:
+                return JsonResponse({"code": 400, "msg": "暂无可推荐文章，请先发布内容"})
+            for day in range(1, 8):
+                article = candidates[(day - 1) % len(candidates)]
+                StudyPlanItem.objects.create(plan=plan, day_index=day, article=article, target_minutes=20)
+
+    items = plan.items.select_related("article").order_by("day_index")
+    data = []
+    for item in items:
+        recommend_date = plan.start_date + timedelta(days=item.day_index - 1)
+        data.append(
+            {
+                "item_id": item.id,
+                "day_index": item.day_index,
+                "date": recommend_date.strftime("%Y-%m-%d"),
+                "article_id": item.article_id,
+                "article_title": item.article.title if item.article else "暂无推荐",
+                "target_minutes": item.target_minutes,
+                "is_checked_in": item.is_checked_in,
+            }
+        )
+    checked_count = sum(1 for i in data if i["is_checked_in"])
+    return JsonResponse(
+        {
+            "code": 200,
+            "plan_id": plan.id,
+            "title": plan.title,
+            "total_days": plan.total_days,
+            "start_date": plan.start_date.strftime("%Y-%m-%d"),
+            "progress": f"{checked_count}/{plan.total_days}",
+            "items": data,
+        }
+    )
+
+
+@login_required(login_url="authentication:login")
+@require_POST
+def study_plan_checkin(request, item_id):
+    """功能C：学习计划每日打卡"""
+    item = get_object_or_404(StudyPlanItem, id=item_id, plan__user=request.user)
+    if not item.is_checked_in:
+        item.is_checked_in = True
+        item.checked_in_at = timezone.now()
+        item.save(update_fields=["is_checked_in", "checked_in_at"])
+    return JsonResponse({"code": 200, "msg": "打卡成功", "checked_in": True})
+
+
+@login_required(login_url="authentication:login")
+def learning_dashboard_stats(request):
+    """学习中心统计数据"""
+    total_attempts = QuizAttempt.objects.filter(user=request.user).count()
+    correct_attempts = QuizAttempt.objects.filter(user=request.user, is_correct=True).count()
+    wrong_pending = WrongQuestionRecord.objects.filter(user=request.user, resolved=False).count()
+    knowledge_points = (
+        WrongQuestionRecord.objects.filter(user=request.user, resolved=False)
+        .exclude(knowledge_point="")
+        .values("knowledge_point")
+        .annotate(total=Count("id"))
+        .order_by("-total")[:5]
+    )
+    active_plan = StudyPlan.objects.filter(user=request.user).order_by("-created_time").first()
+    checked_days = 0
+    if active_plan:
+        checked_days = active_plan.items.filter(is_checked_in=True).count()
+    accuracy = round((correct_attempts / total_attempts) * 100, 2) if total_attempts else 0
+    return JsonResponse(
+        {
+            "code": 200,
+            "stats": {
+                "total_attempts": total_attempts,
+                "accuracy": accuracy,
+                "wrong_pending": wrong_pending,
+                "checked_days": checked_days,
+                "top_knowledge_points": list(knowledge_points),
+            },
+        }
+    )

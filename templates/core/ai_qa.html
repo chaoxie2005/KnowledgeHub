@@ -284,7 +284,21 @@
 
     // 清空历史按钮事件
     if (clearHistoryBtn) {
-      clearHistoryBtn.addEventListener('click', clearChatHistory);
+      clearHistoryBtn.addEventListener('click', async () => {
+        clearChatHistory();
+        try {
+          await fetch("{% url 'article:clear_ai_history' %}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: ''
+          });
+        } catch (_) {
+          // 忽略服务端清空失败，至少本地历史已清空
+        }
+      });
     }
 
     // 发送问题事件
@@ -316,7 +330,9 @@
               'Content-Type': 'application/x-www-form-urlencoded',
               'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: 'question=' + encodeURIComponent(question)
+            body:
+              'question=' + encodeURIComponent(question) +
+              '&history=' + encodeURIComponent(JSON.stringify(loadChatHistory()))
           });
           console.log('Response received:', res);
 

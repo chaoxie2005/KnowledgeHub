@@ -1,7 +1,19 @@
 from django.contrib import admin
 from django.template.response import TemplateResponse
 from django.conf import settings
-from .models import Article, Category, Tag, Comment, JuejinHotArticle, CSDNArticle
+from .models import (
+    Article,
+    Category,
+    Tag,
+    Comment,
+    JuejinHotArticle,
+    CSDNArticle,
+    QuizQuestion,
+    QuizAttempt,
+    WrongQuestionRecord,
+    StudyPlan,
+    StudyPlanItem,
+)
 from .ai_utils import optimize_article_title
 
 @admin.register(Article)
@@ -56,3 +68,8 @@ class CSDNArticleAdmin(admin.ModelAdmin):
 admin.site.register(Category)
 admin.site.register(Tag)
 admin.site.register(Comment)
+admin.site.register(QuizQuestion)
+admin.site.register(QuizAttempt)
+admin.site.register(WrongQuestionRecord)
+admin.site.register(StudyPlan)
+admin.site.register(StudyPlanItem)

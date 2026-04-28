@@ -1549,13 +1549,13 @@
   <div class="nav d-flex justify-content-between">
     <!-- 固定入口 -->
     <a class="{% if request.path == '/' %}active{% endif %}" href="/">
-      <span>🏠</span> 首页
+      <span></span> 首页
     </a>
     <a class="{% if 'juejin_hot' in request.path %}active{% endif %}" href="{% url 'article:juejin_hot' %}">
-      <span>🔥</span> 掘金快讯
+      <span></span> 掘金快讯
     </a>
     <a class="{% if 'csdn_hot' in request.path %}active{% endif %}" href="{% url 'article:csdn_hot' %}">
-      <span>📱</span> CSDN快讯
+      <span></span> CSDN快讯
     </a>
 
     {% if categories %}
@@ -1563,7 +1563,7 @@
       <button class="dropdown-toggle" type="button" id="dropdownMenuButton1" data-toggle="dropdown" aria-haspopup="true"
         aria-expanded="false"
         style="background: none; border: none; color: #333333; font-size: 15px; font-weight: 600; padding: 12px 28px; border-radius: 16px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-        <span>📂</span> 更多
+        <span></span> 更多
       </button>
       <div class="dropdown-menu" aria-labelledby="dropdownMenuButton1"
         style="border-radius: 16px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15); border: 1px solid rgba(99, 102, 241, 0.1); padding: 12px; margin-top: 12px; background: white; z-index: 1000; max-height: 400px; overflow-y: auto; min-width: 180px;">
@@ -1580,10 +1580,13 @@
     {% endif %}
 
     <a class="{% if 'ai-qa' in request.path %}active{% endif %}" href="{% url 'core:ai_qa' %}">
-      <span>🤖</span> AI问答
+      <span></span> AI问答
+    </a>
+    <a class="{% if 'study-center' in request.path %}active{% endif %}" href="{% url 'core:study_center' %}">
+      <span></span> 学习中心
     </a>
     <a class="{% if 'data-visualization' in request.path %}active{% endif %}" href="{% url 'core:data_visualization' %}">
-      <span>📊</span> 数据可视化
+      <span></span> 数据可视化
     </a>
   </div>
 </nav>

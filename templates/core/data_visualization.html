@@ -3,55 +3,128 @@
 {% block title %}数据可视化 - 知文汇{% endblock %}
 
 {% block post %}
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h1 class="card-title text-center mb-4">数据可视化分析</h1>
+<style>
+    .viz-wrap {
+        background: #f8fafc;
+        border: 1px solid #eef2ff;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
 
-        <!-- 数据概览 -->
-        <div class="row mb-6">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white text-center p-3">
-                    <h3>文章总数</h3>
-                    <p class="display-4">{{ local_count }}</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white text-center p-3">
-                    <h3>分类数量</h3>
-                    <p class="display-4">{{ categories|length }}</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-info text-white text-center p-3">
-                    <h3>热门文章</h3>
-                    <p class="display-4">10</p>
-                </div>
+    .viz-title {
+        font-size: 2.1rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        color: #1f2937;
+        margin-bottom: 6px;
+    }
+
+    .viz-subtitle {
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 18px 16px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        height: 100%;
+    }
+
+    .stat-card .label {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+        color: #111827;
+        font-weight: 700;
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    .chart-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+        margin-bottom: 18px;
+    }
+
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 4px 6px 8px 6px;
+    }
+
+    .chart-canvas {
+        width: 100%;
+        height: 320px;
+    }
+
+    .dark-chart-text {
+        color: #d1d5db;
+    }
+
+    .dark-chart-bg {
+        background: #2d2d2d;
+    }
+</style>
+
+<div class="viz-wrap container">
+    <h1 class="viz-title text-center">数据可视化分析</h1>
+    <p class="viz-subtitle text-center">内容规模、来源结构与阅读趋势一览</p>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="label">文章总数</div>
+                <div class="value">{{ local_count }}</div>
             </div>
         </div>
-
-        <div class="row">
-            <!-- 文章分类分布 -->
-            <div class="col-md-6 mb-8">
-                <h3 class="h5 mb-4 font-weight-bold text-center">文章分类分布</h3>
-                <div id="categoryChart" style="width: 100%; height: 300px;"></div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="label">分类数量</div>
+                <div class="value">{{ categories|length }}</div>
             </div>
-
-            <!-- 文章来源分布 -->
-            <div class="col-md-6 mb-8">
-                <h3 class="h5 mb-4 font-weight-bold text-center">文章来源分布</h3>
-                <div id="sourceChart" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="label">热门文章统计</div>
+                <div class="value">{{ hot_article_data|length }}</div>
             </div>
+        </div>
+    </div>
 
-            <!-- 文章发布趋势 -->
-            <div class="col-md-6 mb-8">
-                <h3 class="h5 mb-4 font-weight-bold text-center">文章发布趋势</h3>
-                <div id="timeChart" style="width: 100%; height: 300px;"></div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-card">
+                <h3 class="chart-title">文章分类分布</h3>
+                <div id="categoryChart" class="chart-canvas"></div>
             </div>
-
-            <!-- 热门文章阅读量 -->
-            <div class="col-md-6 mb-8">
-                <h3 class="h5 mb-4 font-weight-bold text-center">热门文章阅读量</h3>
-                <div id="hotArticleChart" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <h3 class="chart-title">文章来源分布</h3>
+                <div id="sourceChart" class="chart-canvas"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <h3 class="chart-title">文章发布趋势</h3>
+                <div id="timeChart" class="chart-canvas"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-card">
+                <h3 class="chart-title">热门文章阅读量</h3>
+                <div id="hotArticleChart" class="chart-canvas"></div>
             </div>
         </div>
     </div>
@@ -68,38 +141,73 @@
         }
     }
 
+    function isDarkMode() {
+        return document.body.classList.contains('dark-theme');
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        const categoryData = {{ category_data|safe }};
+    const categoryData = {{ category_data|safe }};
     const sourceData = {{ source_data|safe }};
     const timeData = {{ time_data|safe }};
     const hotArticleData = {{ hot_article_data|safe }};
+    const darkMode = isDarkMode();
+    const chartTextColor = darkMode ? '#d1d5db' : '#374151';
+    const chartBgColor = darkMode ? '#2d2d2d' : '#fff';
 
     if (categoryData && categoryData.length > 0) {
-        const categoryChart = echarts.init(document.getElementById('categoryChart'));
+        const categoryChart = echarts.init(document.getElementById('categoryChart'), darkMode ? 'dark' : 'light');
         const categoryOption = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'item',
-                formatter: '{a} <br/>{b}: {c} ({d}%)'
+                formatter: '{a} <br/>{b}: {c} ({d}%)',
+                backgroundColor: darkMode ? 'rgba(45, 45, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                borderColor: darkMode ? '#4b5563' : '#e5e7eb',
+                textStyle: { color: darkMode ? '#e0e0e0' : '#374151' }
             },
             legend: {
-                orient: 'vertical',
-                left: 'left',
+                orient: 'horizontal',
+                bottom: '3%',
+                left: 'center',
                 data: categoryData.map(item => item.name),
                 textStyle: {
-                    fontSize: 12
+                    fontSize: 9,
+                    color: chartTextColor
+                },
+                itemWidth: 10,
+                itemHeight: 10,
+                itemGap: 8,
+                pageTextStyle: {
+                    color: chartTextColor
+                },
+                pageIconColor: chartTextColor,
+                pageTextStyle: {
+                    color: chartTextColor
                 }
             },
             series: [{
                 name: '文章数量',
                 type: 'pie',
-                radius: '55%',
-                center: ['60%', '55%'],
+                radius: ['30%', '65%'],
+                center: ['50%', '42%'],
                 data: categoryData.map(item => ({ name: item.name, value: item.article_count })),
+                label: {
+                    show: false
+                },
+                labelLine: {
+                    show: false
+                },
                 emphasis: {
                     itemStyle: {
-                        shadowBlur: 5,
+                        shadowBlur: 10,
                         shadowOffsetX: 0,
-                        shadowColor: 'rgba(0, 0, 0, 0.2)'
+                        shadowColor: 'rgba(15, 23, 42, 0.16)'
+                    },
+                    label: {
+                        show: true,
+                        color: chartTextColor,
+                        fontSize: 12,
+                        formatter: '{b}\n{c}篇 ({d}%)'
                     }
                 }
             }]
@@ -110,27 +218,37 @@
     }
 
     if (sourceData && sourceData.length > 0) {
-        const sourceChart = echarts.init(document.getElementById('sourceChart'));
+        const sourceChart = echarts.init(document.getElementById('sourceChart'), darkMode ? 'dark' : 'light');
         const sourceOption = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'item',
-                formatter: '{a} <br/>{b}: {c} ({d}%)'
+                formatter: '{a} <br/>{b}: {c} ({d}%)',
+                backgroundColor: darkMode ? 'rgba(45, 45, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                borderColor: darkMode ? '#4b5563' : '#e5e7eb',
+                textStyle: { color: darkMode ? '#e0e0e0' : '#374151' }
             },
             legend: {
-                orient: 'vertical',
-                left: 'left',
+                orient: 'horizontal',
+                bottom: '3%',
+                left: 'center',
                 data: sourceData.map(item => item.name),
                 textStyle: {
-                    fontSize: 12
-                }
+                    fontSize: 11,
+                    color: chartTextColor
+                },
+                itemWidth: 12,
+                itemHeight: 12,
+                itemGap: 12
             },
             series: [{
                 name: '文章数量',
                 type: 'pie',
-                radius: ['40%', '65%'],
+                radius: ['38%', '70%'],
+                center: ['50%', '45%'],
                 avoidLabelOverlap: false,
                 itemStyle: {
-                    borderRadius: 8,
+                    borderRadius: 6,
                     borderColor: '#fff',
                     borderWidth: 2
                 },
@@ -157,28 +275,44 @@
     }
 
     if (timeData && timeData.length > 0) {
-        const timeChart = echarts.init(document.getElementById('timeChart'));
+        const timeChart = echarts.init(document.getElementById('timeChart'), darkMode ? 'dark' : 'light');
         const xAxisData = timeData.map(item => `${item.year}-${item.month.toString().padStart(2, '0')}`);
         const seriesData = timeData.map(item => item.article_count);
 
         const timeOption = {
+            backgroundColor: 'transparent',
             tooltip: {
-                trigger: 'axis'
+                trigger: 'axis',
+                backgroundColor: darkMode ? 'rgba(45, 45, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                borderColor: darkMode ? '#4b5563' : '#e5e7eb',
+                textStyle: { color: darkMode ? '#e0e0e0' : '#374151' }
             },
+            grid: { left: 65, right: 24, top: 22, bottom: 52 },
             xAxis: {
                 type: 'category',
                 data: xAxisData,
                 axisLabel: {
                     rotate: 45,
-                    fontSize: 12
-                }
+                    fontSize: 11,
+                    color: chartTextColor
+                },
+                axisLine: { lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } },
+                axisTick: { lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } }
             },
             yAxis: {
                 type: 'value',
                 name: '文章数量',
+                nameLocation: 'end',
+                nameGap: 35,
+                nameRotate: 0,
                 nameTextStyle: {
-                    fontSize: 12
-                }
+                    fontSize: 11,
+                    color: chartTextColor
+                },
+                splitLine: { lineStyle: { color: darkMode ? '#374151' : '#eef2f7' } },
+                axisLabel: { color: chartTextColor },
+                axisLine: { show: true, lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } },
+                axisTick: { lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } }
             },
             series: [{
                 data: seriesData,
@@ -186,13 +320,14 @@
                 smooth: true,
                 areaStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'rgba(128, 182, 245, 0.6)' },
-                        { offset: 1, color: 'rgba(128, 182, 245, 0.1)' }
+                        { offset: 0, color: darkMode ? 'rgba(99, 102, 241, 0.5)' : 'rgba(128, 182, 245, 0.6)' },
+                        { offset: 1, color: darkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(128, 182, 245, 0.1)' }
                     ])
                 },
                 itemStyle: {
-                    color: '#409EFF'
-                }
+                    color: darkMode ? '#818cf8' : '#409EFF'
+                },
+                lineStyle: { width: 3 }
             }]
         };
         timeChart.setOption(timeOption);
@@ -201,16 +336,20 @@
     }
 
     if (hotArticleData && hotArticleData.length > 0) {
-        const hotArticleChart = echarts.init(document.getElementById('hotArticleChart'));
+        const hotArticleChart = echarts.init(document.getElementById('hotArticleChart'), darkMode ? 'dark' : 'light');
         const hotXAxisData = hotArticleData.map(item => item.title);
         const hotSeriesData = hotArticleData.map(item => item.read_count);
 
         const hotArticleOption = {
+            backgroundColor: 'transparent',
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {
                     type: 'shadow'
                 },
+                backgroundColor: darkMode ? 'rgba(45, 45, 45, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                borderColor: darkMode ? '#4b5563' : '#e5e7eb',
+                textStyle: { color: darkMode ? '#e0e0e0' : '#374151' },
                 formatter: function (params) {
                     if (params && params.length > 0) {
                         return '<div style="max-width: 300px; word-wrap: break-word;">' + params[0].name + '<br/>阅读量: ' + params[0].value + '</div>';
@@ -218,31 +357,44 @@
                     return '';
                 }
             },
+            grid: { left: 65, right: 24, top: 24, bottom: 68 },
             xAxis: {
                 type: 'category',
                 data: hotXAxisData,
                 axisLabel: {
                     rotate: 45,
                     interval: 0,
-                    fontSize: 11,
+                    fontSize: 10,
+                    color: chartTextColor,
                     formatter: function (value) {
                         if (value.length > 8) {
                             return value.substring(0, 8) + '...';
                         }
                         return value;
                     }
-                }
+                },
+                axisLine: { lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } },
+                axisTick: { lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } }
             },
             yAxis: {
                 type: 'value',
                 name: '阅读量',
+                nameLocation: 'end',
+                nameGap: 35,
+                nameRotate: 0,
                 nameTextStyle: {
-                    fontSize: 12
-                }
+                    fontSize: 11,
+                    color: chartTextColor
+                },
+                splitLine: { lineStyle: { color: darkMode ? '#374151' : '#eef2f7' } },
+                axisLabel: { color: chartTextColor },
+                axisLine: { show: true, lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } },
+                axisTick: { lineStyle: { color: darkMode ? '#4b5563' : '#e5e7eb' } }
             },
             series: [{
                 data: hotSeriesData,
                 type: 'bar',
+                barMaxWidth: 36,
                 itemStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                         { offset: 0, color: '#83bff6' },

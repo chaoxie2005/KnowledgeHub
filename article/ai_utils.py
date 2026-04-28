@@ -37,9 +37,10 @@ def _get_llm():
     except ModuleNotFoundError:
         return None, "请安装：pip install langchain-community langchain-core"
 
-    api_key = os.getenv("QWEN_API_KEY")
+    # 统一使用 DASHSCOPE_API_KEY 环境变量（兼容 QWEN_API_KEY）
+    api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("QWEN_API_KEY")
     if not api_key:
-        return None, "未配置 QWEN_API_KEY"
+        return None, "请配置 DASHSCOPE_API_KEY 或 QWEN_API_KEY 环境变量"
 
     try:
         _LLM = ChatTongyi(

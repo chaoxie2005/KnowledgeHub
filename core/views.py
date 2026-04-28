@@ -425,3 +425,27 @@ def data_visualization(request):
     }
     
     return render(request, "core/data_visualization.html", context)
+
+
+@login_required(login_url="authentication:login")
+def study_center(request):
+    """学习中心（测验、错题本、7天计划）"""
+    last_articles = Article.objects.filter(status="published").order_by("-published_time")[:5]
+    hot_list = Article.objects.filter(status="published").order_by("-read_count")[:5]
+    categories = Category.objects.all()
+    archive_data = (
+        Article.objects.filter(status="published")
+        .annotate(year=ExtractYear("published_time"), month=ExtractMonth("published_time"))
+        .values("year", "month")
+        .annotate(article_count=Count("id"))
+        .order_by("-year", "-month")
+    )
+    published_articles = Article.objects.filter(status="published").only("id", "title").order_by("-published_time")[:50]
+    context = {
+        "last_articles": last_articles,
+        "hot_list": hot_list,
+        "categories": categories,
+        "archive_data": archive_data,
+        "published_articles": published_articles,
+    }
+    return render(request, "core/study_center.html", context)

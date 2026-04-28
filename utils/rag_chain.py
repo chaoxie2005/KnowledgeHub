@@ -667,7 +667,7 @@ def article_rag_qa_stream(article_content: str, question: str, request=None):
         yield f"服务异常：{str(e)}"
 
 
-def global_rag_qa_stream(question: str, request=None):
+def global_rag_qa_stream(question: str, request=None, history_override=None):
     """
     首页全站AI功能专属的流式RAG问答
     
@@ -699,6 +699,8 @@ def global_rag_qa_stream(question: str, request=None):
         user_id = str(request.user.id) if request and hasattr(request, 'user') and hasattr(request.user, 'id') else 'anonymous'
         history_key = f'chat_history_{user_id}'
         history = request.session.get(history_key, []) if request and hasattr(request, 'session') else []
+        if history_override is not None:
+            history = history_override
 
         # 系统提示词：定义AI的角色和行为规则
         system_text = f"""
@@ -868,16 +870,43 @@ def global_rag_qa_stream(question: str, request=None):
                 if not author_articles:
                     retrieved_text = f"未找到作者 {author_name} 的文章"
             else:
-                # 非作者查询，使用常规相似度搜索
-                retrieved_docs = vs.similarity_search(question, k=200)
+                # 非作者查询：先粗召回，再按关键词重排，减少噪音提升准确率
+                import re
+                raw_docs = vs.similarity_search(question, k=40)
+                keywords = [k for k in re.split(r"[^\w\u4e00-\u9fa5]+", question.lower()) if len(k) >= 2]
+
                 seen_ids = set()
-                unique_docs = []
-                for d in retrieved_docs:
+                dedup_docs = []
+                for d in raw_docs:
                     aid = d.metadata.get("article_id")
-                    if aid not in seen_ids:
-                        seen_ids.add(aid)
-                        unique_docs.append(d)
-                retrieved_text = "\n\n".join([d.page_content for d in unique_docs])
+                    if aid in seen_ids:
+                        continue
+                    seen_ids.add(aid)
+                    dedup_docs.append(d)
+
+                def score_doc(doc):
+                    text = (doc.page_content or "").lower()
+                    if not keywords:
+                        return 0
+                    return sum(1 for kw in keywords if kw in text)
+
+                ranked_docs = sorted(dedup_docs, key=score_doc, reverse=True)[:8]
+                if not ranked_docs:
+                    ranked_docs = dedup_docs[:8]
+
+                # 限制上下文长度，避免无关长文本干扰
+                chunks = []
+                total_len = 0
+                max_len = 12000
+                for d in ranked_docs:
+                    piece = (d.page_content or "").strip()
+                    if not piece:
+                        continue
+                    if total_len + len(piece) > max_len:
+                        break
+                    chunks.append(piece)
+                    total_len += len(piece)
+                retrieved_text = "\n\n".join(chunks)
         except Exception as e:
             # 如果向量库构建失败，尝试从数据库直接获取文章内容作为备用方案
             import traceback
@@ -975,6 +1004,9 @@ def global_rag_qa_stream(question: str, request=None):
 
         # 流式输出AI回答
         try:
+            if not retrieved_text.strip():
+                yield "站内文章未提及相关内容"
+                return
             # 尝试获取流式响应
             result = chain.stream({
                 "question": question.strip(),

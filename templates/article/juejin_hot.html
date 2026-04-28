@@ -194,7 +194,8 @@
         <span>{{ article.published_time|date:'Y-m-d H:i' }}</span>
       </div>
 
-      <p class="article-summary">{{ article.summary|truncatechars:120|default:'暂无摘要' }}</p>
+      {% firstof article.summary article.ai_summary article.title "暂无摘要" as display_summary %}
+      <p class="article-summary">{{ display_summary|truncatechars:120 }}</p>
 
       <a href="{{ article.original_url }}" class="read-more" target="_blank">阅读掘金原文 →</a>
     </div>

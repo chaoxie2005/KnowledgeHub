@@ -37,9 +37,16 @@ urlpatterns = [
     path("ai/generate-summary/", views.ai_generate_summary, name="ai_generate_summary"),
     path("ai-qa/<int:article_id>/", views.article_ai_qa, name="article_ai_qa"),
     path("ai-qa/global/", views.global_ai_qa, name="global_ai_qa"),
+    path("ai-qa/clear-history/", views.clear_ai_history, name="clear_ai_history"),
     path("comment/like/<int:comment_id>/", views.comment_like, name="comment_like"),
     path("comment/delete/<int:comment_id>/", views.delete_comment, name="delete_comment"),
     path('comment_management/', views.comment_management, name='comment_management'), # 评论管理
     path('download_markdown/<int:article_id>/', views.download_markdown, name='download_markdown'), # 导出markdown文件
     path('download_PDF/<int:article_id>/', views.download_PDF, name='download_PDF'), # 导出PDF文件
+    path("quiz/generate/<int:article_id>/", views.generate_article_quiz, name="generate_article_quiz"),
+    path("quiz/submit/<int:question_id>/", views.submit_quiz_answer, name="submit_quiz_answer"),
+    path("quiz/wrong-book/", views.wrong_question_book, name="wrong_question_book"),
+    path("study-plan/7days/", views.create_or_get_study_plan, name="create_or_get_study_plan"),
+    path("study-plan/checkin/<int:item_id>/", views.study_plan_checkin, name="study_plan_checkin"),
+    path("study/stats/", views.learning_dashboard_stats, name="learning_dashboard_stats"),
 ]

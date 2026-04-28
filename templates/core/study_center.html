@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block post %}
+<div class="container study-center-container" style="max-width: 1000px; margin: 24px auto;">
+  <h2 style="font-weight: 700; margin-bottom: 12px;">学习中心</h2>
+  <p style="color: #666;">完成“文章测验 -> 错题回顾 -> 7天计划打卡”的学习闭环。</p>
+  <div id="statsContainer" style="background:#fff; border-radius:12px; padding:16px; margin-top:16px;">
+    <p style="color:#666; margin:0;">学习统计加载中...</p>
+  </div>
+
+  <div style="background: #fff; border-radius: 12px; padding: 16px; margin-top: 16px;">
+    <h4>功能A：AI出题测验（每篇文章5题）</h4>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+      <select id="articleSelect" class="form-control" style="max-width: 420px;">
+        {% for article in published_articles %}
+        <option value="{{ article.id }}">{{ article.title }}</option>
+        {% endfor %}
+      </select>
+      <button id="genQuizBtn" class="btn btn-primary">生成题目</button>
+      <button id="forceGenQuizBtn" class="btn btn-outline-primary">重新生成</button>
+      <button id="submitAllBtn" class="btn btn-success">一键交卷</button>
+    </div>
+    <div id="quizContainer"></div>
+  </div>
+
+  <div style="background: #fff; border-radius: 12px; padding: 16px; margin-top: 16px;">
+    <h4>功能B：错题本</h4>
+    <button id="loadWrongBtn" class="btn btn-outline-danger" style="margin-bottom: 10px;">刷新错题本</button>
+    <label style="margin-left:10px; font-size:13px; color:#666;">
+      <input type="checkbox" id="showResolvedToggle" checked> 显示已掌握错题
+    </label>
+    <div id="wrongBookContainer"></div>
+  </div>
+
+  <div style="background: #fff; border-radius: 12px; padding: 16px; margin-top: 16px;">
+    <h4>功能C：7天学习计划（每日推荐 + 打卡）</h4>
+    <button id="loadPlanBtn" class="btn btn-outline-success" style="margin-bottom: 10px;">生成/查看计划</button>
+    <button id="toggleCustomPlanBtn" class="btn btn-outline-secondary"
+      style="margin-bottom: 10px; margin-left:8px;">自定义计划</button>
+    <div id="customPlanContainer"
+      style="display:none; border:1px solid #eee; border-radius:8px; padding:12px; margin-bottom:12px;"></div>
+    <div id="studyPlanContainer"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const articleSelect = document.getElementById("articleSelect");
+    const genQuizBtn = document.getElementById("genQuizBtn");
+    const quizContainer = document.getElementById("quizContainer");
+    const wrongBookContainer = document.getElementById("wrongBookContainer");
+    const studyPlanContainer = document.getElementById("studyPlanContainer");
+    const loadWrongBtn = document.getElementById("loadWrongBtn");
+    const loadPlanBtn = document.getElementById("loadPlanBtn");
+    const forceGenQuizBtn = document.getElementById("forceGenQuizBtn");
+    const submitAllBtn = document.getElementById("submitAllBtn");
+    const statsContainer = document.getElementById("statsContainer");
+    const showResolvedToggle = document.getElementById("showResolvedToggle");
+    const toggleCustomPlanBtn = document.getElementById("toggleCustomPlanBtn");
+    const customPlanContainer = document.getElementById("customPlanContainer");
+    const csrfToken = "{{ csrf_token }}";
+    let latestQuestions = [];
+    let currentPlanId = null;
+
+    function postForm(url, bodyObj, timeoutMs = 65000) {
+      const body = new URLSearchParams(bodyObj || {}).toString();
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": csrfToken
+        },
+        body: body,
+        signal: controller.signal
+      }).finally(() => clearTimeout(timer));
+    }
+
+    function renderQuiz(questions) {
+      latestQuestions = questions || [];
+      if (!questions || !questions.length) {
+        quizContainer.innerHTML = "<p style='color:#888;'>暂无题目</p>";
+        return;
+      }
+      const html = questions.map((q, idx) => {
+        return `
+          <div style="border:1px solid #eee; border-radius:8px; padding:12px; margin-bottom:10px;">
+            <div style="font-weight:600; margin-bottom:8px;">${idx + 1}. ${q.question}</div>
+            ${["A", "B", "C", "D"].map(opt => `
+              <label style="display:block; margin-bottom:4px;">
+                <input type="radio" name="q_${q.id}" value="${opt}"> ${opt}. ${q.options[opt] || ""}
+              </label>
+            `).join("")}
+            <button class="btn btn-sm btn-primary submit-answer" data-qid="${q.id}" style="margin-top:6px;">提交答案</button>
+            <div id="result_${q.id}" style="margin-top:6px; color:#555;"></div>
+          </div>
+        `;
+      }).join("");
+      quizContainer.innerHTML = html;
+      bindSubmitAnswer();
+    }
+
+    function bindSubmitAnswer() {
+      document.querySelectorAll(".submit-answer").forEach(btn => {
+        btn.addEventListener("click", async function () {
+          const qid = this.dataset.qid;
+          const selected = document.querySelector(`input[name="q_${qid}"]:checked`);
+          if (!selected) {
+            alert("请先选择答案");
+            return;
+          }
+          const res = await postForm(`/article/quiz/submit/${qid}/`, { selected_option: selected.value });
+          const data = await res.json();
+          const resultEl = document.getElementById(`result_${qid}`);
+          if (data.code !== 200) {
+            resultEl.innerHTML = `<span style="color:#dc3545;">${data.msg || "提交失败"}</span>`;
+            return;
+          }
+          resultEl.innerHTML = data.is_correct
+            ? `<span style="color:#28a745;">回答正确</span> | 解析：${data.explanation || "无"}`
+            : `<span style="color:#dc3545;">回答错误</span>，正确答案 ${data.correct_option} | 知识点：${data.knowledge_point || "未标注"} | 解析：${data.explanation || "无"}`;
+        });
+      });
+    }
+
+    function articleOptionHtml(selectedId) {
+      return [...articleSelect.options].map(opt =>
+        `<option value="${opt.value}" ${String(opt.value) === String(selectedId || "") ? "selected" : ""}>${opt.text}</option>`
+      ).join("");
+    }
+
+    async function loadWrongBook() {
+      const includeResolved = showResolvedToggle.checked ? "1" : "0";
+      const res = await fetch(`/article/quiz/wrong-book/?include_resolved=${includeResolved}`);
+      const data = await res.json();
+      const records = data.grouped_records || [];
+      if (!records.length) {
+        wrongBookContainer.innerHTML = "<p style='color:#28a745;'>当前没有错题记录，先去做题吧！</p>";
+        return;
+      }
+      wrongBookContainer.innerHTML = records.map((r, idx) => `
+        <div style="border:1px solid #f0d6d6; border-radius:8px; padding:10px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div style="font-weight:600;">${idx + 1}. ${r.question}</div>
+            <button class="btn btn-sm btn-outline-secondary toggle-wrong-detail" data-target="wrong_detail_${r.question_id}">
+              展开/折叠
+            </button>
+          </div>
+          <div style="font-size:13px; color:#666;">文章：${r.article_title}</div>
+          <div style="font-size:13px; color:#666;">知识点：${r.knowledge_point || "未标注"} | 状态：${r.resolved ? "已掌握" : "未掌握"} | 错误次数：${(r.attempts || []).length}</div>
+          <div id="wrong_detail_${r.question_id}" style="display:none; margin-top:8px; background:#fafafa; border-radius:6px; padding:8px;">
+            <div style="font-size:13px; margin-bottom:6px;"><b>再练一题：</b></div>
+            ${["A", "B", "C", "D"].map(opt => `
+              <label style="display:block; margin-bottom:4px;">
+                <input type="radio" name="retry_q_${r.question_id}" value="${opt}"> ${opt}. ${r.options[opt] || ""}
+              </label>
+            `).join("")}
+            <button class="btn btn-sm btn-primary retry-question-btn" data-qid="${r.question_id}" style="margin-top:6px;">提交重练</button>
+            <div id="retry_result_${r.question_id}" style="margin-top:6px; font-size:13px;"></div>
+            <hr>
+            <div style="font-size:13px; margin-bottom:4px;"><b>历史记录</b></div>
+            ${(r.attempts || []).map(a => `
+              <div style="font-size:12px; color:#666;">
+                ${a.created_time} - 选择 ${a.selected_option} - ${a.resolved ? "已掌握" : "未掌握"}
+              </div>
+            `).join("") || "<div style='font-size:12px;color:#999;'>暂无历史</div>"}
+          </div>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".toggle-wrong-detail").forEach(btn => {
+        btn.addEventListener("click", function () {
+          const target = document.getElementById(this.dataset.target);
+          target.style.display = target.style.display === "none" ? "block" : "none";
+        });
+      });
+      document.querySelectorAll(".retry-question-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+          const qid = this.dataset.qid;
+          const selected = document.querySelector(`input[name="retry_q_${qid}"]:checked`);
+          if (!selected) {
+            alert("请先选择重练答案");
+            return;
+          }
+          const res = await postForm(`/article/quiz/submit/${qid}/`, { selected_option: selected.value });
+          const data = await res.json();
+          const el = document.getElementById(`retry_result_${qid}`);
+          if (data.code !== 200) {
+            el.innerHTML = "<span style='color:#dc3545;'>提交失败</span>";
+            return;
+          }
+          el.innerHTML = data.is_correct
+            ? `<span style="color:#28a745;">重练正确</span> | 解析：${data.explanation || "无"}`
+            : `<span style="color:#dc3545;">重练错误</span>，正确答案 ${data.correct_option} | 解析：${data.explanation || "无"}`;
+          loadWrongBook();
+          loadStats();
+        });
+      });
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch("/article/study/stats/");
+        const data = await res.json();
+        if (data.code !== 200) {
+          statsContainer.innerHTML = "<p style='color:#dc3545; margin:0;'>学习统计获取失败</p>";
+          return;
+        }
+        const s = data.stats || {};
+        const points = s.top_knowledge_points || [];
+        statsContainer.innerHTML = `
+          <h5 style="margin-bottom:8px;">学习画像</h5>
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <span class="badge badge-primary" style="padding:8px;">累计答题：${s.total_attempts || 0}</span>
+            <span class="badge badge-success" style="padding:8px;">正确率：${s.accuracy || 0}%</span>
+            <span class="badge badge-danger" style="padding:8px;">未掌握错题：${s.wrong_pending || 0}</span>
+            <span class="badge badge-info" style="padding:8px;">计划打卡：${s.checked_days || 0}天</span>
+          </div>
+          <div style="margin-top:10px; color:#666; font-size:13px;">
+            高频薄弱知识点：
+            ${points.length ? points.map(p => `${p.knowledge_point}(${p.total})`).join("，") : "暂无"}
+          </div>
+        `;
+      } catch (err) {
+        statsContainer.innerHTML = "<p style='color:#dc3545; margin:0;'>学习统计请求失败</p>";
+      }
+    }
+
+    async function loadPlan() {
+      try {
+        const res = await postForm("/article/study-plan/7days/", {});
+        if (!res.ok) {
+          studyPlanContainer.innerHTML = "<p style='color:#dc3545;'>学习计划接口请求失败</p>";
+          return;
+        }
+        const data = await res.json();
+        if (data.code !== 200) {
+          studyPlanContainer.innerHTML = `<p style="color:#dc3545;">${data.msg || "获取计划失败"}</p>`;
+          return;
+        }
+        currentPlanId = data.plan_id;
+        const items = data.items || [];
+        studyPlanContainer.innerHTML = `
+        <p style="margin-bottom:10px;">计划：<b>${data.title || "学习计划"}</b>（${data.start_date || ""}） | 进度：<b>${data.progress}</b></p>
+        ${items.map(item => `
+          <div style="border:1px solid #e6f4ea; border-radius:8px; padding:10px; margin-bottom:8px;">
+            <div><b>Day ${item.day_index}</b> (${item.date})</div>
+            <div style="font-size:14px; color:#666;">推荐文章：${item.article_title || "暂无推荐"}</div>
+            <div style="font-size:14px; color:#666;">目标：${item.target_minutes} 分钟</div>
+            ${item.is_checked_in
+            ? "<span style='color:#28a745;'>已打卡</span>"
+            : `<button class="btn btn-sm btn-success do-checkin" data-id="${item.item_id}">今日打卡</button>`
+          }
+          </div>
+        `).join("")}
+      `;
+        document.querySelectorAll(".do-checkin").forEach(btn => {
+          btn.addEventListener("click", async function () {
+            const id = this.dataset.id;
+            try {
+              const cRes = await postForm(`/article/study-plan/checkin/${id}/`, {});
+              const cData = await cRes.json();
+              if (cData.code === 200) {
+                loadPlan();
+                loadStats();
+              }
+            } catch (err) {
+              alert("打卡失败，请稍后重试");
+            }
+          });
+        });
+      } catch (err) {
+        studyPlanContainer.innerHTML = "<p style='color:#dc3545;'>学习计划请求超时或失败</p>";
+      }
+    }
+
+    function renderCustomPlanEditor() {
+      customPlanContainer.innerHTML = `
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+          <input id="customPlanTitle" class="form-control" style="max-width:220px;" placeholder="计划名称" value="我的7天计划">
+          <input id="customPlanStartDate" type="date" class="form-control" style="max-width:180px;">
+        </div>
+        <div id="customPlanRows"></div>
+        <button id="saveCustomPlanBtn" class="btn btn-primary btn-sm">保存自定义计划</button>
+      `;
+      const rows = document.getElementById("customPlanRows");
+      let html = "";
+      for (let day = 1; day <= 7; day++) {
+        html += `
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+            <span style="width:52px;">Day ${day}</span>
+            <select class="form-control custom-day-article" data-day="${day}" style="max-width:420px;">
+              ${articleOptionHtml("")}
+            </select>
+            <input class="form-control custom-day-minutes" data-day="${day}" type="number" value="20" min="5" max="300" style="max-width:120px;">
+          </div>
+        `;
+      }
+      rows.innerHTML = html;
+
+      document.getElementById("saveCustomPlanBtn").addEventListener("click", async function () {
+        const title = document.getElementById("customPlanTitle").value || "自定义学习计划";
+        const startDate = document.getElementById("customPlanStartDate").value || "";
+        const items = [];
+        for (let day = 1; day <= 7; day++) {
+          const articleEl = document.querySelector(`.custom-day-article[data-day="${day}"]`);
+          const minutesEl = document.querySelector(`.custom-day-minutes[data-day="${day}"]`);
+          items.push({
+            day_index: day,
+            article_id: articleEl ? articleEl.value : "",
+            target_minutes: minutesEl ? minutesEl.value : 20
+          });
+        }
+        const res = await postForm("/article/study-plan/7days/", {
+          title: title,
+          start_date: startDate,
+          custom_items: JSON.stringify(items)
+        });
+        const data = await res.json();
+        if (!res.ok || data.code !== 200) {
+          alert(data.msg || "保存自定义计划失败");
+          return;
+        }
+        alert("自定义计划保存成功");
+        currentPlanId = data.plan_id;
+        customPlanContainer.style.display = "none";
+        loadPlan();
+      });
+    }
+
+    genQuizBtn.addEventListener("click", async function () {
+      const articleId = articleSelect.value;
+      if (!articleId) {
+        alert("请先选择文章");
+        return;
+      }
+      quizContainer.innerHTML = "<p>正在生成题目...</p>";
+      try {
+        const res = await postForm(`/article/quiz/generate/${articleId}/`, {});
+        if (!res.ok) {
+          quizContainer.innerHTML = `<p style="color:#dc3545;">生成失败（HTTP ${res.status}）</p>`;
+          return;
+        }
+        const data = await res.json();
+        if (data.code !== 200) {
+          quizContainer.innerHTML = `<p style="color:#dc3545;">${data.msg || "生成失败"}</p>`;
+          return;
+        }
+        renderQuiz(data.questions || []);
+      } catch (err) {
+        const msg = err && err.name === "AbortError" ? "生成超时，已自动取消，请重试" : "请求失败，请检查登录状态后重试";
+        quizContainer.innerHTML = `<p style="color:#dc3545;">${msg}</p>`;
+      }
+    });
+
+    forceGenQuizBtn.addEventListener("click", async function () {
+      const articleId = articleSelect.value;
+      if (!articleId) {
+        alert("请先选择文章");
+        return;
+      }
+      quizContainer.innerHTML = "<p>正在重新生成题目...</p>";
+      try {
+        const res = await postForm(`/article/quiz/generate/${articleId}/`, { force: "1" });
+        const data = await res.json();
+        if (!res.ok || data.code !== 200) {
+          quizContainer.innerHTML = `<p style="color:#dc3545;">${data.msg || "重新生成失败"}</p>`;
+          return;
+        }
+        renderQuiz(data.questions || []);
+      } catch (err) {
+        quizContainer.innerHTML = "<p style='color:#dc3545;'>重新生成失败，请稍后重试</p>";
+      }
+    });
+
+    submitAllBtn.addEventListener("click", async function () {
+      if (!latestQuestions.length) {
+        alert("请先生成题目");
+        return;
+      }
+      let correct = 0;
+      let total = 0;
+      for (const q of latestQuestions) {
+        const selected = document.querySelector(`input[name="q_${q.id}"]:checked`);
+        if (!selected) continue;
+        total += 1;
+        try {
+          const res = await postForm(`/article/quiz/submit/${q.id}/`, { selected_option: selected.value });
+          const data = await res.json();
+          if (data.code === 200 && data.is_correct) correct += 1;
+        } catch (_) { }
+      }
+      if (!total) {
+        alert("请至少作答1题再交卷");
+        return;
+      }
+      alert(`交卷完成：共作答 ${total} 题，答对 ${correct} 题，正确率 ${(correct * 100 / total).toFixed(1)}%`);
+      loadWrongBook();
+      loadStats();
+    });
+
+    loadWrongBtn.addEventListener("click", loadWrongBook);
+    showResolvedToggle.addEventListener("change", loadWrongBook);
+    loadPlanBtn.addEventListener("click", loadPlan);
+    toggleCustomPlanBtn.addEventListener("click", function () {
+      if (customPlanContainer.style.display === "none") {
+        customPlanContainer.style.display = "block";
+        renderCustomPlanEditor();
+      } else {
+        customPlanContainer.style.display = "none";
+      }
+    });
+    loadStats();
+    loadWrongBook();
+  })();
+</script>
+{% endblock %}

@@ -374,6 +374,10 @@
             const chunk = decoder.decode(value, { stream: true });
             console.log('Decoded chunk:', chunk);
             out += chunk;
+            // 检查是否是错误消息
+            if (out.startsWith('[ERROR]')) {
+              out = out.replace('[ERROR]', '');
+            }
             // 实时更新对话历史中的AI回答
             const history = loadChatHistory();
             history.pop(); // 移除临时消息
@@ -386,12 +390,26 @@
           // 最终更新对话历史
           const history = loadChatHistory();
           history.pop(); // 移除临时消息
+          // 如果是错误消息，移除前缀
+          if (out.startsWith('[ERROR]')) {
+            out = out.replace('[ERROR]', '');
+          }
           history.push({ question, answer: out });
           saveChatHistory(history);
           renderChatHistory(history);
         } catch (e) {
           console.error('Error:', e);
-          const errorMsg = '网络异常，请重试';
+          let errorMsg = '网络异常，请重试';
+          // 尝试获取更详细的错误信息
+          if (e.message) {
+            if (e.message.includes('Failed to fetch')) {
+              errorMsg = '网络连接失败，请检查网络连接';
+            } else if (e.message.includes('timeout')) {
+              errorMsg = '请求超时，请稍后重试';
+            } else {
+              errorMsg = `服务异常：${e.message}`;
+            }
+          }
           // 更新对话历史，替换临时消息
           const history = loadChatHistory();
           history.pop(); // 移除临时消息

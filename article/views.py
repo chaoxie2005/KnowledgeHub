@@ -27,7 +27,7 @@ from django.core.cache import cache
 from django_redis import get_redis_connection
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Prefetch
-from utils.rag_chain import simple_rag_qa, simple_rag_qa_stream, article_rag_qa_stream, global_rag_qa_stream, article_rag_qa_stream_react, global_rag_qa_stream_react
+from utils.rag_chain import simple_rag_qa, article_rag_qa_stream, global_rag_qa_stream, article_rag_qa_stream_react, global_rag_qa_stream_react
 
 
 def time_it(func):
@@ -1182,6 +1182,12 @@ def article_ai_qa(request, article_id):
         question = request.POST.get("question", "").strip()
         if not question:
             return JsonResponse({"code": 400, "msg": "请输入问题"})
+
+        # 在处理请求前检查API Key配置
+        from utils.rag_chain import _get_llm
+        llm, error = _get_llm()
+        if error:
+            return JsonResponse({"code": 500, "msg": error})
 
         # 检查是否使用ReAct模式
         use_react = request.GET.get("react") == "1"

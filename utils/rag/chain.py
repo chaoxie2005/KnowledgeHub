@@ -1,19 +1,20 @@
+# 站内文章 RAG 核心：向量检索、ReAct 工具、流式/非流式 QA 入口
 """站内文章 RAG（向量检索 + 流式输出）
 基于ReAct模式的RAG对话系统重构
 """
 
 import os
-from dotenv import load_dotenv
+import re
 from datetime import datetime
 import pytz
 from typing import TypedDict, List, Optional
 from langchain_core.documents import Document
 
-# 加载环境变量
-load_dotenv()
+from .llm import _get_llm
+from .utils import _format_time, get_author_display_name
+from .config import CHROMA_DIR
 
-# 全局变量：缓存LLM和向量存储实例
-_LLM = None
+# 全局变量：缓存向量存储实例
 _VS = None
 
 
@@ -29,85 +30,6 @@ class RAGState(TypedDict):
     step_count: int
     max_steps: int
     should_continue: bool
-
-
-def _format_time(utc_time):
-    """
-    将UTC时间格式化为北京时间字符串
-    
-    Args:
-        utc_time: UTC时间（字符串或datetime对象）
-    
-    Returns:
-        str: 格式化后的北京时间字符串，格式为"YYYY年MM月DD日 HH:MM"
-    """
-    if not utc_time:
-        return "未知"
-    try:
-        local_tz = pytz.timezone('Asia/Shanghai')
-        if isinstance(utc_time, str):
-            utc_time = datetime.fromisoformat(utc_time.replace('Z', '+00:00'))
-        if utc_time.tzinfo is None:
-            utc_time = pytz.UTC.localize(utc_time)
-        local_time = utc_time.astimezone(local_tz)
-        return local_time.strftime('%Y年%m月%d日 %H:%M')
-    except Exception:
-        return str(utc_time)
-
-
-def _get_llm():
-    """
-    获取或初始化通义千问LLM实例（单例模式）
-
-    Returns:
-        tuple: (llm实例, 错误信息) - 如果成功，错误信息为None
-    """
-    global _LLM
-    if _LLM is not None:
-        return _LLM, None
-
-    try:
-        from langchain_community.chat_models.tongyi import ChatTongyi
-    except ModuleNotFoundError:
-        return None, "请安装：pip install langchain-community langchain-core"
-
-    api_key = os.getenv("DASHSCOPE_API_KEY")
-    if not api_key:
-        return None, "未配置 DASHSCOPE_API_KEY"
-
-    try:
-        _LLM = ChatTongyi(
-            api_key=api_key,
-            model="qwen-turbo",
-            temperature=0.1,
-            streaming=True,
-        )
-    except TypeError:
-        _LLM = ChatTongyi(
-            api_key=api_key,
-            model="qwen-turbo",
-            temperature=0.1,
-        )
-
-    # 快速验证 API Key 是否可用，避免后续调用时出现误导性的 KeyError('request')
-    try:
-        from dashscope import Generation
-        resp = Generation.call(
-            model="qwen-turbo",
-            api_key=api_key,
-            messages=[{"role": "user", "content": "ping"}],
-            result_format="message",
-            max_tokens=1,
-        )
-        if resp.status_code != 200:
-            code = getattr(resp, "code", "Unknown")
-            message = getattr(resp, "message", "未知错误")
-            _LLM = None
-            return None, f"AI 服务异常：{message}（错误码：{code}）"
-    except Exception:
-        pass  # 验证失败不影响使用，后续调用时会暴露具体错误
-
-    return _LLM, None
 
 
 from langchain_core.tools import tool
@@ -142,23 +64,24 @@ def author_search_tool(author_name: str) -> str:
         str: 作者的文章列表
     """
     from article.models import Article
-    articles = Article.objects.filter(status="published").select_related("author", "author__profile")
-    author_articles = []
-    for a in articles:
-        article_author = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
-        if author_name in article_author or article_author in author_name:
-            author_articles.append(a)
-    
-    author_articles.sort(key=lambda x: x.published_time, reverse=True)
-    
-    result = []
-    for a in author_articles:
-        article_author = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
-        content = f"作者：{article_author}\n文章标题：{a.title}\n发布时间：{_format_time(a.published_time)}"
-        result.append(content)
-    
-    if not result:
+    from django.db.models import Q
+    from .utils import get_author_display_name
+
+    # 使用数据库级别过滤，避免在 Python 中遍历全部文章
+    articles = Article.objects.filter(
+        status="published"
+    ).filter(
+        Q(author__profile__nickname__icontains=author_name) | Q(author__username__icontains=author_name)
+    ).select_related("author", "author__profile").order_by("-published_time")
+
+    if not articles.exists():
         return f"未找到作者 {author_name} 的文章"
+
+    result = []
+    for a in articles:
+        display_name = get_author_display_name(a.author)
+        result.append(f"作者：{display_name}\n文章标题：{a.title}\n发布时间：{_format_time(a.published_time)}")
+
     return "\n\n".join(result)
 
 
@@ -274,19 +197,22 @@ def tag_search_tool(tag_name: str) -> str:
         str: 该标签下的文章列表
     """
     from article.models import Article
+    from .utils import get_author_display_name
+
+    # 使用数据库级别过滤，避免在 Python 中遍历全部文章
     articles = Article.objects.filter(
-        status="published"
-    ).select_related("author", "author__profile").prefetch_related("tags")
-    
+        status="published",
+        tags__name=tag_name
+    ).select_related("author", "author__profile").distinct()
+
+    if not articles.exists():
+        return f"未找到标签 {tag_name} 的文章"
+
     result = []
     for a in articles:
-        if any(tag.name == tag_name for tag in a.tags.all()):
-            author_name = a.author.profile.nickname if hasattr(a.author, 'profile') and hasattr(a.author.profile, 'nickname') and a.author.profile.nickname else a.author.username
-            content = f"标题：{a.title}\n作者：{author_name}\n发布时间：{_format_time(a.published_time)}"
-            result.append(content)
-    
-    if not result:
-        return f"未找到标签 {tag_name} 的文章"
+        display_name = get_author_display_name(a.author)
+        result.append(f"标题：{a.title}\n作者：{display_name}\n发布时间：{_format_time(a.published_time)}")
+
     return "\n\n".join(result)
 
 
@@ -314,25 +240,18 @@ def _build_vector_store_from_db():
     from langchain_community.vectorstores import Chroma
     from langchain_community.embeddings import DashScopeEmbeddings
 
-    # 向量库存储路径
-    CHROMA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "chroma_blog")
     os.makedirs(CHROMA_DIR, exist_ok=True)
 
-    # 始终重建向量库，避免旧文件导致的问题
-    rebuild = True
+    # 查询所有已发布的文章，包含作者、分类和标签信息（使用模型对象避免 N+1）
+    article_objs = list(Article.objects.filter(status="published").select_related("author", "author__profile", "category").prefetch_related("tags"))
 
-    # 查询所有已发布的文章，包含作者、分类和标签信息
-    qs = Article.objects.filter(status="published").select_related("author", "author__profile", "category").prefetch_related("tags").values(
-        "id", "title", "content", "summary", "cover", "author__username", "author__profile__nickname", 
-        "category__name", "status", "read_count", "is_top", "published_time", "created_time", "updated_time"
-    )
-    
-    # 为每个文章添加标签信息
+    # 为每个文章提取标签名称（已由 prefetch_related 缓存，无额外查询）
     articles_with_tags = []
-    for a in qs:
-        article = Article.objects.get(id=a['id'])
-        a['tags'] = [tag.name for tag in article.tags.all()]
+    for a in article_objs:
+        tags = [tag.name for tag in a.tags.all()]
+        a._tags_cache = tags
         articles_with_tags.append(a)
+
     qs = articles_with_tags
 
     # 构建文档列表，为每篇文章添加作者信息块
@@ -340,39 +259,38 @@ def _build_vector_store_from_db():
     
     # 添加本地文章
     for a in qs:
-        author_name = a.get('author__profile__nickname') or a.get('author__username', '未知')
-        category_name = a.get('category__name', '未分类')
-        tags = a.get('tags', [])
+        author_name = get_author_display_name(a.author)
+        category_name = a.category.name if a.category else '未分类'
+        tags = getattr(a, '_tags_cache', [])
         tag_names = ', '.join(tags) if tags else '无标签'
-        
+
         # 构建完整的文章信息
-        article_info = f"标题：{a['title']}\n"
+        article_info = f"标题：{a.title}\n"
         article_info += f"作者：{author_name}\n"
         article_info += f"分类：{category_name}\n"
         article_info += f"标签：{tag_names}\n"
-        article_info += f"状态：{a.get('status', '未知')}\n"
-        article_info += f"阅读量：{a.get('read_count', 0)}\n"
-        article_info += f"发布时间：{_format_time(a.get('published_time'))}\n"
-        article_info += f"创建时间：{_format_time(a.get('created_time'))}\n"
-        article_info += f"更新时间：{_format_time(a.get('updated_time'))}\n"
-        article_info += f"摘要：{a.get('summary', '无摘要')}\n"
-        article_info += f"内容：{a.get('content', '无内容')}\n"
-        
-        # 添加作者信息块（用于作者查询）- 这个块专门用于检索作者的所有文章
-        # 为了提高检索精度，添加多个作者信息块，使用不同的表述方式
+        article_info += f"状态：{a.status}\n"
+        article_info += f"阅读量：{a.read_count}\n"
+        article_info += f"发布时间：{_format_time(a.published_time)}\n"
+        article_info += f"创建时间：{_format_time(a.created_time)}\n"
+        article_info += f"更新时间：{_format_time(a.updated_time)}\n"
+        article_info += f"摘要：{a.summary or '无摘要'}\n"
+        article_info += f"内容：{a.content or '无内容'}\n"
+
+        # 添加作者信息块（用于作者查询）
         docs.append(Document(
-            page_content=f"作者：{author_name}\n文章标题：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info", "source": "本地文章"}
+            page_content=f"作者：{author_name}\n文章标题：{a.title}\n发布时间：{_format_time(a.published_time)}",
+            metadata={"article_id": a.id, "title": a.title, "author": author_name, "published_time": _format_time(a.published_time), "type": "author_info", "source": "本地文章"}
         ))
         # 添加另一个作者信息块，使用不同的表述方式，提高检索概率
         docs.append(Document(
-            page_content=f"{author_name}发布的文章：{a['title']}\n发布时间：{_format_time(a.get('published_time'))}",
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "author_info_alt", "source": "本地文章"}
+            page_content=f"{author_name}发布的文章：{a.title}\n发布时间：{_format_time(a.published_time)}",
+            metadata={"article_id": a.id, "title": a.title, "author": author_name, "published_time": _format_time(a.published_time), "type": "author_info_alt", "source": "本地文章"}
         ))
         # 添加完整文章内容块
         docs.append(Document(
             page_content=article_info,
-            metadata={"article_id": a["id"], "title": a["title"], "author": author_name, "published_time": _format_time(a.get('published_time')), "type": "content", "source": "本地文章"}
+            metadata={"article_id": a.id, "title": a.title, "author": author_name, "published_time": _format_time(a.published_time), "type": "content", "source": "本地文章"}
         ))
     
     # 添加掘金热榜文章
@@ -438,7 +356,7 @@ def _build_vector_store_from_db():
     try:
         embeddings = DashScopeEmbeddings(
             dashscope_api_key=dashscope_api_key,
-            model="multimodal-embedding-v1",
+            model="text-embedding-v1",
         )
         
         # 尝试构建Chroma向量库
@@ -448,7 +366,6 @@ def _build_vector_store_from_db():
             persist_directory=CHROMA_DIR,
             collection_name="blog_articles",
         )
-        vs.persist()
         _VS = vs
         return _VS
     except Exception as e:
@@ -524,9 +441,7 @@ def update_vector_store():
     from langchain_text_splitters import RecursiveCharacterTextSplitter
     from langchain_community.vectorstores import Chroma
     from langchain_community.embeddings import DashScopeEmbeddings
-    import os
 
-    CHROMA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "chroma_blog")
     os.makedirs(CHROMA_DIR, exist_ok=True)
 
     dashscope_api_key = os.getenv("DASHSCOPE_API_KEY")
@@ -563,7 +478,6 @@ def update_vector_store():
         embedding=embeddings,
         persist_directory=CHROMA_DIR,
     )
-    _VS.persist()
     return "向量库已更新"
 
 

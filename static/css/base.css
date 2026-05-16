@@ -417,6 +417,13 @@ body {
     left: 100%;
 }
 
+/* 侧边栏列表样式 */
+.sidebar-section ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
 /* 导航栏滚动效果 */
 .blog-header {
     transition: all 0.3s ease;

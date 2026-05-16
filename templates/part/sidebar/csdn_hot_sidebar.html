@@ -1,32 +1,19 @@
 <!-- CSDN快讯侧边栏 -->
-<div class="p-4 mb-3 bg-light rounded shadow-sm" style="border-left: 4px solid #fc5531;">
-  <!-- 标题区域：加粗+CSDN橙+底部分隔线 -->
-  <h4 class="font-italic mb-3" style="color: #fc5531; font-weight: 600; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
+<div class="sidebar-section sidebar-csdn">
+  <h3 class="sidebar-title" style="color:#fc5531;">
     最新CSDN快讯
-    <small class="d-block mt-1 text-muted" style="font-size: 0.75rem; font-weight: normal;">
-      最后更新：{% now "Y-m-d H:i" %}
-    </small>
-  </h4>
-
-  <!-- 文章列表：hover效果+文字截断+间距优化 -->
-  <ol class="list-unstyled mb-0" style="line-height: 1.8;">
+    <small style="font-size:0.75rem;font-weight:400;color:#999;margin-left:auto;">最后更新：{% now "Y-m-d H:i" %}</small>
+  </h3>
+  <ul class="sidebar-list" style="list-style: none; padding: 0; margin: 0;">
     {% block latest-articles %}
       {% for article in last_articles %}
-        <li class="mb-2">
-          <a 
-            href="{{ article.original_url }}" 
-            target="_blank"
-            style="color: #212529; text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-            onmouseover="this.style.color='#fc5531'; this.style.textDecoration='underline';"
-            onmouseout="this.style.color='#212529'; this.style.textDecoration='none';"
-          >
-            {{ article.title|truncatechars:18 }}
-          </a>
+        <li class="sidebar-list-item">
+          <a href="{{ article.original_url }}" target="_blank" class="sidebar-link"
+             title="{{ article.title }}">{{ article.title|truncatechars:18 }}</a>
         </li>
       {% empty %}
-        <!-- 无数据时的提示 -->
-        <li class="text-muted small">暂无最新CSDN快讯</li>
+        <li class="empty-item">暂无最新CSDN快讯</li>
       {% endfor %}
     {% endblock %}
-  </ol>
+  </ul>
 </div>

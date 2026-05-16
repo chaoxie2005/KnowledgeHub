@@ -1,81 +1,70 @@
 {% load static %}
 
-<!-- 1. 最新文章 -->
-<div class="sidebar-section"
-  style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
-  <h3 class="sidebar-title"
-    style="color: #0066cc; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
-    最新文章</h3>
+<!-- 最新文章 -->
+<div class="sidebar-section">
+  <h3 class="sidebar-title">最新文章</h3>
   <ul class="latest-articles" style="list-style: none; padding: 0; margin: 0;">
     {% block latest-articles %}
     {% for article in last_articles %}
-    <li class="latest-article-item" style="margin-bottom: 12px;">
+    <li class="latest-article-item">
       <a href="{% url 'article:detail' article_id=article.id %}" class="latest-article-link"
-        style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
+         title="{{ article.title }}">{{ article.title|truncatechars:20 }}</a>
     </li>
+    {% empty %}
+    <li class="empty-item">暂无最新文章</li>
     {% endfor %}
     {% endblock %}
   </ul>
 </div>
 
-<!-- 2. 热门文章 -->
-<div class="sidebar-section"
-  style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
-  <h3 class="sidebar-title"
-    style="color: #0066cc; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
-    热门文章</h3>
+<!-- 热门文章 -->
+<div class="sidebar-section">
+  <h3 class="sidebar-title">热门文章</h3>
   <ul class="hot-articles" style="list-style: none; padding: 0; margin: 0;">
     {% block hot-articles %}
     {% for article in hot_list %}
-    <li class="hot-article-item" style="margin-bottom: 12px;">
-      <div class="hot-article-content">
-        <h4 class="hot-article-title" style="margin: 0;">
-          <a href="{% url 'article:detail' article_id=article.id %}"
-            style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
-        </h4>
-      </div>
+    <li class="hot-article-item">
+      <a href="{% url 'article:detail' article_id=article.id %}" class="latest-article-link"
+         title="{{ article.title }}">{{ article.title|truncatechars:20 }}</a>
     </li>
+    {% empty %}
+    <li class="empty-item">暂无热门文章</li>
     {% endfor %}
     {% endblock %}
   </ul>
 </div>
 
-<!-- 3. 相关推荐文章 -->
-<div class="sidebar-section"
-  style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
-  <h3 class="sidebar-title"
-    style="color: #0066cc; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
-    相关推荐文章</h3>
+<!-- 相关推荐文章 -->
+<div class="sidebar-section">
+  <h3 class="sidebar-title">相关推荐</h3>
   <ul class="latest-articles" style="list-style: none; padding: 0; margin: 0;">
     {% block article-archive %}
-    {% for article in about_articles %}
-    <li class="latest-article-item" style="margin-bottom: 12px;">
-      <a href="#" class="latest-article-link"
-        style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">{{ article.title|truncatechars:20 }}</a>
+    {% for article in articles %}
+    <li class="latest-article-item">
+      <a href="{% url 'article:detail' article_id=article.id %}" class="latest-article-link"
+         title="{{ article.title }}">{{ article.title|truncatechars:20 }}</a>
     </li>
+    {% empty %}
+    <li class="empty-item">暂无推荐文章</li>
     {% endfor %}
     {% endblock %}
   </ul>
 </div>
 
-<!-- 4. 文章归档 -->
-<div class="sidebar-section"
-  style="background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #0066cc;">
-  <h3 class="sidebar-title"
-    style="color: #0066cc; font-size: 16px; font-weight: 700; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">
-    文章归档</h3>
+<!-- 文章归档 -->
+<div class="sidebar-section">
+  <h3 class="sidebar-title">文章归档</h3>
   <ul class="archive-list" style="list-style: none; padding: 0; margin: 0;">
     {% if archives %}
     {% for archive in archives %}
-    <li style="margin-bottom: 12px;">
-      <a href="{% url 'article:archive_list' archive.year archive.month %}"
-        style="color: #333; text-decoration: none; font-size: 14px; line-height: 1.4; display: block; transition: color 0.2s ease;">
+    <li>
+      <a href="{% url 'article:archive_list' archive.year archive.month %}" class="sidebar-link">
         {{ archive.year }}年{{ archive.month }}月
       </a>
     </li>
     {% endfor %}
     {% else %}
-    <li style="margin-bottom: 12px; color: #999; font-size: 14px;">暂无归档文章</li>
+    <li class="empty-item">暂无归档文章</li>
     {% endif %}
   </ul>
 </div>

@@ -283,7 +283,7 @@ def detail(request, article_id):
             "hot_list": hot_list,
             "categories": categories,
             "comments": comments,
-            "articles": articles,
+            "about_articles": articles,
             "archives": archives,
             "liked_comment_ids": liked_comment_ids, # 传递给模板
         }
@@ -396,7 +396,7 @@ def detail(request, article_id):
         "hot_list": hot_list,
         "categories": categories,
         "comments": comments,
-        "articles": articles,
+        "about_articles": articles,
         "archives": archives,
         "liked_comment_ids": liked_comment_ids, # 传递给模板
     }

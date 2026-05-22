@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 
 from ..models import Article, QuizQuestion, QuizAttempt, WrongQuestionRecord
 from ..ai_utils import _get_llm as ai_utils_get_llm
@@ -256,14 +257,39 @@ def submit_quiz_answer(request, question_id):
 
 @login_required(login_url="authentication:login")
 def wrong_question_book(request):
-    """功能B：错题本列表（保留历史，支持反复刷题）"""
+    """功能B：错题本列表（保留历史，支持反复刷题，支持分页）"""
     include_resolved = request.GET.get("include_resolved", "1") == "1"
     base_qs = WrongQuestionRecord.objects.filter(user=request.user).select_related("question", "question__article")
     if not include_resolved:
         base_qs = base_qs.filter(resolved=False)
     else:
         base_qs = base_qs.filter(resolved=True)
-    records = base_qs.order_by("-created_time")
+
+    # 分页参数
+    try:
+        page = int(request.GET.get("page", "1"))
+        page = max(1, page)
+    except (ValueError, TypeError):
+        page = 1
+    try:
+        page_size = int(request.GET.get("page_size", "20"))
+        page_size = max(5, min(page_size, 50))
+    except (ValueError, TypeError):
+        page_size = 20
+
+    # 按题目分组分页：先获取最近出错的题目 ID 列表，再切分
+    ordered_qids = list(
+        base_qs.values("question_id")
+        .annotate(last_wrong=Max("created_time"))
+        .order_by("-last_wrong")
+        .values_list("question_id", flat=True)
+    )
+    total_groups = len(ordered_qids)
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_qids = ordered_qids[start:end]
+
+    records = base_qs.filter(question_id__in=page_qids).order_by("-created_time") if page_qids else base_qs.none()
 
     data = []
     grouped = {}
@@ -314,7 +340,15 @@ def wrong_question_book(request):
                 "created_time": r.created_time.strftime("%Y-%m-%d %H:%M"),
             }
         )
-        # 只要还有未掌握记录，就标记为未掌握，避免"刷新后看不到"
         grouped[qid]["resolved"] = grouped[qid]["resolved"] and r.resolved
 
-    return JsonResponse({"code": 200, "records": data, "grouped_records": list(grouped.values())})
+    has_next = page * page_size < total_groups
+    return JsonResponse({
+        "code": 200,
+        "records": data,
+        "grouped_records": list(grouped.values()),
+        "page": page,
+        "page_size": page_size,
+        "total_groups": total_groups,
+        "has_next": has_next,
+    })

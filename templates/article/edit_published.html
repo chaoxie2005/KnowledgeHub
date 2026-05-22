@@ -550,76 +550,82 @@
       box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
     }
 
-    /* 标签搜索多选样式 */
-    .tag-search-container {
+    .tag-input-container {
       position: relative;
+      width: 100%;
     }
 
-    .tag-dropdown {
+    .selected-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      min-height: 36px;
+    }
+
+    .tag-item {
+      background: #0066cc;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .tag-item:hover {
+      background: #0056b3;
+      transform: translateY(-1px);
+    }
+
+    .tag-item button {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.8);
+      margin-left: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+
+    .tag-item button:hover {
+      color: #fff;
+    }
+
+    #tagDropdown {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
+      z-index: 999;
       background: #fff;
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       max-height: 200px;
       overflow-y: auto;
-      z-index: 1000;
       margin-top: 6px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       display: none;
     }
 
-    .tag-dropdown.show {
-      display: block;
-    }
-
-    .tag-list {
-      padding: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .selected-tags {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .selected-tag {
-      padding: 6px 12px;
-      background: #0066cc;
-      color: #fff;
-      border-radius: 16px;
-      font-size: 13px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .selected-tag:hover {
-      background: #0056b3;
-      transform: translateY(-1px);
-    }
-
-    .selected-tag button {
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.8);
+    .tag-option {
+      padding: 10px 16px;
       cursor: pointer;
-      padding: 0;
-      font-size: 16px;
-      line-height: 1;
-      transition: color 0.2s ease;
+      font-size: 14px;
+      border-bottom: 1px solid #f5f5f5;
+      transition: background 0.2s ease;
     }
 
-    .selected-tag button:hover {
-      color: #fff;
+    .tag-option:last-child {
+      border-bottom: none;
+    }
+
+    .tag-option:hover {
+      background: #f5f7fa;
     }
 
     /* 滚动条样式 */
@@ -784,27 +790,16 @@
               </select>
             </div>
 
-            <!-- 文章标签：升级为搜索多选格式 + 回显已发布文章标签 -->
+            <!-- 文章标签：选择 + 自定义 完整版 -->
             <div class="form-group">
-              <label class="form-label">文章标签（可多选）</label>
-              <div class="tag-search-container">
-                <input type="text" class="form-control" id="tagSearch" placeholder="搜索标签（如 Vue、Python、AI）" />
-                <div class="tag-dropdown" id="tagDropdown">
-                  <div class="tag-list">
-                    {% for tag in tags %}
-                    <label class="tag-item" data-tag="{{ tag.name|lower }}">
-                      <input type="checkbox" name="tags" value="{{ tag.id }}" {% if tag in article.tags.all %}checked
-                        {%endif %}> {{ tag.name }}
-                    </label>
-                    {% empty %}
-                    <span class="form-text">暂无可用标签，请先创建标签</span>
-                    {% endfor %}
-                  </div>
-                </div>
+              <label class="form-label">文章标签（可多选/可自定义）</label>
+              <div class="tag-input-container">
+                <input type="text" id="tagSearch" class="form-control" placeholder="搜索标签 或 输入新标签回车添加">
+                <div id="tagDropdown"></div>
               </div>
-              <div class="selected-tags" id="selectedTags">
-                <!-- 已选标签会动态渲染在这里 -->
-              </div>
+              <div class="selected-tags" id="selectedTags"></div>
+              <input type="hidden" name="tags" id="tagValues">
+              <div class="form-text">按回车添加新标签，点击标签可删除</div>
             </div>
           </div>
 
@@ -881,11 +876,7 @@
     const tagSearch = document.getElementById('tagSearch');
     const tagDropdown = document.getElementById('tagDropdown');
     const selectedTagsEl = document.getElementById('selectedTags');
-    const tagValuesEl = document.createElement('input');
-    tagValuesEl.type = 'hidden';
-    tagValuesEl.name = 'tags';
-    tagValuesEl.id = 'tagValues';
-    document.getElementById('publishForm').appendChild(tagValuesEl);
+    const tagValuesEl = document.getElementById('tagValues');
 
     const allTags = [
       {% for tag in tags %}
@@ -975,7 +966,7 @@
 
     // 点击外部关闭下拉
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.tag-search-container')) {
+      if (!e.target.closest('.tag-input-container')) {
         tagDropdown.style.display = 'none';
       }
     });

@@ -437,7 +437,7 @@
       <div class="article-card-tags">
         {% if article.tags.exists %}
         {% for tag in article.tags.all %}
-        <span class="article-card-tag"><a href="#">{{ tag.name }}</a></span>
+        <span class="article-card-tag"><a href="{% url 'article:tag_list' tag_id=tag.id %}">{{ tag.name }}</a></span>
         {% endfor %}
         {% else %}
         <span class="article-card-tag no-tag">暂无标签</span>

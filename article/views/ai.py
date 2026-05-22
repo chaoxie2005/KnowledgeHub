@@ -1,7 +1,10 @@
-# AI 功能端点：标题优化、摘要生成、文章/全局 RAG 问答、历史清空
+# AI 功能端点：标题优化、摘要生成、文章/全局 RAG 问答、历史清空、TTS 音频生成
+import hashlib
 import logging
 import json
+import os
 
+from django.core.files.base import ContentFile
 from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -9,6 +12,7 @@ from django.shortcuts import get_object_or_404
 
 from ..models import Article
 from ..ai_utils import optimize_article_title, generate_article_summary
+from ..tts_utils import generate_article_audio
 from utils.rag_chain import (
     simple_rag_qa,
     article_rag_qa_stream,
@@ -174,3 +178,68 @@ def clear_ai_history(request):
         request.session[history_key] = []
         request.session.modified = True
     return JsonResponse({"code": 200, "msg": "会话历史已清空"})
+
+
+@login_required(login_url='authentication:login')
+@require_POST
+def generate_article_audio_view(request, article_id):
+    """生成或重新生成文章 TTS 音频"""
+    try:
+        article = get_object_or_404(
+            Article.objects.only(
+                "id", "content", "audio_file", "audio_generated",
+                "audio_content_hash", "status",
+            ),
+            pk=article_id,
+            status="published",
+        )
+
+        api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("QWEN_API_KEY")
+        if not api_key:
+            return JsonResponse({
+                "success": False,
+                "error": "请配置 DASHSCOPE_API_KEY 环境变量",
+            })
+
+        content_hash = hashlib.sha256(article.content.encode()).hexdigest()
+        if (
+            article.audio_generated
+            and article.audio_file
+            and article.audio_content_hash == content_hash
+            and os.path.exists(article.audio_file.path)
+        ):
+            return JsonResponse({
+                "success": True,
+                "audio_url": article.audio_file.url,
+                "message": "音频已存在且内容未变更",
+                "cached": True,
+            })
+
+        audio_bytes = generate_article_audio(article.content)
+        if not audio_bytes:
+            return JsonResponse({
+                "success": False,
+                "error": "音频生成失败，请稍后重试",
+            })
+
+        filename = f"article_{article.id}.mp3"
+        article.audio_file.save(filename, ContentFile(audio_bytes), save=False)
+        article.audio_generated = True
+        article.audio_content_hash = content_hash
+        article.save(update_fields=["audio_file", "audio_generated", "audio_content_hash"])
+
+        return JsonResponse({
+            "success": True,
+            "audio_url": article.audio_file.url,
+            "message": "音频生成成功",
+            "cached": False,
+        })
+
+    except Article.DoesNotExist:
+        return JsonResponse({"success": False, "error": "文章不存在或未发布"})
+    except Exception:
+        logger.exception("TTS generation failed for article %s", article_id)
+        return JsonResponse({
+            "success": False,
+            "error": "音频生成失败，请稍后重试",
+        })

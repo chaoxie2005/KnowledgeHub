@@ -154,6 +154,214 @@
     }
   }
 
+  /* === 听文章按钮 === */
+  .listen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .listen-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .listen-btn:hover::before {
+    left: 100%;
+  }
+
+  .listen-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(17, 153, 142, 0.5);
+    background: linear-gradient(135deg, #15b8a8 0%, #4ef58c 100%);
+  }
+
+  .listen-btn:active {
+    transform: translateY(0);
+  }
+
+  .listen-btn.generating {
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .listen-btn.generating svg {
+    animation: downloadSpin 1s linear infinite;
+  }
+
+  .listen-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  /* === 浮动迷你播放器 === */
+  .audio-mini-fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1050;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    box-shadow: 0 4px 20px rgba(17, 153, 142, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fabPulse 2s ease-in-out infinite;
+  }
+
+  .audio-mini-fab.visible {
+    display: flex;
+  }
+
+  .audio-mini-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 28px rgba(17, 153, 142, 0.65);
+  }
+
+  .audio-mini-fab svg {
+    width: 22px;
+    height: 22px;
+    color: #fff;
+    stroke: #fff;
+  }
+
+  @keyframes fabPulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(17, 153, 142, 0.5); }
+    50% { box-shadow: 0 4px 32px rgba(17, 153, 142, 0.75); }
+  }
+
+  .audio-mini-player {
+    position: fixed;
+    bottom: 84px;
+    right: 24px;
+    z-index: 1050;
+    width: 320px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    transform: translateY(12px);
+    opacity: 0;
+  }
+
+  .audio-mini-player.active {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .audio-mini-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px 6px;
+    cursor: move;
+    user-select: none;
+  }
+
+  .audio-mini-player-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #166534;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    margin-right: 8px;
+  }
+
+  .audio-mini-player-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .audio-mini-player-close:hover {
+    color: #374151;
+  }
+
+  .audio-mini-player audio {
+    width: 100%;
+    height: 36px;
+    outline: none;
+    padding: 0 10px;
+  }
+
+  .audio-mini-player-status {
+    font-size: 0.8rem;
+    color: #6b7280;
+    text-align: center;
+    padding: 4px 14px 10px;
+  }
+
+  /* === 暗黑主题覆盖 === */
+  body.dark-theme .listen-btn {
+    box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+  }
+
+  body.dark-theme .audio-mini-fab {
+    box-shadow: 0 4px 20px rgba(17, 153, 142, 0.4);
+  }
+
+  body.dark-theme .audio-mini-player {
+    background: #1a3a2e;
+    border-color: #166534;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  body.dark-theme .audio-mini-player-title {
+    color: #4ade80;
+  }
+
+  body.dark-theme .audio-mini-player-status {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .audio-mini-player audio {
+    filter: invert(0.9) hue-rotate(180deg);
+  }
+
+  body.dark-theme .audio-mini-player-close {
+    color: #9ca3af;
+  }
+
+  body.dark-theme .audio-mini-player-close:hover {
+    color: #d1d5db;
+  }
+
   /* 文章摘要 */
   .article-summary {
     background: #f9fafb;
@@ -189,6 +397,14 @@
     font-size: 0.75rem;
     border: 1px solid #dbeafe;
     white-space: nowrap;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .article-tag:hover {
+    background-color: #dbeafe;
+    color: #004499;
+    border-color: #93c5fd;
   }
 
   .no-tag {
@@ -760,6 +976,15 @@
       </svg>
       导出PDF
     </a>
+    <a href="javascript:void(0);" class="listen-btn" id="listenBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>
+      听文章
+    </a>
   </div>
 
   <!-- 文章摘要 -->
@@ -774,11 +999,11 @@
     <span class="article-tags-label">标签：</span>
     {% if article.tags %}
     {% for tag in article.tags %}
-    <span class="article-tag">{{ tag.name }}</span>
+    <a href="{% url 'article:tag_list' tag_id=tag.id %}" class="article-tag">{{ tag.name }}</a>
     {% endfor %}
     {% elif article.tags.all %}
     {% for tag in article.tags.all %}
-    <span class="article-tag">{{ tag.name }}</span>
+    <a href="{% url 'article:tag_list' tag_id=tag.id %}" class="article-tag">{{ tag.name }}</a>
     {% endfor %}
     {% else %}
     <span class="no-tag">暂无标签</span>
@@ -1094,6 +1319,28 @@
 <!-- 图片放大遮罩DOM - 直接写死在页面，避免JS动态创建问题 -->
 <div class="article-img-viewer" id="articleImgViewer">
   <img src="" alt="图片预览" id="articlePreviewImg" loading="lazy">
+</div>
+
+<!-- 浮动音频播放器 -->
+<div class="audio-mini-fab" id="audioMiniFab" title="听文章">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+  </svg>
+</div>
+
+<div class="audio-mini-player" id="audioMiniPlayer">
+  <div class="audio-mini-player-header" id="audioPlayerHeader">
+    <span class="audio-mini-player-title" id="audioPlayerTitle">文章朗读</span>
+    <button class="audio-mini-player-close" id="audioPlayerClose">&times;</button>
+  </div>
+  <audio id="articleAudioPlayer" controls preload="metadata">
+    <source src="" type="audio/mpeg">
+    您的浏览器不支持音频播放，请升级浏览器后重试。
+  </audio>
+  <div class="audio-mini-player-status" id="audioPlayerStatus"></div>
 </div>
 {% endblock %}
 
@@ -1559,6 +1806,171 @@
         btn.disabled = false;
         btn.textContent = '发送问题';
         questionEl.value = '';
+      }
+    });
+  })();
+</script>
+<script>
+  // === 文章朗读 (TTS) ===
+  (function() {
+    const listenBtn = document.getElementById('listenBtn');
+    const miniFab = document.getElementById('audioMiniFab');
+    const miniPlayer = document.getElementById('audioMiniPlayer');
+    const audioPlayer = document.getElementById('articleAudioPlayer');
+    const audioSource = audioPlayer.querySelector('source');
+    const audioStatus = document.getElementById('audioPlayerStatus');
+    const playerClose = document.getElementById('audioPlayerClose');
+    const playerHeader = document.getElementById('audioPlayerHeader');
+    const playerTitle = document.getElementById('audioPlayerTitle');
+    const articleId = '{{ article.id }}';
+    const articleTitle = '{{ article.title|escapejs }}';
+
+    let audioUrl = '{{ article.audio_file|default:"" }}';
+    let isGenerating = false;
+    let hasAudio = {{ article.audio_generated|yesno:"true,false" }};
+
+    // 拖拽状态
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let playerStartLeft = 0;
+    let playerStartTop = 0;
+
+    function getBtnIcon() {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+      </svg>`;
+    }
+
+    function showPlayer(url) {
+      audioSource.src = url;
+      audioPlayer.load();
+      miniPlayer.classList.add('active');
+      playerTitle.textContent = articleTitle || '文章朗读';
+      audioStatus.textContent = '';
+      listenBtn.innerHTML = getBtnIcon() + '重新生成';
+      miniFab.classList.remove('visible');
+    }
+
+    function hidePlayer() {
+      miniPlayer.classList.remove('active');
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+      listenBtn.innerHTML = getBtnIcon() + '听文章';
+      if (hasAudio) {
+        miniFab.classList.add('visible');
+      }
+    }
+
+    playerClose.addEventListener('click', hidePlayer);
+
+    // 点击浮动按钮展开播放器
+    miniFab.addEventListener('click', function() {
+      if (audioUrl) {
+        showPlayer(audioUrl);
+      }
+    });
+
+    // 拖拽播放器
+    playerHeader.addEventListener('mousedown', function(e) {
+      if (e.target === playerClose) return;
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      const rect = miniPlayer.getBoundingClientRect();
+      playerStartLeft = rect.left;
+      playerStartTop = rect.top;
+      miniPlayer.style.transition = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      miniPlayer.style.right = 'auto';
+      miniPlayer.style.bottom = 'auto';
+      miniPlayer.style.left = (playerStartLeft + dx) + 'px';
+      miniPlayer.style.top = (playerStartTop + dy) + 'px';
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (isDragging) {
+        isDragging = false;
+        miniPlayer.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      }
+    });
+
+    // 如果已有音频，直接显示浮动按钮
+    if (hasAudio && audioUrl) {
+      miniFab.classList.add('visible');
+    }
+
+    // 点击听文章按钮
+    listenBtn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      if (isGenerating) return;
+
+      if (miniPlayer.classList.contains('active')) {
+        hidePlayer();
+        return;
+      }
+
+      if (hasAudio && audioUrl) {
+        showPlayer(audioUrl);
+        return;
+      }
+
+      // 开始生成
+      isGenerating = true;
+      listenBtn.classList.add('generating');
+      listenBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="2" x2="12" y2="6"></line>
+        <path d="M4.93 4.93l4.24 4.24"></path>
+      </svg>生成中...`;
+
+      audioStatus.textContent = '正在生成音频，请稍候...';
+      miniPlayer.classList.add('active');
+      playerTitle.textContent = articleTitle || '文章朗读';
+
+      try {
+        const response = await fetch('/article/ai/generate-audio/' + articleId + '/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          audioUrl = data.audio_url;
+          hasAudio = true;
+          showPlayer(data.audio_url);
+        } else {
+          audioStatus.textContent = '生成失败：' + (data.error || '未知错误');
+          setTimeout(function() {
+            listenBtn.innerHTML = getBtnIcon() + '听文章';
+            audioStatus.textContent = '';
+            miniPlayer.classList.remove('active');
+          }, 3000);
+        }
+      } catch (err) {
+        audioStatus.textContent = '网络错误，请稍后重试';
+        setTimeout(function() {
+          listenBtn.innerHTML = getBtnIcon() + '听文章';
+          audioStatus.textContent = '';
+          miniPlayer.classList.remove('active');
+        }, 3000);
+      } finally {
+        isGenerating = false;
+        listenBtn.classList.remove('generating');
       }
     });
   })();

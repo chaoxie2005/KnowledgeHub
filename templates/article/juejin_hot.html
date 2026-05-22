@@ -186,7 +186,7 @@
         {% endif %} 
       </div>  -->
 
-      <a class="article-title" href="{{ article.original_url }}">{{ article.title }}</a>
+      <a class="article-title" href="{{ article.original_url }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a>
 
       <div class="article-info">
         <a href="#" class="article-author">{{ article.author }}</a>
@@ -197,7 +197,7 @@
       {% firstof article.summary article.ai_summary article.title "暂无摘要" as display_summary %}
       <p class="article-summary">{{ display_summary|truncatechars:120 }}</p>
 
-      <a href="{{ article.original_url }}" class="read-more" target="_blank">阅读掘金原文 →</a>
+      <a href="{{ article.original_url }}" class="read-more" target="_blank" rel="noopener noreferrer">阅读掘金原文 →</a>
     </div>
   </div>
   {% endfor %}

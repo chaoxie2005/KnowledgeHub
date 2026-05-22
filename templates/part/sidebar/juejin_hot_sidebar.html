@@ -8,7 +8,7 @@
     {% block latest-articles %}
       {% for article in last_articles %}
         <li class="sidebar-list-item">
-          <a href="{{ article.original_url }}" class="sidebar-link"
+          <a href="{{ article.original_url }}" target="_blank" rel="noopener noreferrer" class="sidebar-link"
              title="{{ article.title }}">{{ article.title|truncatechars:18 }}</a>
         </li>
       {% empty %}

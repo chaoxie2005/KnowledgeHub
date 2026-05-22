@@ -9,6 +9,9 @@ urlpatterns = [
         "category_list/<int:category_id>", views.category_list, name="category_list"
     ),  # 与其分类相关的文章列表页
     path(
+        "tag_list/<int:tag_id>", views.tag_list, name="tag_list"
+    ),  # 标签文章列表页
+    path(
         "archive_list/<int:archive_year>/<int:archive_month>",
         views.archive_list,
         name="archive_list",
@@ -38,6 +41,7 @@ urlpatterns = [
     path("ai-qa/<int:article_id>/", views.article_ai_qa, name="article_ai_qa"),
     path("ai-qa/global/", views.global_ai_qa, name="global_ai_qa"),
     path("ai-qa/clear-history/", views.clear_ai_history, name="clear_ai_history"),
+    path("ai/generate-audio/<int:article_id>/", views.generate_article_audio_view, name="generate_article_audio"),
     path("comment/like/<int:comment_id>/", views.comment_like, name="comment_like"),
     path("comment/delete/<int:comment_id>/", views.delete_comment, name="delete_comment"),
     path('comment_management/', views.comment_management, name='comment_management'), # 评论管理

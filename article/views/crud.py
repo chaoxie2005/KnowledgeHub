@@ -29,12 +29,17 @@ def _audit_article_content(article):
 def _process_article_tags(request, article):
     """解析请求中的标签字符串，创建/获取 Tag 并关联到文章"""
     tag_str = request.POST.get("tags", "")
+    logger.info(f"[TAG_DEBUG] 原始 tags 值: {repr(tag_str)}")
+    logger.info(f"[TAG_DEBUG] POST keys: {list(request.POST.keys())}")
     tag_names = [t.strip() for t in tag_str.split(",") if t.strip()]
+    logger.info(f"[TAG_DEBUG] 解析后 tag_names: {tag_names}")
     final_tags = []
     for name in tag_names:
         tag, _created = Tag.objects.get_or_create(name=name)
         final_tags.append(tag)
+        logger.info(f"[TAG_DEBUG] 标签 '{name}' {'已创建' if _created else '已存在'}")
     article.tags.set(final_tags)
+    logger.info(f"[TAG_DEBUG] article.tags.set({[t.name for t in final_tags]}) 完成")
 
 
 @login_required(login_url="authentication:login")
@@ -230,9 +235,6 @@ def edit_draft(request, draft_id):
             except Category.DoesNotExist:
                 messages.warning(request, "选择的分类不存在，未更新分类！")
 
-        # 更新标签（支持选择 + 自定义）
-        _process_article_tags(request, article)
-
         # 更新状态（草稿/发布）
         if action == "publish":
             article.status = "published"
@@ -252,6 +254,9 @@ def edit_draft(request, draft_id):
 
         # 保存修改
         article.save()
+
+        # 更新标签（支持选择 + 自定义，放在 save 之后确保数据一致性）
+        _process_article_tags(request, article)
 
         # 提示+跳转
         if action == "publish":
@@ -355,9 +360,6 @@ def edit_published(request, published_id):
             except Category.DoesNotExist:
                 messages.warning(request, "选择的分类不存在，未更新分类！")
 
-        # 更新标签（支持选择 + 自定义）
-        _process_article_tags(request, article)
-
         # 核心调整：已发布文章编辑后的状态逻辑
         if action == "publish":
             article.status = "published"
@@ -380,6 +382,9 @@ def edit_published(request, published_id):
 
         # 保存修改
         article.save()
+
+        # 更新标签（支持选择 + 自定义，放在 save 之后确保数据一致性）
+        _process_article_tags(request, article)
 
         # 提示+跳转（适配已发布场景）
         if action == "publish":

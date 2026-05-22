@@ -39,7 +39,7 @@ from django.core.cache import cache
 from django_redis import get_redis_connection
 from django.utils import timezone
 
-from ..models import Article, Category, Comment, CommentLike
+from ..models import Article, Category, Tag, Comment, CommentLike
 from ..forms import CommentForm
 from .decorators import time_it
 
@@ -224,6 +224,8 @@ def _build_article_cache_data(article, rendered_content, read_count):
         "category_name": article.category.name if article.category else "",
         "tags": tags,
         "cover": article.cover.url if article.cover else "",
+        "audio_file": article.audio_file.url if article.audio_file and article.audio_generated else "",
+        "audio_generated": article.audio_generated,
     }
 
 
@@ -382,6 +384,46 @@ def archive_list(request, archive_year, archive_month):
         "article": {"year": archive_year, "month": archive_month},
     }
     return render(request, "article/archive_list.html", context)
+
+
+def tag_list(request, tag_id):
+    """标签文章列表页"""
+    tag = get_object_or_404(Tag, id=tag_id)
+
+    articles = Article.objects.filter(
+        tags__id=tag_id, status="published"
+    ).select_related("author", "category").prefetch_related("tags").order_by("-published_time")
+
+    page = request.GET.get("page", 1)
+    keyword = request.GET.get("keyword", "").strip()
+
+    if keyword:
+        articles = articles.filter(
+            Q(title__icontains=keyword)
+            | Q(summary__icontains=keyword)
+            | Q(content__icontains=keyword)
+            | Q(author__icontains=keyword)
+        )
+
+    paginator = Paginator(articles, 5)
+    try:
+        articles = paginator.page(page)
+    except PageNotAnInteger:
+        articles = paginator.page(1)
+    except EmptyPage:
+        articles = paginator.page(paginator.num_pages)
+
+    sidebar = _get_sidebar_data()
+    context = {
+        "tag": tag,
+        "articles": articles,
+        "last_articles": sidebar["last_articles"],
+        "hot_list": sidebar["hot_list"],
+        "categories": sidebar["categories"],
+        "about_articles": articles[:5],
+        "archives": sidebar["archives"],
+    }
+    return render(request, "article/tag_list.html", context)
 
 
 def download_markdown(request, article_id):

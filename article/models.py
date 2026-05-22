@@ -64,6 +64,22 @@ class Article(models.Model):
         verbose_name="封面图",
         # default="avatars/default_cover.png", # 如果没有上传封面，使用默认封面
     )
+    audio_file = models.FileField(
+        upload_to="article/audio/",
+        blank=True,
+        null=True,
+        verbose_name="文章音频",
+    )
+    audio_generated = models.BooleanField(
+        default=False,
+        verbose_name="音频已生成",
+    )
+    audio_content_hash = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        verbose_name="音频内容哈希",
+    )
 
     # 关联字段
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='作者') # 关联用户，用户删除则文章删除

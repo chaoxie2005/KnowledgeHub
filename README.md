@@ -22,7 +22,7 @@
 
 ![AI问答](static/img/ep/1c4ff164295cec131e573029a61cf552.png)
 
-这个是我最花时间的部分。基于 LangChain + ChromaDB 做的 RAG，所有文章先向量化存起来，用户提问时检索最相关的几篇当上下文再丢给大模型。用的火山引擎豆包 API，比直接调 OpenAI 便宜不少。
+这个是我最花时间的部分。基于 LangChain + ChromaDB 做的 RAG，所有文章先向量化存起来，用户提问时检索最相关的几篇当上下文再丢给大模型。用的是阿里百炼的通义千问（qwen-plus），Embedding 也是阿里的 DashScope，一套阿里全家桶，比直接调 OpenAI 便宜不少。
 
 ### 写文章
 
@@ -37,7 +37,7 @@ Markdown 编辑器，支持拖图进去。写完可以点一下让 AI 帮你优�
 | 框架 | Django 4.2 + DRF |
 | 数据库 | MySQL（线上）/ SQLite（本地开发） |
 | 缓存 | Redis（页面缓存 + 接口限流） |
-| 大模型 | 火山引擎豆包 API + LangChain |
+| 大模型 | 阿里百炼 DashScope（ChatTongyi + Embedding） |
 | 向量库 | ChromaDB（文章向量化存储） |
 | 定时任务 | APScheduler |
 | 前端 | Django Templates + 一点点原生 JS |
@@ -106,8 +106,7 @@ pip install -r requirements.txt
 
 ```env
 SECRET_KEY=你随便生成一个django密钥
-DOUBAO_API_KEY=火山引擎的API Key
-DOUBAO_BASE_URL=https://ark.cn-beijing.volces.com/api/v3
+DASHSCOPE_API_KEY=阿里云百炼平台的API Key
 
 # 如果用 MySQL
 MYSQL_DATABASE_NAME=blog

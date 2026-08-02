@@ -132,18 +132,18 @@ def detail(request, article_id):
             from utils.content_audit import ContentAuditService
             audit_service = ContentAuditService()
             audit_result = audit_service.audit_content(comment.content, "comment")
-            
+
             # 设置审核状态
             comment.is_audited = True
             comment.audit_passed = audit_result['passed']
             comment.violation_reasons = audit_result['violation_reasons']
             comment.audit_time = timezone.now()
-            
+
             # 如果审核不通过，显示错误信息
             if not audit_result['passed']:
                 messages.error(request, f"评论未通过审核：{'; '.join(audit_result['violation_reasons'])}")
                 return redirect("article:detail", article_id=article_id)
-            
+
             # 审核通过，保存评论
             comment.save()
 
@@ -222,13 +222,13 @@ def detail(request, article_id):
         ).order_by("id").first()
         
         # 获取侧边栏数据
-        hot_list = Article.objects.filter(status="published").order_by("-read_count")[:5]
-        last_articles = Article.objects.filter(status="published").order_by("-published_time")[:5]
+        hot_list = Article.objects.filter(status="published").select_related("author__profile", "category").order_by("-read_count")[:5]
+        last_articles = Article.objects.filter(status="published").select_related("author__profile", "category").order_by("-published_time")[:5]
         categories = Category.objects.all()
-        articles = Article.objects.filter(status="published")[:5]
+        articles = Article.objects.filter(status="published").select_related("author__profile", "category")[:5]
         # 获取归档数据
         archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
-        
+
         # 获取评论（递归获取所有层级的回复）
         comments = article.comments.filter(parent=None).select_related("user").prefetch_related(
             Prefetch(
@@ -308,13 +308,13 @@ def detail(request, article_id):
     ).order_by("id").first()
     
     # 获取侧边栏数据
-    hot_list = Article.objects.filter(status="published").order_by("-read_count")[:5]
-    last_articles = Article.objects.filter(status="published").order_by("-published_time")[:5]
+    hot_list = Article.objects.filter(status="published").select_related("author__profile", "category").order_by("-read_count")[:5]
+    last_articles = Article.objects.filter(status="published").select_related("author__profile", "category").order_by("-published_time")[:5]
     categories = Category.objects.all()
-    articles = Article.objects.filter(status="published")[:5]
+    articles = Article.objects.filter(status="published").select_related("author__profile", "category")[:5]
     # 获取归档数据
     archives = Article.objects.filter(status="published").dates('published_time', 'month', order='DESC')
-    
+
     # 获取评论（递归获取所有层级的回复）
     comments = article.comments.filter(parent=None).select_related("user").prefetch_related(
         Prefetch(
@@ -1356,26 +1356,26 @@ def comment_like(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
     user_id = request.user.id
     
-    # 定义 Redis Key
-    likes_set_key = f"comment:likes:set:{comment_id}"
-    like_count_key = f"comment:like_count:{comment_id}"
-    
+    # 定义 Redis Key（使用 cache.make_key 确保与 Django cache 共用同一 key）
+    likes_set_key = cache.make_key(f"comment:likes:set:{comment_id}")
+    like_count_key = cache.make_key(f"comment:like_count:{comment_id}")
+
     try:
         # 使用底层Redis客户端
         redis_conn = get_redis_connection()
-        
+
         # 1. 检查用户是否已在 Redis 集合中（判断是否点赞）
         is_liked = redis_conn.sismember(likes_set_key, user_id)
-        
+
         # 2. 开启 Redis Pipeline (实现事务原子性)
         pipe = redis_conn.pipeline()
-        
+
         if is_liked:
             # 已点赞 -> 取消点赞
             pipe.srem(likes_set_key, user_id)
             pipe.decr(like_count_key)
             action = "unliked"
-            
+
             # 3. 异步/同步持久化到数据库 (使用 F 表达式防止并发冲突)
             Comment.objects.filter(id=comment_id).update(like_count=F('like_count') - 1)
             CommentLike.objects.filter(comment=comment, user_id=user_id).delete()
@@ -1384,26 +1384,25 @@ def comment_like(request, comment_id):
             pipe.sadd(likes_set_key, user_id)
             pipe.incr(like_count_key)
             action = "liked"
-            
+
             # 3. 异步/同步持久化到数据库
             Comment.objects.filter(id=comment_id).update(like_count=F('like_count') + 1)
             CommentLike.objects.get_or_create(comment=comment, user_id=user_id)
-            
+
         # 4. 执行 Redis 事务
         pipe.execute()
-        
-        # 5. 获取最新点赞数（优先从 Redis 获取，兜底从 DB）
-        new_like_count = cache.get(like_count_key)
+
+        # 5. 获取最新点赞数：pipeline 已 incr/decr 版本化 key，raw get 直接读
+        new_like_count = redis_conn.get(like_count_key)
         if new_like_count is None:
             comment.refresh_from_db()
             new_like_count = comment.like_count
-            cache.set(like_count_key, new_like_count, timeout=86400 + random.randint(0, 3600)) # 缓存24小时
+            redis_conn.set(like_count_key, new_like_count, ex=86400 + random.randint(0, 3600))
         else:
             new_like_count = int(new_like_count)
-            # 如果 Redis 里的数是负的（极端并发错误），重置为0
             if new_like_count < 0:
                 new_like_count = 0
-                cache.set(like_count_key, 0)
+                redis_conn.set(like_count_key, 0)
         
         return JsonResponse({
             "status": "success", 
@@ -1432,15 +1431,13 @@ def delete_comment(request, comment_id):
     article_id = comment.article_id
     
     try:
-        # 1. 清理该评论关联的 Redis 数据
+        # 1. 先删数据库，避免并发窗口
+        comment.delete()
+
+        # 2. 再清理缓存
         cache.delete(f"comment:likes:set:{comment_id}")
         cache.delete(f"comment:like_count:{comment_id}")
-        
-        # 2. 清理文章详情页缓存（因为评论列表变了）
         cache.delete(f"article:detail:{article_id}")
-        
-        # 3. 数据库物理删除
-        comment.delete()
         
         return JsonResponse({"status": "success", "msg": "评论已删除"})
     except Exception as e:

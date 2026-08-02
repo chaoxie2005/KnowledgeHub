@@ -42,19 +42,11 @@ def _get_llm():
     if not api_key:
         return None, "请配置 DASHSCOPE_API_KEY 或 QWEN_API_KEY 环境变量"
 
-    try:
-        _LLM = ChatTongyi(
-            api_key=api_key,
-            model="qwen-plus",
-            temperature=0.8,
-            streaming=True,
-        )
-    except TypeError:
-        _LLM = ChatTongyi(
-            api_key=api_key,
-            model="qwen-plus",
-            temperature=0.8,
-        )
+    _LLM = ChatTongyi(
+        api_key=api_key,
+        model="qwen-plus",
+        temperature=0.8,
+    )
     return _LLM, None
 
 

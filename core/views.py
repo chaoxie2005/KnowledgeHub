@@ -89,12 +89,12 @@ def index(request):
     # 从缓存的ID列表获取实际的文章对象
     hot_articles = []
     if hot_articles_data.get("hot_articles_ids"):
-        hot_articles = Article.objects.filter(id__in=hot_articles_data.get("hot_articles_ids")).prefetch_related("tags")
+        hot_articles = Article.objects.filter(id__in=hot_articles_data.get("hot_articles_ids")).select_related("author__profile", "category").prefetch_related("tags")
         # 保持原始顺序
         id_to_article = {art.id: art for art in hot_articles}
         hot_articles = [id_to_article[id] for id in hot_articles_data.get("hot_articles_ids") if id in id_to_article]
     else:
-        hot_articles = Article.objects.filter(status="published").prefetch_related("tags").order_by("-read_count")[:8]
+        hot_articles = Article.objects.filter(status="published").select_related("author__profile", "category").prefetch_related("tags").order_by("-read_count")[:8]
     
     # 处理热门文章
     hot_one = hot_articles[0] if hot_articles else None
@@ -112,14 +112,14 @@ def index(request):
         latest_articles = Article.objects.filter(status="published").order_by("-created_time").first()
     
     # 处理最新文章列表
-    last_articles = Article.objects.filter(status="published").prefetch_related("tags").order_by("-published_time")[:5]
-    
+    last_articles = Article.objects.filter(status="published").select_related("author__profile", "category").prefetch_related("tags").order_by("-published_time")[:5]
+
     # 4. 获取分页和搜索参数：设置默认值为 1，避免空字符串
     page = request.GET.get("page", 1)
     keyword = request.GET.get("keyword", "").strip()  # 去除首尾空格，避免无效搜索
 
     # 5. 搜索逻辑：仅当关键词非空时才过滤，减少无效查询
-    article_qs = Article.objects.filter(status="published").prefetch_related("tags").order_by("-created_time")
+    article_qs = Article.objects.filter(status="published").select_related("author__profile", "category").prefetch_related("tags").order_by("-created_time")
     if keyword:
         article_qs = article_qs.filter(
             Q(title__icontains=keyword)
@@ -294,8 +294,8 @@ def search(request):
         cache.set(archive_cache_key, json.dumps(archive_data_list), timeout=7200 + random.randint(0, 3600))
     
     # 从缓存数据获取实际对象
-    last_articles = Article.objects.filter(id__in=[item[0] for item in sidebar_data.get("last_articles", [])]).order_by("-published_time")
-    hot_articles = Article.objects.filter(id__in=[item[0] for item in sidebar_data.get("hot_list", [])]).order_by("-read_count")
+    last_articles = Article.objects.filter(id__in=[item[0] for item in sidebar_data.get("last_articles", [])]).select_related("author__profile", "category").order_by("-published_time")
+    hot_articles = Article.objects.filter(id__in=[item[0] for item in sidebar_data.get("hot_list", [])]).select_related("author__profile", "category").order_by("-read_count")
     hot_list = hot_articles[:5]
     categories = Category.objects.all()
     
@@ -417,10 +417,10 @@ def data_visualization(request):
         "hot_list": hot_list,  # 热门文章列表页
         "categories": categories,
         "archive_data": archive_data,
-        "category_data": category_data,
-        "time_data": time_data,
-        "source_data": source_data,
-        "hot_article_data": hot_article_data,
+        "category_data": json.dumps(category_data, ensure_ascii=False),
+        "time_data": json.dumps(time_data, ensure_ascii=False),
+        "source_data": json.dumps(source_data, ensure_ascii=False),
+        "hot_article_data": json.dumps(hot_article_data, ensure_ascii=False),
         "local_count": local_count,  # 文章总数
     }
     

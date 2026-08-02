@@ -4,25 +4,47 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>发布文章 - 用户中心</title>
   <link rel="stylesheet" href="{% static 'css/users/reset.css' %}" />
   <link rel="stylesheet" href="{% static 'css/users/user_center.css' %}" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/simplemde@1.11.2/dist/simplemde.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/fontawesome.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/easymde.min.css' %}" />
+  <script src="{% static 'js/easymde.min.js' %}"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+      --success: #10b981;
+      --success-hover: #059669;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-focus: #a5b4fc;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+      --radius-sm: 6px;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans SC', sans-serif;
       font-size: 14px;
-      line-height: 1.5;
-      color: #333;
-      background-color: #f5f7fa;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--bg);
     }
 
     .user-center-container {
@@ -31,24 +53,31 @@
       flex-direction: column;
     }
 
+    /* ── Top Navigation ── */
     .top-nav {
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1000;
     }
 
     .site-name a {
       text-decoration: none;
-      color: #0066cc;
+      color: var(--primary);
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: -0.3px;
     }
+
+    .site-name a:hover { color: var(--primary-hover); }
 
     .user-info {
       display: flex;
@@ -57,360 +86,370 @@
     }
 
     .user-avatar {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       object-fit: cover;
+      border: 2px solid var(--border);
     }
 
     .user-nickname {
       font-weight: 500;
-      color: #333;
+      color: var(--text);
+      font-size: 14px;
     }
 
-    .dropdown {
-      position: relative;
-    }
+    .dropdown { position: relative; }
 
     .dropdown-btn {
       background: none;
       border: none;
-      font-size: 12px;
-      color: #666;
+      color: var(--text-muted);
       cursor: pointer;
-      padding: 4px;
+      padding: 4px 6px;
+      font-size: 11px;
+      transition: color var(--transition);
     }
+
+    .dropdown-btn:hover { color: var(--text); }
 
     .dropdown-content {
       position: absolute;
       top: 100%;
       right: 0;
-      background: #fff;
-      border: 1px solid #eee;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      min-width: 120px;
-      padding: 8px 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      min-width: 140px;
+      padding: 6px;
       display: none;
       z-index: 1000;
     }
 
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
-
-    /* 覆盖main-content的overflow设置，允许编辑器高度自由扩展 */
-    .main-content {
-      overflow: visible !important;
-    }
-
-    /* 为编辑器容器添加样式，确保其可以自由扩展 */
-    .form-group {
-      position: relative;
-    }
-
-    /* 为SimpleMDE编辑器添加样式，确保其可以自由扩展 */
-    .CodeMirror {
-      height: auto !important;
-      min-height: 500px;
-      max-height: none !important;
-    }
-
-    .CodeMirror-scroll {
-      height: auto !important;
-      max-height: none !important;
-    }
-
-    .simplemde {
-      height: auto !important;
-      max-height: none !important;
-    }
+    .dropdown:hover .dropdown-content { display: block; }
 
     .dropdown-content a {
-      display: block;
-      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
       text-decoration: none;
-      color: #333;
+      color: var(--text);
       font-size: 13px;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition);
     }
 
     .dropdown-content a:hover {
-      background: #f5f7fa;
+      background: var(--primary-light);
+      color: var(--primary);
     }
 
+    /* ── Main Layout ── */
     .main-content {
       flex: 1;
-      padding: 24px;
-    }
-
-    .left-menu {
-      display: none;
-    }
-
-    .menu-item {
-      cursor: pointer;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      color: #333;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      border-left: 3px solid transparent;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 24px;
+      gap: 28px;
     }
 
-    .menu-item:hover {
-      background: #f5f7fa;
-      border-left-color: #e0e0e0;
-    }
 
-    .menu-item.active {
-      background: #e6f0ff;
-      color: #0066cc;
-      border-left-color: #0066cc;
-      font-weight: 600;
-      box-shadow: inset 3px 0 0 #0066cc;
-    }
-
-    .menu-item span {
-      transition: transform 0.3s ease;
-      font-size: 12px;
-      color: #999;
-    }
-
-    .menu-item:hover span {
-      color: #666;
-    }
-
-    .menu-item.active span {
-      color: #0066cc;
-      transform: rotate(90deg);
-    }
-
-    .sub-menu {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease;
-    }
-
-    .sub-menu.active {
-      max-height: 300px;
-    }
-
-    .sub-menu-item {
-      padding: 6px 20px 6px 32px;
-    }
-
-    .sub-menu-item a {
-      text-decoration: none;
-      color: #666;
-      font-size: 13px;
-      display: block;
-      padding: 8px 12px;
-      transition: all 0.2s ease;
-      border-radius: 6px;
-      margin: 0 8px;
-    }
-
-    .sub-menu-item:hover a {
-      color: #0066cc;
-      background: rgba(0, 102, 204, 0.08);
-    }
-
-    .sub-menu-item.active a {
-      color: #0066cc;
-      font-weight: 600;
-      background: #e6f0ff;
-      border-left: 3px solid #0066cc;
-      box-shadow: inset 3px 0 0 #0066cc;
-    }
-
+    /* ── Right Content ── */
     .right-content {
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
     .publish-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      margin-bottom: 28px;
-      padding: 28px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+      padding: 28px 32px;
+      border: 1px solid var(--border);
+      transition: box-shadow var(--transition);
     }
 
-    .publish-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
+    .publish-card:hover { box-shadow: var(--shadow-md); }
 
-    .publish-card .section-title {
-      font-size: 19px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 24px;
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 22px;
       padding-bottom: 14px;
-      border-bottom: 2px solid #f0f0f0;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .publish-card .section-title::before {
+    .section-title::before {
       content: '';
       width: 4px;
-      height: 20px;
-      background: #0066cc;
-      border-radius: 2px;
+      height: 22px;
+      background: var(--primary);
+      border-radius: 3px;
     }
 
-    .form-group {
-      margin-bottom: 28px;
+    .section-title .title-icon {
+      color: var(--primary);
+      font-size: 16px;
     }
+
+    /* ── Form Elements ── */
+    .form-group { margin-bottom: 24px; }
+
+    .form-group:last-child { margin-bottom: 0; }
 
     .form-label {
       display: block;
-      font-size: 15px;
-      color: #333;
-      margin-bottom: 12px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .form-label .required {
+      color: var(--danger);
+      margin-left: 2px;
     }
 
     .form-control {
       width: 100%;
-      padding: 14px 18px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 15px;
-      color: #333;
-      transition: all 0.2s ease;
-      box-sizing: border-box;
+      padding: 11px 15px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--text);
+      transition: all var(--transition);
+      background: var(--card-bg);
       font-family: inherit;
+      line-height: 1.5;
     }
 
     .form-control:focus {
       outline: none;
-      border-color: #0066cc;
-      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
 
-    .form-control::placeholder {
-      color: #999;
+    .form-control::placeholder { color: var(--text-muted); }
+
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+      cursor: pointer;
     }
 
     .form-text {
       font-size: 12px;
-      color: #6c757d;
-      margin-top: 8px;
-      line-height: 1.4;
-    }
-
-    .cover-preview {
-      margin-top: 12px;
-      max-width: 200px;
-      max-height: 150px;
-      border-radius: 8px;
-      display: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease;
-    }
-
-    .cover-preview.show {
-      display: block;
-    }
-
-    .cover-preview:hover {
-      transform: scale(1.02);
-    }
-
-    .btn-group {
+      color: var(--text-secondary);
+      margin-top: 6px;
       display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid #f0f0f0;
+      align-items: center;
+      gap: 4px;
     }
 
-    .btn {
-      padding: 12px 28px;
-      border-radius: 8px;
-      font-size: 15px;
+    .form-text.warning {
+      color: var(--danger);
       font-weight: 500;
+    }
+
+    /* ── Cover Upload ── */
+    .cover-upload-wrapper {
+      position: relative;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      text-align: center;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all var(--transition);
+      background: #fafbfc;
+      overflow: hidden;
+    }
+
+    .cover-upload-wrapper:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .cover-upload-wrapper.has-image {
+      border-style: solid;
+      padding: 12px;
+    }
+
+    .cover-upload-wrapper input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .cover-upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+
+    .cover-upload-placeholder i {
+      font-size: 36px;
+      color: var(--primary);
+      opacity: 0.6;
+    }
+
+    .cover-upload-placeholder span {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .cover-upload-wrapper.has-image .cover-upload-placeholder { display: none; }
+
+    .cover-preview-img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: var(--radius-sm);
+      object-fit: contain;
+      display: none;
+    }
+
+    .cover-upload-wrapper.has-image .cover-preview-img { display: block; }
+
+    .cover-remove-btn {
+      display: none;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 3;
+      background: var(--danger);
+      color: white;
       border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+
+    .cover-upload-wrapper.has-image .cover-remove-btn { display: flex; }
+    .cover-remove-btn:hover { transform: scale(1.1); }
+
+    /* ── Tags ── */
+    .tag-input-container { position: relative; }
+
+    .selected-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      min-height: 32px;
+    }
+
+    .tag-item {
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 5px 12px;
+      border-radius: 20px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all var(--transition);
+      border: 1px solid transparent;
     }
 
-    .btn-cancel {
-      background: #f5f5f5;
-      color: #666;
-    }
-
-    .btn-cancel:hover {
-      background: #e8e8e8;
-      color: #333;
-    }
-
-    .btn-draft {
-      background: #0066cc;
-      color: #fff;
-    }
-
-    .btn-draft:hover {
-      background: #0056b3;
+    .tag-item:hover {
+      border-color: var(--primary);
       transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
     }
 
-    .btn-publish {
-      background: #28a745;
-      color: #fff;
+    .tag-item button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      opacity: 0.6;
+      transition: opacity var(--transition);
+      display: flex;
+      align-items: center;
     }
 
-    .btn-publish:hover {
-      background: #218838;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    .tag-item button:hover { opacity: 1; }
+
+    #tagDropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      display: none;
     }
 
-    .count-text {
-      font-size: 12px;
-      color: #6c757d;
-      text-align: right;
-      margin-top: 8px;
+    .tag-option {
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 1px solid #f8fafc;
+      transition: background var(--transition);
     }
 
+    .tag-option:last-child { border-bottom: none; }
+    .tag-option:hover { background: var(--primary-light); color: var(--primary); }
+    .tag-option.no-match { color: var(--text-muted); cursor: default; }
+    .tag-option.no-match:hover { background: none; color: var(--text-muted); }
+
+    /* ── AI Buttons ── */
     .ai-btn-group {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       margin-top: 12px;
     }
 
     .btn-ai {
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 8px 18px;
+      border-radius: 20px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid #0066cc;
-      background: #f0f7ff;
-      color: #0066cc;
-      display: flex;
+      transition: all var(--transition);
+      border: 1px solid var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+      display: inline-flex;
       align-items: center;
       gap: 6px;
+      white-space: nowrap;
     }
 
     .btn-ai:hover {
-      background: #e0edff;
-      border-color: #0056b3;
+      background: var(--primary);
+      color: #fff;
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0, 102, 204, 0.1);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
     }
 
     .btn-ai:disabled {
@@ -420,424 +459,541 @@
       box-shadow: none;
     }
 
-    .ai-loading {
+    .btn-ai:hover:disabled {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .ai-spinner {
       display: none;
       width: 14px;
       height: 14px;
-      border: 2px solid #e0edff;
-      border-top-color: #0066cc;
+      border: 2px solid rgba(79, 70, 229, 0.2);
+      border-top-color: var(--primary);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.7s linear infinite;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    .btn-ai.loading .ai-spinner { display: inline-block; }
+    .btn-ai.loading .ai-label { display: none; }
 
-    .tag-input-container {
-      position: relative;
-      width: 100%;
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .selected-tags {
+    /* ── Action Buttons ── */
+    .btn-group {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-      min-height: 36px;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 24px;
     }
 
-    .tag-item {
-      background: #0066cc;
+    .btn {
+      padding: 11px 28px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-cancel {
+      background: #f1f5f9;
+      color: var(--text-secondary);
+    }
+
+    .btn-cancel:hover {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    .btn-draft {
+      background: var(--primary);
       color: #fff;
-      padding: 6px 12px;
-      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-draft:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    }
+
+    .btn-publish {
+      background: var(--success);
+      color: #fff;
+      box-shadow: 0 1px 2px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-publish:hover {
+      background: var(--success-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    /* ── Character Count ── */
+    .count-bar {
       display: flex;
       align-items: center;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s ease;
+      gap: 8px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
     }
 
-    .tag-item:hover {
-      background: #0056b3;
-      transform: translateY(-1px);
+    .count-bar .count-fill {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
     }
 
-    .tag-item button {
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.8);
-      margin-left: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      line-height: 1;
-      padding: 0;
-      transition: color 0.2s ease;
+    .count-bar .count-fill-inner {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease, background 0.3s ease;
+      background: var(--primary);
     }
 
-    .tag-item button:hover {
-      color: #fff;
-    }
+    .count-bar .count-fill-inner.warning { background: var(--warning); }
+    .count-bar .count-fill-inner.danger { background: var(--danger); }
 
-    #tagDropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      z-index: 999;
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      display: none;
-    }
-
-    .tag-option {
-      padding: 10px 16px;
-      cursor: pointer;
-      font-size: 14px;
-      border-bottom: 1px solid #f5f5f5;
-      transition: background 0.2s ease;
-    }
-
-    .tag-option:last-child {
-      border-bottom: none;
-    }
-
-    .tag-option:hover {
-      background: #f5f7fa;
-    }
-
+    /* ── EasyMDE Overrides ── */
     .editor-toolbar {
-      border-color: #e0e0e0 !important;
-      background: #f8f9fa !important;
-      border-radius: 8px 8px 0 0 !important;
+      border: 1.5px solid var(--border) !important;
+      border-bottom: none !important;
+      border-radius: var(--radius) var(--radius) 0 0 !important;
+      background: #fafbfc !important;
+      padding: 4px 6px !important;
+      flex-wrap: wrap !important;
     }
 
     .editor-toolbar button {
-      color: #333 !important;
-      transition: all 0.2s ease !important;
+      color: var(--text-secondary) !important;
+      border-radius: 4px !important;
+      width: 30px !important;
+      height: 30px !important;
+      transition: all var(--transition) !important;
     }
 
     .editor-toolbar button:hover {
-      background: rgba(0, 102, 204, 0.1) !important;
+      background: var(--primary-light) !important;
+      color: var(--primary) !important;
     }
 
-    .editor-preview {
-      background: #fff !important;
-      height: 300px !important;
+    .editor-toolbar button.active {
+      background: var(--primary-light) !important;
+      color: var(--primary) !important;
+      border-color: var(--primary) !important;
     }
 
-    .CodeMirror {
-      border: 1px solid #e0e0e0 !important;
-      border-radius: 0 0 8px 8px !important;
-      padding: 16px !important;
-      font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+    .editor-toolbar i.separator {
+      border-left: 1px solid var(--border) !important;
+      margin: 0 4px !important;
+    }
+
+    .EasyMDEContainer .CodeMirror {
+      border: 1.5px solid var(--border) !important;
+      border-top: none !important;
+      border-radius: 0 0 var(--radius) var(--radius) !important;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace !important;
       font-size: 14px !important;
-      line-height: 1.6 !important;
-      height: 300px !important;
-      min-height: 300px !important;
-      max-height: 600px !important;
+      line-height: 1.7 !important;
+      color: var(--text) !important;
+      background: #fefefe !important;
     }
 
     .summary-editor .CodeMirror {
-      height: auto !important;
-      min-height: 100px !important;
-      border-radius: 8px !important;
+      height: 220px !important;
     }
 
     .summary-editor .editor-toolbar {
-      padding: 8px 12px !important;
-      font-size: 12px !important;
-      border-radius: 8px 8px 0 0 !important;
+      border-radius: var(--radius) var(--radius) 0 0 !important;
     }
 
-    /* 自定义滚动条 */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+    .content-editor .EasyMDEContainer {
+      height: auto !important;
     }
 
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
+    .content-editor .CodeMirror {
+      height: 700px !important;
     }
 
-    ::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 4px;
+    .content-editor .CodeMirror-scroll {
+      max-height: none !important;
+      min-height: 0 !important;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
+    @media (min-height: 1000px) {
+      .content-editor .CodeMirror {
+        height: 70vh !important;
+      }
     }
 
-    /* 全局链接样式 */
-    a {
-      color: #0066cc;
-      text-decoration: none;
-      transition: all 0.2s ease;
+    .editor-preview {
+      background: #fefefe !important;
     }
 
-    a:hover {
-      color: #0056b3;
-      text-decoration: none;
+    .editor-preview.editor-preview-active {
+      border: 1.5px solid var(--border) !important;
+      border-top: none !important;
+      border-left: 1px solid var(--border) !important;
     }
 
-    /* 全局选择文本样式 */
-    ::selection {
-      background: rgba(0, 102, 204, 0.1);
-      color: #0066cc;
+    .editor-preview h1, .editor-preview h2, .editor-preview h3 {
+      border-bottom: none !important;
     }
 
+    /* ── Toast container ── */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 280px;
+      animation: slideIn 0.3s ease;
+      border-left: 4px solid var(--primary);
+    }
+
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+
+    .toast i { font-size: 16px; }
+    .toast.success i { color: var(--success); }
+    .toast.error i { color: var(--danger); }
+    .toast.warning i { color: var(--warning); }
+
+    @keyframes slideIn {
+      from { transform: translateX(120%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast.removing {
+      animation: slideOut 0.3s ease forwards;
+    }
+
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(120%); opacity: 0; }
+    }
+
+    /* ── Keyboard shortcuts hint ── */
+    .shortcuts-hint {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    .shortcuts-hint kbd {
+      display: inline-block;
+      padding: 1px 6px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Responsive ── */
     @media (max-width: 768px) {
-      .main-content {
-        flex-direction: column;
-        padding: 16px;
-        gap: 16px;
-      }
-
-      .left-menu {
-        width: 100%;
-        position: static;
-      }
-
-      .right-content {
-        max-width: 100%;
-      }
-
-      .publish-card {
-        padding: 20px;
-        margin-bottom: 20px;
-      }
-
-      .btn-group {
-        flex-direction: column;
-      }
-
-      .btn {
-        justify-content: center;
-      }
+      .main-content { padding: 16px 12px; }
+      .right-content { max-width: 100%; }
+      .publish-card { padding: 18px 16px; margin-bottom: 16px; }
+      .btn-group { flex-direction: column; }
+      .btn { justify-content: center; width: 100%; }
+      .editor-toolbar button { width: 26px !important; height: 26px !important; }
     }
+
+    /* ── Misc ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    ::selection {
+      background: rgba(79, 70, 229, 0.15);
+      color: var(--primary);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    a:hover { color: var(--primary-hover); }
   </style>
 </head>
 
 <body>
   <div class="user-center-container">
-    {% include 'part/sweetalert.html' %}
+    <!-- Top Nav -->
     <div class="top-nav">
       <div class="site-name">
-        <a href="{% url 'core:index' %}">首页</a>
+        <a href="{% url 'core:index' %}"><i class="fa-solid fa-house"></i> 首页</a>
       </div>
       <div class="user-info">
         {% if user.profile.avatar %}
-        <img src="{{ user.profile.avatar.url }}" alt="用户头像" class="user-avatar" />
+        <img src="{{ user.profile.avatar.url }}" alt="头像" class="user-avatar" />
         {% else %}
-        <img src="{% static 'img/default_avatar.png' %}" alt="默认头像" class="user-avatar" />
+        <img src="{% static 'img/default_avatar.png' %}" alt="头像" class="user-avatar" />
         {% endif %}
         <span class="user-nickname">{{ user.profile.nickname|default:user.username }}</span>
         <div class="dropdown">
-          <button class="dropdown-btn">▼</button>
+          <button class="dropdown-btn"><i class="fa-solid fa-chevron-down"></i></button>
           <div class="dropdown-content">
-            <a href="{% url 'users:user_center' %}">个人中心</a>
-            <a href="{% url 'authentication:logout' %}">退出登录</a>
+            <a href="{% url 'users:user_center' %}"><i class="fa-solid fa-user"></i> 个人中心</a>
+            <a href="{% url 'authentication:logout' %}"><i class="fa-solid fa-right-from-bracket"></i> 退出登录</a>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Main Content -->
     <div class="main-content">
-      <div class="left-menu">
-        <div class="menu-item" data-target="personal-menu">
-          个人中心
-          <span>▼</span>
-        </div>
-        <div class="sub-menu" id="personal-menu">
-          <div class="sub-menu-item">
-            <a href="{% url 'users:user_center' %}">个人信息</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'authentication:change_password' %}">修改密码</a>
-          </div>
-        </div>
-
-        <div class="menu-item active" data-target="content-menu">
-          内容管理
-          <span>▼</span>
-        </div>
-        <div class="sub-menu active" id="content-menu">
-          <div class="sub-menu-item active">
-            <a href="{% url 'article:publish_article' %}">发布文章</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'article:drafts' %}">草稿箱</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'article:published' %}">已发布</a>
-          </div>
-          <div class="sub-menu-item">
-            <a href="{% url 'article:comment_management' %}">评论管理</a>
-          </div>
-        </div>
-      </div>
-
       <div class="right-content">
         <form method="post" enctype="multipart/form-data" id="publishForm" action="{% url 'article:publish_article' %}">
           {% csrf_token %}
 
-          <!-- 标题 -->
+          <!-- Title Card -->
           <div class="publish-card">
-            <div class="section-title">文章标题</div>
+            <div class="section-title">
+              <i class="fa-solid fa-heading title-icon"></i> 文章标题
+            </div>
             <div class="form-group">
-              <input type="text" class="form-control" id="title" name="title" placeholder="请输入文章标题" maxlength="100"
-                required value="{{ values.title }}" />
-              <div class="form-text">标题是文章的核心，建议 15-20 字，突出核心亮点，简洁明了</div>
+              <input type="text" class="form-control" id="title" name="title"
+                placeholder="输入一个吸引人的标题..." maxlength="100" required
+                value="{{ values.title|default:'' }}"
+                style="font-size: 16px; font-weight: 600; padding: 14px 18px;" />
+              <div class="form-text">
+                <i class="fa-solid fa-lightbulb"></i> 好的标题是成功的一半，建议 15-30 字，突出核心亮点
+              </div>
               <div class="ai-btn-group">
                 <button type="button" class="btn-ai" id="aiOptimizeTitle">
-                  <span class="ai-loading" id="titleLoading"></span>
-                  🤖 AI 优化标题
+                  <span class="ai-spinner"></span>
+                  <span class="ai-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 优化标题</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 基础设置 -->
+          <!-- Meta Settings Card -->
           <div class="publish-card">
-            <div class="section-title">基础设置</div>
+            <div class="section-title">
+              <i class="fa-solid fa-gear title-icon"></i> 基础设置
+            </div>
+
+            <!-- Cover Image -->
             <div class="form-group">
               <label class="form-label">封面图</label>
-              <div style="position: relative; margin-bottom: 12px;">
-                <input type="file" id="cover" name="cover" accept="image/*"
-                  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2;" />
-                <div class="btn btn-draft" style="width: 100%; justify-content: center;">
-                  📷 选择封面图片
+              <div class="cover-upload-wrapper" id="coverUploadWrapper">
+                <input type="file" id="cover" name="cover" accept="image/jpeg,image/png,image/webp" />
+                <div class="cover-upload-placeholder">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span>点击或拖拽上传封面图片</span>
+                  <small style="color: var(--text-muted);">支持 JPG / PNG / WebP，最大 4MB,建议上传竖型图片或者正方形图片</small>
                 </div>
-              </div>
-              <img src="" alt="封面预览" class="cover-preview" id="coverPreview" loading="lazy" />
-              <div class="form-text"
-                style="color: #ff4d4f; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                ⚠️ 支持 JPG/PNG/WebP 格式，大小不超过 4MB，请上传横版或正方形图片，不要上传竖长型图片
+                <img src="" alt="封面预览" class="cover-preview-img" id="coverPreview" />
+                <button type="button" class="cover-remove-btn" id="coverRemoveBtn" title="移除封面">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
               </div>
             </div>
 
+            <!-- Category -->
             <div class="form-group">
-              <label class="form-label">文章分类</label>
+              <label class="form-label">文章分类 <span class="required">*</span></label>
               <select class="form-control" id="category" name="category" required>
                 <option value="">请选择分类</option>
-                <option value="" disabled>--- 热门分类 ---</option>
                 {% for category in categories %}
-                <option value="{{ category.id }}">{{ category.name }}</option>
+                <option value="{{ category.id }}" {% if values.category == category.id|stringformat:"s" %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
                 {% endfor %}
               </select>
             </div>
 
-            <!-- 标签：选择 + 自定义 -->
+            <!-- Tags -->
             <div class="form-group">
-              <label class="form-label">文章标签（可多选/可自定义）</label>
+              <label class="form-label">文章标签</label>
               <div class="tag-input-container">
-                <input type="text" id="tagSearch" class="form-control" placeholder="搜索标签 或 输入新标签回车添加">
+                <input type="text" id="tagSearch" class="form-control"
+                  placeholder="搜索标签或输入新标签后按回车添加..." autocomplete="off" />
                 <div id="tagDropdown"></div>
               </div>
               <div class="selected-tags" id="selectedTags"></div>
-              <input type="hidden" name="tags" id="tagValues">
-              <div class="form-text">按回车添加新标签，点击标签可删除</div>
+              <input type="hidden" name="tags" id="tagValues" />
+              <div class="form-text">
+                <i class="fa-solid fa-circle-info"></i> 按 <kbd>Enter</kbd> 添加新标签，点击标签可删除
+              </div>
             </div>
-
           </div>
 
-          <!-- 摘要 -->
+          <!-- Summary Card -->
           <div class="publish-card">
-            <div class="section-title">文章摘要（支持 Markdown）</div>
-            <div class="form-group">
-              <textarea class="form-control summary-editor" id="summary" name="summary" rows="3" placeholder="请输入文章摘要"
-                maxlength="500" required>{{ values.summary }}</textarea>
-              <div class="count-text">
-                <span id="summaryCount">0</span>/500 字
+            <div class="section-title">
+              <i class="fa-solid fa-file-lines title-icon"></i> 文章摘要
+            </div>
+            <div class="form-group summary-editor">
+              <textarea id="summary" name="summary" rows="3"
+                placeholder="写一段简洁的摘要，概括文章核心内容..."
+                maxlength="500">{{ values.summary|default:'' }}</textarea>
+              <div class="count-bar">
+                <span>字数统计:</span>
+                <span id="summaryCount">0</span><span>/500</span>
+                <div class="count-fill">
+                  <div class="count-fill-inner" id="summaryCountBar" style="width: 0%;"></div>
+                </div>
               </div>
               <div class="ai-btn-group">
                 <button type="button" class="btn-ai" id="aiGenerateSummary">
-                  <span class="ai-loading" id="summaryLoading"></span>
-                  🤖 AI 生成摘要
+                  <span class="ai-spinner"></span>
+                  <span class="ai-label"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 生成摘要</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- 内容 -->
+          <!-- Content Card -->
           <div class="publish-card">
-            <div class="section-title">文章内容（支持 Markdown）</div>
-            <div class="form-group">
-              <textarea class="form-control" id="content" name="content" rows="15" placeholder="请输入正文"
-                required>{{ values.content|default:'' }}</textarea>
-              <div class="form-text">支持 Markdown 语法</div>
+            <div class="section-title">
+              <i class="fa-solid fa-pen-to-square title-icon"></i> 文章内容
+            </div>
+            <div class="form-group content-editor">
+              <textarea id="content" name="content"
+                placeholder="开始创作你的文章...&#10;&#10;支持 Markdown 语法，使用工具栏快速排版">{{ values.content|default:'' }}</textarea>
+              <div class="shortcuts-hint">
+                <span><kbd>Ctrl+B</kbd> 加粗</span>
+                <span><kbd>Ctrl+I</kbd> 斜体</span>
+                <span><kbd>Ctrl+K</kbd> 链接</span>
+                <span><kbd>Ctrl+H</kbd> 标题</span>
+                <span><kbd>F9</kbd> 侧边预览</span>
+                <span><kbd>F11</kbd> 全屏</span>
+              </div>
             </div>
           </div>
 
-          <!-- 按钮 -->
+          <!-- Action Buttons -->
           <div class="btn-group">
-            <button type="button" class="btn btn-cancel" onclick="history.back()">取消</button>
-            <button type="button" class="btn btn-draft" data-action="draft">存为草稿</button>
-            <button type="button" class="btn btn-publish" data-action="publish">立即发布</button>
+            <button type="button" class="btn btn-cancel" onclick="history.back()">
+              <i class="fa-solid fa-xmark"></i> 取消
+            </button>
+            <button type="submit" name="action" value="draft" class="btn btn-draft">
+              <i class="fa-solid fa-file-lines"></i> 保存草稿
+            </button>
+            <button type="submit" name="action" value="publish" class="btn btn-publish">
+              <i class="fa-solid fa-paper-plane"></i> 立即发布
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <script>
-    // 菜单
-    document.querySelectorAll('.menu-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        const targetId = item.getAttribute('data-target')
-        const subMenu = document.getElementById(targetId)
-        item.classList.toggle('active')
-        subMenu.classList.toggle('active')
-      })
-    })
-
-    // 封面预览
-    const coverInput = document.getElementById('cover')
-    const coverPreview = document.getElementById('coverPreview')
-    coverInput.addEventListener('change', function (e) {
-      const file = e.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = function (e) {
-          coverPreview.src = e.target.result
-          coverPreview.classList.add('show')
-        }
-        reader.readAsDataURL(file)
-      } else {
-        coverPreview.classList.remove('show')
+    // ── CSRF Token Helper ──
+    function getCSRFToken() {
+      // 先从表单隐藏字段获取
+      var input = document.querySelector('[name=csrfmiddlewaretoken]');
+      if (input && input.value) return input.value;
+      // 再从 cookie 获取
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var c = cookies[i].trim();
+        if (c.startsWith('csrftoken=')) return c.substring('csrftoken='.length);
       }
-    })
+      return '';
+    }
 
-    // 标签：选择 + 自定义
+    // ── Toast System ──
+    function showToast(message, type = 'info', duration = 3500) {
+      const container = document.getElementById('toastContainer');
+      const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+      }, duration);
+    }
+
+    // ── Cover Upload ──
+    const coverInput = document.getElementById('cover');
+    const coverPreview = document.getElementById('coverPreview');
+    const coverWrapper = document.getElementById('coverUploadWrapper');
+    const coverRemoveBtn = document.getElementById('coverRemoveBtn');
+
+    coverInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file) {
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          showToast('仅支持 JPG / PNG / WebP 格式', 'error');
+          this.value = '';
+          return;
+        }
+        if (file.size > 4 * 1024 * 1024) {
+          showToast('图片大小不能超过 4MB', 'error');
+          this.value = '';
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+          coverPreview.src = e.target.result;
+          coverWrapper.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    coverRemoveBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      coverInput.value = '';
+      coverPreview.src = '';
+      coverWrapper.classList.remove('has-image');
+    });
+
+    // ── Tags ──
     let selectedTags = [];
     const tagSearch = document.getElementById('tagSearch');
     const tagDropdown = document.getElementById('tagDropdown');
     const selectedTagsEl = document.getElementById('selectedTags');
     const tagValuesEl = document.getElementById('tagValues');
+    const allTags = [{% for tag in tags %}"{{ tag.name|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
 
-    const allTags = [
-      {% for tag in tags %}
-    "{{ tag.name|escapejs }}"{% if not forloop.last %}, {% endif %}
-    {% endfor %}
-    ];
-
-    // 搜索标签
     tagSearch.addEventListener('input', function () {
       const val = this.value.trim().toLowerCase();
-      if (!val) {
-        tagDropdown.style.display = 'none';
-        return;
-      }
+      if (!val) { tagDropdown.style.display = 'none'; return; }
 
       const filtered = allTags.filter(t => t.toLowerCase().includes(val) && !selectedTags.includes(t));
       tagDropdown.innerHTML = '';
@@ -846,30 +1002,26 @@
         filtered.forEach(tag => {
           const div = document.createElement('div');
           div.className = 'tag-option';
-          div.innerText = tag;
-          div.onclick = () => {
+          div.textContent = tag;
+          div.addEventListener('click', () => {
             if (!selectedTags.includes(tag)) {
               selectedTags.push(tag);
-              render();
+              renderTags();
             }
             tagSearch.value = '';
             tagDropdown.style.display = 'none';
-          };
+          });
           tagDropdown.appendChild(div);
         });
-        tagDropdown.style.display = 'block';
       } else {
-        // 无匹配标签时，提示可自定义
-        const tipDiv = document.createElement('div');
-        tipDiv.className = 'tag-option';
-        tipDiv.innerText = '无匹配标签，按回车可自定义添加';
-        tipDiv.style.color = '#999';
-        tagDropdown.appendChild(tipDiv);
-        tagDropdown.style.display = 'block';
+        const tip = document.createElement('div');
+        tip.className = 'tag-option no-match';
+        tip.textContent = '按回车创建新标签';
+        tagDropdown.appendChild(tip);
       }
+      tagDropdown.style.display = 'block';
     });
 
-    // 回车添加自定义标签
     tagSearch.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -877,425 +1029,430 @@
         if (!tag) return;
         if (!selectedTags.includes(tag)) {
           selectedTags.push(tag);
-          render();
+          renderTags();
         }
         this.value = '';
         tagDropdown.style.display = 'none';
       }
     });
 
-    // 渲染标签
-    function render() {
+    function renderTags() {
       selectedTagsEl.innerHTML = '';
       selectedTags.forEach((t, i) => {
-        const item = document.createElement('div');
+        const item = document.createElement('span');
         item.className = 'tag-item';
-        item.innerHTML = `${t}<button onclick="removeTag(${i})">×</button>`;
+        item.innerHTML = `${t}<button type="button" data-index="${i}">&times;</button>`;
+        item.querySelector('button').addEventListener('click', () => {
+          selectedTags.splice(i, 1);
+          renderTags();
+        });
         selectedTagsEl.appendChild(item);
       });
       tagValuesEl.value = selectedTags.join(',');
     }
 
-    // 删除标签
-    window.removeTag = function (index) {
-      selectedTags.splice(index, 1);
-      render();
-    }
-
-    // 点击外部关闭下拉
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', e => {
       if (!e.target.closest('.tag-input-container')) {
         tagDropdown.style.display = 'none';
       }
     });
 
-    // 编辑器
-    const summaryMDE = new SimpleMDE({
-      element: document.getElementById("summary"),
-      spellChecker: false,
-      toolbar: [
-        { name: "bold", action: SimpleMDE.toggleBold, className: "fa fa-bold", title: "加粗" },
-        { name: "italic", action: SimpleMDE.toggleItalic, className: "fa fa-italic", title: "斜体" },
-        { name: "strikethrough", action: SimpleMDE.toggleStrikethrough, className: "fa fa-strikethrough", title: "删除线" },
-        "|",
-        { name: "heading", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "标题" },
-        { name: "code", action: SimpleMDE.toggleCodeBlock, className: "fa fa-code", title: "代码块" },
-        { name: "quote", action: SimpleMDE.toggleBlockquote, className: "fa fa-quote-left", title: "引用" },
-        "|",
-        { name: "unordered-list", action: SimpleMDE.toggleUnorderedList, className: "fa fa-list-ul", title: "无序列表" },
-        { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
-        "|",
-        { name: "link", action: SimpleMDE.drawLink, className: "fa fa-link", title: "链接" },
-        { name: "image", action: SimpleMDE.drawImage, className: "fa fa-image", title: "图片" }
-      ],
-      status: false,
-      autosave: false
-    });
-
+    // ── EasyMDE: Summary Editor ──
+    let summaryMDE = null;
     try {
-      localStorage.removeItem('smde_blog_editor');
-    } catch (e) { }
+      summaryMDE = new EasyMDE({
+        element: document.getElementById('summary'),
+        spellChecker: false,
+        autoDownloadFontAwesome: false,
+        toolbar: [
+          'bold', 'italic', 'strikethrough', '|',
+          'heading-smaller', 'heading-bigger', '|',
+          'quote', 'code', 'table', '|',
+          'unordered-list', 'ordered-list', '|',
+          'link', 'image',
+          { name: 'guide', action: 'https://www.markdownguide.org/basic-syntax/', className: 'fa fa-question-circle', title: 'Markdown 语法帮助' }
+        ],
+        status: false,
+        minHeight: '180px',
+        maxHeight: '400px',
+        placeholder: '写一段简洁的摘要，概括文章核心内容...',
+        lineWrapping: true,
+        tabSize: 2
+      });
+      summaryMDE.codemirror.setSize(null, 220);
+    } catch(e) {
+      console.error('EasyMDE summary editor init failed:', e);
+      showToast('Markdown 编辑器加载失败，将使用纯文本模式', 'warning', 5000);
+    }
 
-    const contentMDE = new SimpleMDE({
-      element: document.getElementById("content"),
-      spellChecker: false,
-      toolbar: [
-        { name: "undo", action: function (editor) { editor.codemirror.undo(); }, className: "fa fa-undo", title: "撤销" },
-        { name: "redo", action: function (editor) { editor.codemirror.redo(); }, className: "fa fa-repeat", title: "重做" },
-        "|",
-        { name: "heading", action: SimpleMDE.toggleHeadingSmaller, className: "fa fa-header", title: "标题" },
-        { name: "bold", action: SimpleMDE.toggleBold, className: "fa fa-bold", title: "加粗" },
-        { name: "italic", action: SimpleMDE.toggleItalic, className: "fa fa-italic", title: "斜体" },
-        {
-          name: "font-color",
-          action: function (editor) {
-            const color = prompt("请输入颜色值（如 #ff0000 或 red）：");
-            if (color) {
-              const cm = editor.codemirror;
-              const text = cm.getSelection() || "文本";
-              cm.replaceSelection(`<span style="color:${color}">${text}</span>`);
-            }
+    // ── EasyMDE: Content Editor ──
+    let contentMDE = null;
+    try {
+      contentMDE = new EasyMDE({
+        element: document.getElementById('content'),
+        spellChecker: false,
+        autoDownloadFontAwesome: false,
+        toolbar: [
+          'undo', 'redo', '|',
+          'bold', 'italic', 'strikethrough', '|',
+          {
+            name: 'heading',
+            action: function(editor) {
+              var cm = editor.codemirror;
+              var levels = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+              var div = document.createElement('div');
+              div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);padding:12px;min-width:280px;';
+              div.innerHTML = '<div style="font-size:13px;margin-bottom:8px;color:#666;">选择标题级别</div>';
+              levels.forEach(function(h, i) {
+                var btn = document.createElement('button');
+                btn.textContent = h;
+                btn.style.cssText = 'margin:3px;padding:4px 14px;cursor:pointer;font-size:'+(20-i*2)+'px;font-weight:bold;border:1px solid #ddd;border-radius:4px;background:#f8f8f8;';
+                btn.onclick = function() {
+                  var cursor = cm.getCursor();
+                  cm.replaceRange('\n' + '#'.repeat(i+1) + ' ' + (cm.getSelection() || '标题') + '\n', cursor);
+                  div.remove();
+                };
+                div.appendChild(btn);
+              });
+              var cancel = document.createElement('button');
+              cancel.textContent = '取消';
+              cancel.style.cssText = 'display:block;margin:8px auto 0;padding:4px 20px;cursor:pointer;border:1px solid #ddd;border-radius:4px;background:#eee;font-size:12px;';
+              cancel.onclick = function() { div.remove(); };
+              div.appendChild(cancel);
+              document.body.appendChild(div);
+            },
+            className: 'fa fa-heading',
+            title: '插入标题'
           },
-          className: "fa fa-font",
-          title: "字体颜色"
-        },
-        {
-          name: "background-color",
-          action: function (editor) {
-            const color = prompt("请输入背景颜色值（如 #ffff00 或 yellow）：");
-            if (color) {
-              const cm = editor.codemirror;
-              const text = cm.getSelection() || "文本";
-              cm.replaceSelection(`<span style="background-color:${color}">${text}</span>`);
-            }
-          },
-          className: "fa fa-highlighter",
-          title: "背景颜色"
-        },
-        "|",
-        { name: "unordered-list", action: SimpleMDE.toggleUnorderedList, className: "fa fa-list-ul", title: "无序列表" },
-        { name: "ordered-list", action: SimpleMDE.toggleOrderedList, className: "fa fa-list-ol", title: "有序列表" },
-        "|",
-        {
-          name: "align-left",
-          action: function (editor) {
-            const cm = editor.codemirror;
-            const text = cm.getSelection() || "文本";
-            cm.replaceSelection(`<div style="text-align: left;">${text}</div>`);
-          },
-          className: "fa fa-align-left",
-          title: "左对齐"
-        },
-        {
-          name: "align-center",
-          action: function (editor) {
-            const cm = editor.codemirror;
-            const text = cm.getSelection() || "文本";
-            cm.replaceSelection(`<div style="text-align: center;">${text}</div>`);
-          },
-          className: "fa fa-align-center",
-          title: "居中对齐"
-        },
-        {
-          name: "align-right",
-          action: function (editor) {
-            const cm = editor.codemirror;
-            const text = cm.getSelection() || "文本";
-            cm.replaceSelection(`<div style="text-align: right;">${text}</div>`);
-          },
-          className: "fa fa-align-right",
-          title: "右对齐"
-        },
-        "|",
-        {
-          name: "horizontal-rule",
-          action: function (editor) {
-            const cm = editor.codemirror;
-            cm.replaceSelection("\n---\n");
-          },
-          className: "fa fa-minus",
-          title: "水平分隔线"
-        },
-        { name: "quote", action: SimpleMDE.toggleBlockquote, className: "fa fa-quote-left", title: "引用" },
-        { name: "code", action: SimpleMDE.toggleCodeBlock, className: "fa fa-code", title: "代码块" },
-        "|",
-        {
-          name: "table",
-          action: function (editor) {
-            const cm = editor.codemirror;
-            const table = "\n| 标题1 | 标题2 | 标题3 |\n| --- | --- | --- |\n| 内容1 | 内容2 | 内容3 |\n";
-            cm.replaceSelection(table);
-          },
-          className: "fa fa-table",
-          title: "表格"
-        },
-        {
-          name: "image",
-          action: function (editor) {
-            const input = document.createElement("input")
-            input.type = "file"
-            input.accept = "image/*"
-            input.onchange = function () {
-              const file = input.files[0]
-              const formData = new FormData()
-              formData.append("image", file)
-              fetch("/article/upload_image/", {
-                method: "POST",
-                body: formData,
-                headers: {
-                  "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-                }
-              })
-                .then(res => res.json())
-                .then(data => {
-                  if (data.success) {
-                    const cm = editor.codemirror
-                    cm.replaceSelection(`\n![](${data.url})\n`)
-                  }
-                })
-            }
-            input.click()
-          },
-          className: "fa fa-image",
-          title: "图片"
-        },
-        {
-          name: "link",
-          action: SimpleMDE.drawLink,
-          className: "fa fa-link",
-          title: "链接"
-        },
-        "|",
-        {
-          name: "toc",
-          action: function (editor) {
-            const cm = editor.codemirror;
-            cm.replaceSelection("\n[TOC]\n");
-          },
-          className: "fa fa-list",
-          title: "目录"
-        },
-        "|",
-        {
-          name: "preview", action: function (editor) {
-            // 简单的 Markdown 到 HTML 转换函数
-            function markdownToHtml(markdown) {
-              // 标题
-              markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-              markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-              markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-              // 粗体和斜体
-              markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>');
-              markdown = markdown.replace(/\*(.*)\*/gim, '<em>$1</em>');
-
-              // 链接
-              markdown = markdown.replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" target="_blank">$1</a>');
-
-              // 图片
-              markdown = markdown.replace(/!\[([^\]]+)\]\(([^\)]+)\)/gim, '<img src="$2" alt="$1" style="max-width: 100%;">');
-
-              // 代码块
-              markdown = markdown.replace(/```([\s\S]*?)```/gim, '<pre><code>$1</code></pre>');
-
-              // 行内代码
-              markdown = markdown.replace(/`([^`]+)`/gim, '<code>$1</code>');
-
-              // 引用
-              markdown = markdown.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
-
-              // 无序列表
-              markdown = markdown.replace(/^\* (.*$)/gim, '<li>$1</li>');
-              markdown = markdown.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-
-              // 有序列表
-              markdown = markdown.replace(/^\d+\. (.*$)/gim, '<li>$1</li>');
-              markdown = markdown.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
-
-              // 换行
-              markdown = markdown.replace(/\n/gim, '<br>');
-
-              return markdown;
-            }
-
-            const preview = document.createElement('div');
-            preview.style.position = 'fixed';
-            preview.style.top = '0';
-            preview.style.right = '0';
-            preview.style.width = '50%';
-            preview.style.height = '100vh';
-            preview.style.background = '#fff';
-            preview.style.borderLeft = '1px solid #e0e0e0';
-            preview.style.padding = '20px';
-            preview.style.overflow = 'auto';
-            preview.style.zIndex = '1000';
-            preview.style.boxShadow = '-2px 0 10px rgba(0,0,0,0.1)';
-
-            const closeBtn = document.createElement('button');
-            closeBtn.textContent = '关闭预览';
-            closeBtn.style.position = 'absolute';
-            closeBtn.style.top = '10px';
-            closeBtn.style.right = '10px';
-            closeBtn.style.padding = '5px 10px';
-            closeBtn.style.background = '#f0f0f0';
-            closeBtn.style.border = '1px solid #ddd';
-            closeBtn.style.borderRadius = '4px';
-            closeBtn.style.cursor = 'pointer';
-            closeBtn.onclick = function () {
-              document.body.removeChild(preview);
-            };
-            preview.appendChild(closeBtn);
-
-            const content = editor.value();
-            const html = markdownToHtml(content);
-
-            const contentDiv = document.createElement('div');
-            contentDiv.style.marginTop = '40px';
-            contentDiv.innerHTML = html;
-            preview.appendChild(contentDiv);
-
-            document.body.appendChild(preview);
-          }, className: "fa fa-eye", title: "预览"
-        },
-        "|",
-        { name: "guide", action: "https://www.markdownguide.org/basic-syntax/", className: "fa fa-question-circle", title: "Markdown 语法帮助" }
-      ],
-      autosave: false,
-      status: false,
-      // 增加编辑器高度配置，解决不能下拉的问题
-      minHeight: '500px',
-      maxHeight: '10000px', // 设置一个较大的最大高度
-      autosize: true, // 自动调整大小
-      spellChecker: false
-    });
-
-    // 强制修复预览按钮问题
-    contentMDE.codemirror.on('refresh', () => { });
-
-    // 处理粘贴图片
-    contentMDE.codemirror.on("paste", function (cm, e) {
-      const items = e.clipboardData.items
-      let hasImage = false
-      for (let item of items) {
-        if (item.type.indexOf("image") !== -1) {
-          hasImage = true
-          break
-        }
-      }
-      if (hasImage) {
-        e.preventDefault()
-        for (let item of items) {
-          if (item.type.indexOf("image") !== -1) {
-            const file = item.getAsFile()
-            const formData = new FormData()
-            formData.append("image", file)
-            fetch("/article/upload_image/", {
-              method: "POST",
-              body: formData,
-              headers: {
-                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+          '|',
+          'quote', '|',
+          {
+            name: 'code-block',
+            action: function(editor) {
+              var cm = editor.codemirror;
+              function insertCodeBlock(lang) {
+                var sel = cm.getSelection() || '代码';
+                var fence = lang ? '```' + lang : '```';
+                cm.replaceSelection('\n' + fence + '\n' + sel + '\n```\n');
               }
+              var languages = ['', 'python', 'javascript', 'typescript', 'java', 'go', 'rust', 'c', 'cpp', 'csharp', 'php', 'ruby', 'swift', 'kotlin', 'sql', 'bash', 'yaml', 'json', 'html', 'css', 'markdown', 'dockerfile', 'nginx', 'xml'];
+              var div = document.createElement('div');
+              div.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.2);padding:12px;min-width:440px;max-height:420px;overflow-y:auto;';
+              var title = document.createElement('div');
+              title.textContent = '选择代码语言（可选）';
+              title.style.cssText = 'font-size:13px;margin-bottom:8px;color:#666;';
+              div.appendChild(title);
+              // No-language button
+              var noLangBtn = document.createElement('button');
+              noLangBtn.textContent = '无语言';
+              noLangBtn.style.cssText = 'margin:3px;padding:4px 12px;cursor:pointer;border:1px solid #ddd;border-radius:4px;background:#f0f0f0;font-size:12px;';
+              noLangBtn.onclick = function() { insertCodeBlock(''); div.remove(); };
+              div.appendChild(noLangBtn);
+              // Language buttons
+              languages.filter(function(l){return l;}).forEach(function(lang) {
+                var btn = document.createElement('button');
+                btn.textContent = lang;
+                btn.style.cssText = 'margin:3px;padding:4px 12px;cursor:pointer;border:1px solid #ddd;border-radius:4px;background:#f0f0f0;font-size:12px;';
+                btn.onclick = function() { insertCodeBlock(lang); div.remove(); };
+                div.appendChild(btn);
+              });
+              var cancel = document.createElement('button');
+              cancel.textContent = '取消';
+              cancel.style.cssText = 'display:block;margin:8px 0 0;padding:4px 20px;cursor:pointer;border:1px solid #ddd;border-radius:4px;background:#eee;font-size:12px;';
+              cancel.onclick = function() { div.remove(); };
+              div.appendChild(cancel);
+              document.body.appendChild(div);
+            },
+            className: 'fa fa-code',
+            title: '插入代码块'
+          },
+          'table', '|',
+          'unordered-list', 'ordered-list', '|',
+          {
+            name: 'font-color',
+            action: function (editor) {
+              const color = prompt('输入颜色值（如 #ff0000 或 red）：');
+              if (color) {
+                const cm = editor.codemirror;
+                cm.replaceSelection(`<span style="color:${color}">${cm.getSelection() || '文本'}</span>`);
+              }
+            },
+            className: 'fa fa-palette',
+            title: '字体颜色'
+          },
+          {
+            name: 'bg-color',
+            action: function (editor) {
+              const color = prompt('输入背景颜色值（如 #ffff00 或 yellow）：');
+              if (color) {
+                const cm = editor.codemirror;
+                cm.replaceSelection(`<span style="background-color:${color}">${cm.getSelection() || '文本'}</span>`);
+              }
+            },
+            className: 'fa fa-highlighter',
+            title: '背景高亮'
+          },
+          '|',
+          'link',
+          {
+            name: 'image-url',
+            action: function(editor) {
+              var url = prompt('输入图片URL：', 'https://');
+              if (url) {
+                var alt = prompt('图片描述（可选）：', '') || 'image';
+                editor.codemirror.replaceSelection(`![${alt}](${url})`);
+              }
+            },
+            className: 'fa fa-image',
+            title: '插入图片链接'
+          },
+          {
+            name: 'upload-image',
+            action: function (editor) {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = 'image/*';
+              input.onchange = function () {
+                const file = input.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('image', file);
+                fetch('/article/upload_image/', {
+                  method: 'POST',
+                  body: formData,
+                  headers: { 'X-CSRFToken': getCSRFToken() }
+                })
+                  .then(r => r.json())
+                  .then(data => {
+                    if (data.success) {
+                      editor.codemirror.replaceSelection(`\n![](${data.url})\n`);
+                    } else {
+                      showToast('图片上传失败', 'error');
+                    }
+                  })
+                  .catch(() => showToast('网络异常，上传失败', 'error'));
+              };
+              input.click();
+            },
+            className: 'fa fa-upload',
+            title: '上传本地图片'
+          },
+          '|',
+          {
+            name: 'align-left',
+            action: editor => editor.codemirror.replaceSelection(`<div style="text-align:left">${editor.codemirror.getSelection() || ''}</div>`),
+            className: 'fa fa-align-left',
+            title: '左对齐'
+          },
+          {
+            name: 'align-center',
+            action: editor => editor.codemirror.replaceSelection(`<div style="text-align:center">${editor.codemirror.getSelection() || ''}</div>`),
+            className: 'fa fa-align-center',
+            title: '居中对齐'
+          },
+          {
+            name: 'align-right',
+            action: editor => editor.codemirror.replaceSelection(`<div style="text-align:right">${editor.codemirror.getSelection() || ''}</div>`),
+            className: 'fa fa-align-right',
+            title: '右对齐'
+          },
+          '|',
+          'horizontal-rule', '|',
+          'preview', 'side-by-side', 'fullscreen', '|',
+          {
+            name: 'toc',
+            action: editor => editor.codemirror.replaceSelection('\n[TOC]\n'),
+            className: 'fa fa-list-ol',
+            title: '插入目录 [TOC]'
+          },
+          { name: 'guide', action: 'https://www.markdownguide.org/basic-syntax/', className: 'fa fa-question-circle', title: 'Markdown 帮助' }
+        ],
+        status: false,
+        minHeight: '600px',
+        lineWrapping: true,
+        tabSize: 2,
+        placeholder: '开始创作你的文章...',
+        maxHeight: 'none',
+        // Auto-save to localStorage
+        autosave: {
+          enabled: true,
+          uniqueId: 'blog_publish_article_content',
+          delay: 2000
+        }
+      });
+      contentMDE.codemirror.setSize(null, 700);
+    } catch(e) {
+      console.error('EasyMDE content editor init failed:', e);
+      showToast('Markdown 编辑器加载失败，将使用纯文本模式', 'warning', 5000);
+    }
+
+    // Responsive editor sizing
+    function resizeEditors() {
+      var contentH = window.innerHeight > 1000 ? Math.floor(window.innerHeight * 0.7) : 700;
+      if (contentMDE && contentMDE.codemirror) {
+        contentMDE.codemirror.setSize(null, contentH);
+      }
+    }
+    window.addEventListener('resize', resizeEditors);
+
+    // ── Paste Image Support ──
+    if (contentMDE) {
+      contentMDE.codemirror.on('paste', function (cm, e) {
+        const items = e.clipboardData.items;
+        let imageItem = null;
+        for (let item of items) {
+          if (item.type.indexOf('image') !== -1) { imageItem = item; break; }
+        }
+        if (imageItem) {
+          e.preventDefault();
+          const file = imageItem.getAsFile();
+          const formData = new FormData();
+          formData.append('image', file);
+          fetch('/article/upload_image/', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-CSRFToken': getCSRFToken() }
+          })
+            .then(r => r.json())
+            .then(data => {
+              if (data.success) cm.replaceSelection(`\n![](${data.url})\n`);
+              else showToast('图片上传失败', 'error');
             })
-              .then(res => res.json())
-              .then(data => {
-                if (data.success) {
-                  cm.replaceSelection(`\n![](${data.url})\n`)
-                }
-              })
-          }
+            .catch(() => showToast('网络异常，上传失败', 'error'));
+        }
+      });
+    }
+
+    // ── Summary Character Count ──
+    const summaryCount = document.getElementById('summaryCount');
+    const summaryCountBar = document.getElementById('summaryCountBar');
+    function updateSummaryCount() {
+      const val = summaryMDE ? summaryMDE.value() : document.getElementById('summary').value;
+      const len = val.length;
+      summaryCount.textContent = len;
+      const pct = Math.min((len / 500) * 100, 100);
+      summaryCountBar.style.width = pct + '%';
+      summaryCountBar.className = 'count-fill-inner' + (pct > 90 ? ' danger' : pct > 75 ? ' warning' : '');
+      if (len > 500) {
+        if (summaryMDE) {
+          summaryMDE.value(summaryMDE.value().substring(0, 500));
+        } else {
+          document.getElementById('summary').value = val.substring(0, 500);
         }
       }
-    })
+    }
+    if (summaryMDE) {
+      summaryMDE.codemirror.on('change', updateSummaryCount);
+    }
+    updateSummaryCount();
 
-    // 字数统计
-    const summaryCount = document.getElementById('summaryCount');
-    summaryMDE.codemirror.on('change', () => {
-      const c = summaryMDE.value();
-      summaryCount.innerText = c.length;
-      if (c.length > 500) {
-        summaryMDE.value(c.substring(0, 500));
-        summaryCount.innerText = 500;
-      }
-    });
-
-    // AI 功能
-    document.getElementById('aiOptimizeTitle').addEventListener('click', async () => {
+    // ── AI: Optimize Title ──
+    document.getElementById('aiOptimizeTitle').addEventListener('click', async function () {
       const title = document.getElementById('title').value.trim();
-      if (!title) { alert('请输入标题'); return; }
-      const btn = event.currentTarget;
-      const load = document.getElementById('titleLoading');
-      btn.disabled = true; load.style.display = 'inline-block';
+      if (!title) { showToast('请先输入标题', 'warning'); return; }
+      const btn = this;
+      btn.classList.add('loading');
+      btn.disabled = true;
       try {
         const res = await fetch('/article/ai/optimize-title/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': getCSRFToken()
           },
           body: JSON.stringify({ title })
         });
         const data = await res.json();
         if (data.success) {
           document.getElementById('title').value = data.optimized_title;
-          alert('优化成功！');
+          showToast('标题优化成功！', 'success');
         } else {
-          alert('失败：' + data.error);
+          showToast('优化失败：' + (data.error || '未知错误'), 'error');
         }
       } catch (e) {
-        alert('网络异常');
+        showToast('网络异常，请重试', 'error');
       } finally {
-        btn.disabled = false; load.style.display = 'none';
+        btn.classList.remove('loading');
+        btn.disabled = false;
       }
     });
 
-    document.getElementById('aiGenerateSummary').addEventListener('click', async () => {
-      const content = contentMDE.value();
-      if (!content) { alert('请输入内容'); return; }
-      const btn = event.currentTarget;
-      const load = document.getElementById('summaryLoading');
-      btn.disabled = true; load.style.display = 'inline-block';
+    // ── AI: Generate Summary ──
+    document.getElementById('aiGenerateSummary').addEventListener('click', async function () {
+      const content = (contentMDE ? contentMDE.value() : document.getElementById('content').value).trim();
+      if (!content) { showToast('请先输入文章内容', 'warning'); return; }
+      const btn = this;
+      btn.classList.add('loading');
+      btn.disabled = true;
       try {
         const res = await fetch('/article/ai/generate-summary/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'X-CSRFToken': getCSRFToken()
           },
           body: JSON.stringify({ content })
         });
         const data = await res.json();
         if (data.success) {
-          summaryMDE.value(data.summary);
-          summaryCount.innerText = data.summary.length;
-          alert('摘要生成成功！');
+          if (summaryMDE) {
+            summaryMDE.value(data.summary);
+          } else {
+            document.getElementById('summary').value = data.summary;
+          }
+          updateSummaryCount();
+          showToast('摘要生成成功！', 'success');
         } else {
-          alert('失败：' + data.error);
+          showToast('生成失败：' + (data.error || '未知错误'), 'error');
         }
       } catch (e) {
-        alert('网络异常');
+        showToast('网络异常，请重试', 'error');
       } finally {
-        btn.disabled = false; load.style.display = 'none';
+        btn.classList.remove('loading');
+        btn.disabled = false;
       }
     });
 
-    // 提交
-    document.querySelectorAll('.btn-draft, .btn-publish').forEach(btn => {
-      btn.addEventListener('click', function () {
+    // ── Form Submission ──
+    document.getElementById('publishForm').addEventListener('submit', function (e) {
+      // Sync editor content to textareas
+      if (summaryMDE) {
         document.getElementById('summary').value = summaryMDE.value();
+      }
+      if (contentMDE) {
         document.getElementById('content').value = contentMDE.value();
+      }
 
-        const action = this.dataset.action;
-        if (action === 'publish' && !confirm('确定发布？')) return;
+      // Determine which action button was clicked
+      var submitter = e.submitter;
+      var action = (submitter && submitter.value) ? submitter.value : 'draft';
+      var title = document.getElementById('title').value.trim();
+      var content = (contentMDE ? contentMDE.value() : document.getElementById('content').value).trim();
+      var category = document.getElementById('category').value;
 
-        const form = document.getElementById('publishForm');
-        let inp = document.createElement('input');
-        inp.type = 'hidden';
-        inp.name = 'action';
-        inp.value = action;
-        form.appendChild(inp);
-        form.submit();
-      });
+      // Validation
+      if (!title) { e.preventDefault(); showToast('请输入文章标题', 'warning'); return; }
+      if (!content) { e.preventDefault(); showToast('请输入文章内容', 'warning'); return; }
+      if (!category) { e.preventDefault(); showToast('请选择文章分类', 'warning'); return; }
+
+      if (action === 'publish') {
+        if (!confirm('确认立即发布这篇文章？')) { e.preventDefault(); return; }
+        try { localStorage.removeItem('smde_blog_publish_article_content'); } catch (err) {}
+      }
     });
+
+    // ── Keyboard shortcut: Ctrl+S to save draft ──
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (summaryMDE) document.getElementById('summary').value = summaryMDE.value();
+        if (contentMDE) document.getElementById('content').value = contentMDE.value();
+        showToast('草稿已暂存（本地）', 'info', 2000);
+      }
+    });
+
+    // ── Initialize summary count on load ──
+    updateSummaryCount();
   </script>
 
   <script src="{% static 'js/sweetalert.min.js' %}"></script>

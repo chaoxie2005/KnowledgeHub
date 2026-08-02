@@ -1,0 +1,885 @@
+/* ================================================================
+   学习中心 — 整体布局
+   ================================================================ */
+
+.sc-root {
+  max-width: 900px;
+  margin: 24px auto 48px;
+  line-height: 1.6;
+}
+
+.sc-header {
+  margin-bottom: 32px;
+}
+
+.sc-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin: 0 0 4px;
+  color: #1a1a2e;
+}
+
+.sc-subtitle {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Toast */
+.study-toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1060;
+}
+
+/* ================================================================
+   统计 Dashboard
+   ================================================================ */
+
+.sc-stats-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.stats-placeholder {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.stats-error {
+  color: #dc3545;
+  font-size: 0.9rem;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border-radius: 8px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  flex: 0 0 auto;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 22px 20px;
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.stat-card--blue  { border-left: 3px solid #3b82f6; }
+.stat-card--green { border-left: 3px solid #10b981; }
+.stat-card--red   { border-left: 3px solid #ef4444; }
+.stat-card--purple{ border-left: 3px solid #8b5cf6; }
+
+.stat-card-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.stat-card-value small {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
+.stat-card-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* Weak Points */
+.stats-weak-points {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  padding-top: 4px;
+}
+
+.stats-weak-label {
+  margin-right: 6px;
+}
+
+.weak-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  margin: 3px 6px 3px 0;
+  line-height: 1.5;
+}
+
+.weak-tag em {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 0.7rem;
+  background: #dc2626;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 16px;
+}
+
+/* ================================================================
+   Tab 导航
+   ================================================================ */
+
+.sc-tabs {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.sc-tab {
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  outline: none;
+}
+
+.sc-tab:hover {
+  color: #374151;
+}
+
+.sc-tab.active {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
+}
+
+/* ================================================================
+   Tab 面板
+   ================================================================ */
+
+.sc-tab-panel {
+  padding: 28px 0;
+  border-top: 1px solid #eee;
+}
+
+.sc-tab-panel:first-of-type {
+  border-top: none;
+  padding-top: 32px;
+}
+
+.panel-placeholder {
+  text-align: center;
+  padding: 36px 20px;
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+.panel-error {
+  color: #dc3545;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
+.panel-empty {
+  color: #28a745;
+  text-align: center;
+  padding: 28px 20px;
+  font-size: 0.95rem;
+}
+
+/* ================================================================
+   测验区
+   ================================================================ */
+
+.quiz-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.quiz-article-select {
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.quiz-toolbar-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quiz-progress {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Quiz Card */
+.quiz-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+
+.quiz-card-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+}
+
+.quiz-card-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.quiz-card-question {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1f2937;
+  padding-top: 2px;
+}
+
+.quiz-card-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* Quiz Option */
+.quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  margin: 0;
+}
+
+.quiz-option:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.quiz-option input[type="radio"] {
+  display: none;
+}
+
+.quiz-option-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.quiz-option input:checked + .quiz-option-marker {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+
+.quiz-option input:checked ~ .quiz-option-text {
+  color: #6366f1;
+  font-weight: 500;
+}
+
+.quiz-option:has(input:checked) {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+
+.quiz-option-text {
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.quiz-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quiz-result {
+  font-size: 0.85rem;
+}
+
+.quiz-result-msg {
+  font-weight: 500;
+}
+
+.quiz-result-msg--correct { color: #10b981; }
+.quiz-result-msg--wrong   { color: #ef4444; }
+.quiz-result-msg--error   { color: #ef4444; }
+
+.quiz-result-explain {
+  color: #6b7280;
+  margin-left: 6px;
+  font-size: 0.82rem;
+}
+
+/* ================================================================
+   错题本
+   ================================================================ */
+
+.wb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.wb-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  cursor: pointer;
+  margin: 0;
+}
+
+.wb-toggle-label input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Wrong Book Item */
+.wb-item {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.wb-item--resolved {
+  opacity: 0.65;
+}
+
+.wb-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+
+.wb-item-header:hover {
+  background: #fafafa;
+}
+
+.wb-item-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.wb-item-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.wb-item-info {
+  min-width: 0;
+}
+
+.wb-item-question {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-item-meta {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.wb-item-dot {
+  margin: 0 4px;
+  color: #d1d5db;
+}
+
+.wb-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.wb-status-tag {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.wb-status-tag--done {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.wb-status-tag--pending {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* CSS-only expand arrow */
+.wb-expand-arrow {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #9ca3af;
+  border-bottom: 2px solid #9ca3af;
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+
+.wb-item--open .wb-expand-arrow {
+  transform: rotate(-135deg);
+}
+
+/* Wrong Book Detail */
+.wb-item-detail {
+  display: none;
+  border-top: 1px solid #eee;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.wb-retry {
+  margin-bottom: 16px;
+}
+
+.wb-retry-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.wb-retry-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.retry-result {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+/* Wrong Book History */
+.wb-history {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+
+.wb-history-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  color: #6b7280;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wb-history-toggle:hover {
+  color: #374151;
+}
+
+/* CSS-only history arrow */
+.wb-history-arrow {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid #9ca3af;
+  border-bottom: 2px solid #9ca3af;
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+}
+
+.wb-history-toggle--open .wb-history-arrow {
+  transform: rotate(-135deg);
+}
+
+.wb-history-list {
+  margin-top: 8px;
+}
+
+.wb-history-item {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  padding: 3px 0;
+}
+
+.wb-history-empty {
+  font-size: 0.78rem;
+  color: #d1d5db;
+}
+
+/* Load More */
+.load-more-container {
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ================================================================
+   学习计划
+   ================================================================ */
+
+.plan-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.plan-summary {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.plan-summary-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-right: 12px;
+}
+
+.plan-summary-meta {
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
+/* Plan list (simple cards, no timeline line) */
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.plan-item--done {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+.plan-item-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.plan-item--done .plan-item-marker {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.plan-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.plan-item-day {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+.plan-item-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.plan-badge {
+  font-size: 0.72rem;
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+
+.plan-badge--done {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.plan-item-article {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.plan-item-meta {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+/* ================================================================
+   自定义计划编辑器（模态框内）
+   ================================================================ */
+
+.custom-plan-header {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.custom-plan-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.custom-plan-rows {
+  margin-bottom: 16px;
+}
+
+.custom-day-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-day-row:last-child {
+  border-bottom: none;
+}
+
+.custom-day-label {
+  width: 52px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.custom-day-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-day-minutes-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.custom-day-minutes-wrap input {
+  width: 80px;
+}
+
+.custom-day-unit {
+  font-size: 0.82rem;
+  color: #9ca3af;
+}
+
+.custom-plan-footer {
+  text-align: right;
+  padding-top: 8px;
+}
+
+/* ================================================================
+   Loading 状态
+   ================================================================ */
+
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* ================================================================
+   响应式
+   ================================================================ */
+
+@media (max-width: 768px) {
+  .sc-root {
+    margin: 16px auto 32px;
+  }
+
+  .sc-stats-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+
+  .sc-tab {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  .quiz-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quiz-article-select {
+    max-width: none;
+  }
+
+  .wb-item-header {
+    padding: 12px;
+  }
+
+  .wb-item-question {
+    white-space: normal;
+  }
+
+  .wb-item-right {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .custom-plan-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .custom-day-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .custom-day-row select {
+    flex: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .sc-stats-section {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-card-value {
+    font-size: 1.3rem;
+  }
+
+  .sc-tabs {
+    overflow-x: auto;
+  }
+
+  .sc-tab {
+    white-space: nowrap;
+    padding: 10px 14px;
+  }
+}

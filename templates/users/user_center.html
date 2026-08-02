@@ -130,16 +130,21 @@
     }
 
     .dropdown-content {
+      display: none;
       position: absolute;
       right: 0;
       top: 100%;
-      margin-top: 8px;
+      margin-top: 4px;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       min-width: 120px;
       z-index: 1000;
       overflow: hidden;
+    }
+
+    .dropdown-content.show {
+      display: block;
     }
 
     .dropdown-content a {
@@ -583,6 +588,291 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* ========== 暗色模式 ========== */
+    body.dark-theme {
+      background-color: #0F172A;
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .user-center-container {
+      background-color: #0F172A;
+    }
+
+    body.dark-theme ::-webkit-scrollbar-track {
+      background: #1E293B;
+    }
+
+    body.dark-theme ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+
+    body.dark-theme ::-webkit-scrollbar-thumb:hover {
+      background: #64748B;
+    }
+
+    body.dark-theme a {
+      color: #818CF8;
+    }
+
+    body.dark-theme a:hover {
+      color: #A5B4FC;
+    }
+
+    body.dark-theme ::selection {
+      background-color: rgba(129, 140, 248, 0.2);
+      color: #A5B4FC;
+    }
+
+    /* 顶部导航栏 */
+    body.dark-theme .top-nav {
+      background: #1E293B;
+      border-bottom-color: #334155;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-theme .site-name a {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .user-nickname {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .user-avatar {
+      border-color: #475569;
+    }
+
+    body.dark-theme .user-avatar:hover {
+      border-color: #818CF8;
+    }
+
+    body.dark-theme .dropdown-btn {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .dropdown-btn:hover {
+      background-color: #334155;
+    }
+
+    body.dark-theme .dropdown-content {
+      background: #1E293B;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    body.dark-theme .dropdown-content a {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .dropdown-content a:hover {
+      background-color: #334155;
+      color: #818CF8;
+    }
+
+    /* 主题切换按钮 */
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      margin-right: 4px;
+    }
+
+    .theme-toggle-btn:hover {
+      background-color: #f0f0f0;
+      border-color: #007bff;
+    }
+
+    body.dark-theme .theme-toggle-btn {
+      border-color: #475569;
+      background: #1E293B;
+    }
+
+    body.dark-theme .theme-toggle-btn:hover {
+      background-color: #334155;
+      border-color: #818CF8;
+    }
+
+    /* 左侧菜单 */
+    body.dark-theme .left-menu {
+      background: #1E293B;
+      border-right-color: #334155;
+    }
+
+    body.dark-theme .menu-toggle {
+      color: #94A3B8;
+      border-bottom-color: #334155;
+    }
+
+    body.dark-theme .menu-toggle:hover {
+      background-color: #334155;
+      color: #818CF8;
+    }
+
+    body.dark-theme .menu-item {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .menu-item:hover {
+      background-color: #334155;
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .menu-item.active {
+      background-color: #1E293B;
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .menu-item.active:hover {
+      background-color: #334155;
+    }
+
+    body.dark-theme .menu-item span {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .menu-item.active span {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .sub-menu-item {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .sub-menu-item:hover {
+      background-color: #334155;
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .sub-menu-item.active {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .sub-menu-item a {
+      color: #E2E8F0 !important;
+    }
+
+    body.dark-theme .sub-menu-item.active a {
+      color: #E2E8F0 !important;
+    }
+
+    body.dark-theme .left-menu.collapsed .sub-menu {
+      background: #1E293B;
+      box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    body.dark-theme .left-menu.collapsed .sub-menu-item:hover {
+      background-color: #334155;
+      color: #E2E8F0;
+    }
+
+    /* 右侧内容 */
+    body.dark-theme .right-content {
+      background-color: #0F172A;
+    }
+
+    /* 卡片 */
+    body.dark-theme .content-card {
+      background: #1E293B;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-theme .content-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-theme .section-title {
+      color: #E2E8F0;
+      border-bottom-color: #334155;
+    }
+
+    body.dark-theme .account-info {
+      background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+    }
+
+    body.dark-theme .username {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .signature {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .info-label {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .info-value {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .profile-desc {
+      color: #94A3B8;
+      background-color: #0F172A;
+    }
+
+    body.dark-theme .info-item:hover {
+      background-color: #334155;
+    }
+
+    body.dark-theme .security-status {
+      background-color: #0F172A;
+    }
+
+    /* 按钮 */
+    body.dark-theme .edit-btn {
+      background-color: #334155;
+      color: #94A3B8;
+      border-color: #475569;
+    }
+
+    body.dark-theme .edit-btn:hover {
+      background-color: #475569;
+      color: #818CF8;
+      border-color: #818CF8;
+    }
+
+    body.dark-theme .edit-btn.primary {
+      background-color: #6366F1;
+      color: #fff;
+      border-color: #6366F1;
+    }
+
+    body.dark-theme .edit-btn.primary:hover {
+      background-color: #4F46E5;
+      border-color: #4338CA;
+    }
+
+    body.dark-theme .edit-btn.danger {
+      background-color: #DC2626;
+      color: #fff;
+      border-color: #DC2626;
+    }
+
+    body.dark-theme .edit-btn.danger:hover {
+      background-color: #B91C1C;
+      border-color: #991B1B;
+    }
+
+    body.dark-theme .large-avatar {
+      border-color: #475569;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-theme .large-avatar:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    body.dark-theme .bio-stats {
+      color: #64748B !important;
+    }
   </style>
 </head>
 
@@ -607,6 +897,9 @@
             <a href="{% url 'authentication:delete_account' %}">注销账号</a>
           </div>
         </div>
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="切换主题">
+          <span class="theme-icon">🌙</span>
+        </button>
       </div>
     </div>
 
@@ -851,14 +1144,37 @@
   </div>
 
   <script>
-    // 侧边栏折叠功能
+    // ========== 主题切换功能 ==========
+    function isDarkMode() {
+      return document.body.classList.contains('dark-theme');
+    }
+
+    function getExpandedColor() {
+      return isDarkMode() ? '#E2E8F0' : '#333';
+    }
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+
+    // 初始化主题
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-theme');
+      themeIcon.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark-theme');
+      themeIcon.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // ========== 侧边栏折叠功能 ==========
     document.querySelectorAll('.menu-item').forEach((item) => {
       item.addEventListener('click', (e) => {
-        e.stopPropagation() // 防止事件冒泡
+        e.stopPropagation()
         const targetId = item.getAttribute('data-target')
         const subMenu = document.getElementById(targetId)
 
-        // 先关闭所有其他子菜单
         document.querySelectorAll('.sub-menu').forEach(menu => {
           if (menu.id !== targetId) {
             menu.classList.remove('active')
@@ -866,7 +1182,6 @@
           }
         })
 
-        // 切换当前子菜单的显示/隐藏
         subMenu.classList.toggle('active')
         if (subMenu.classList.contains('active')) {
           subMenu.style.maxHeight = '300px'
@@ -876,7 +1191,6 @@
       })
     })
 
-    // 点击页面其他地方关闭子菜单
     document.addEventListener('click', function (event) {
       if (!event.target.closest('.menu-item') && !event.target.closest('.sub-menu')) {
         document.querySelectorAll('.sub-menu').forEach(subMenu => {
@@ -886,7 +1200,7 @@
       }
     })
 
-    // 左侧菜单收起/展开功能
+    // ========== 左侧菜单收起/展开功能 ==========
     const menuToggle = document.getElementById('menuToggle')
     const leftMenu = document.getElementById('leftMenu')
     let menuCollapsed = false
@@ -902,11 +1216,9 @@
         leftMenu.querySelectorAll('.menu-item').forEach(item => {
           item.style.padding = '12px 8px'
           item.style.justifyContent = 'center'
-          // 保留菜单项文本，但使其不可见，保持点击区域
           item.style.color = 'transparent'
           item.style.fontSize = '14px'
         })
-        // 折叠所有子菜单
         leftMenu.querySelectorAll('.sub-menu').forEach(subMenu => {
           subMenu.classList.remove('active')
           subMenu.style.maxHeight = '0'
@@ -925,9 +1237,8 @@
         leftMenu.querySelectorAll('.menu-item').forEach(item => {
           item.style.padding = '12px 16px'
           item.style.justifyContent = 'space-between'
-          item.style.color = '#333'
+          item.style.color = getExpandedColor()
         })
-        // 展开个人中心子菜单（默认）
         const personalMenu = document.getElementById('personal-menu')
         if (personalMenu) {
           personalMenu.classList.add('active')
@@ -941,7 +1252,24 @@
       }
     })
 
-    // 头像预览功能
+    // ========== 下拉菜单功能 ==========
+    document.querySelectorAll('.dropdown-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dropdownContent = this.nextElementSibling;
+        dropdownContent.classList.toggle('show');
+      });
+    });
+
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-content').forEach(content => {
+          content.classList.remove('show');
+        });
+      }
+    });
+
+    // ========== 头像预览功能 ==========
     const avatarTrigger = document.getElementById('avatar-trigger')
     const avatarOverlay = document.getElementById('avatar-overlay')
     const avatarPreview = document.getElementById('avatar-preview')

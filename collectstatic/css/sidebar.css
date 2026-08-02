@@ -1,261 +1,450 @@
-/* 现代科技感侧边栏样式 */
+/* ========== CSS 自定义属性 — 亮色模式 ========== */
+:root {
+    /* 主色系 — 统一为紫色 */
+    --primary: #6366F1;
+    --primary-color: #6366F1;
+    --primary-light: #818CF8;
+    --primary-dark: #4F46E5;
+    --secondary-color: #A78BFA;
 
-/* 通用侧边栏容器 */
+    /* 主色背景/交互 */
+    --primary-bg: rgba(99, 102, 241, 0.08);
+    --primary-bg-hover: rgba(99, 102, 241, 0.14);
+
+    /* 背景色 */
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #FAFBFC;
+    --card-bg: #FFFFFF;
+
+    /* 文字色 */
+    --text-primary: #1A1D26;
+    --text-secondary: #4A4A6A;
+    --text-muted: #94A3B8;
+    --text-light: #94A3B8;
+
+    /* 边框 */
+    --border: #E8ECF1;
+    --border-color: #E8ECF1;
+    --border-light: #F0F2F5;
+
+    /* 阴影 — 带主色色调的柔和投影 */
+    --shadow-sm: 0 1px 3px rgba(99, 102, 241, 0.04);
+    --shadow-md: 0 4px 16px rgba(99, 102, 241, 0.06);
+    --shadow-lg: 0 8px 24px rgba(99, 102, 241, 0.08);
+    --shadow-glow: 0 8px 30px rgba(99, 102, 241, 0.10);
+
+    /* 圆角 */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+
+    /* 过渡 */
+    --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========== CSS 自定义属性 — 暗色模式 ========== */
+body.dark-theme {
+    /* 主色 — 暗色下提亮一点 */
+    --primary: #818CF8;
+    --primary-color: #818CF8;
+    --primary-light: #A5B4FC;
+    --primary-dark: #6366F1;
+    --secondary-color: #C4B5FD;
+
+    /* 主色背景/交互 */
+    --primary-bg: rgba(129, 140, 248, 0.12);
+    --primary-bg-hover: rgba(129, 140, 248, 0.18);
+
+    /* 背景色 — 从纯黑 #1a1a1a 改为 Slate 色系 */
+    --bg-primary: #1E293B;       /* Slate-800 卡片 */
+    --bg-secondary: #0F172A;     /* Slate-900 页面 */
+    --card-bg: #1E293B;          /* 卡片背景 */
+
+    /* 文字色 */
+    --text-primary: #E2E8F0;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    --text-light: #64748B;
+
+    /* 边框 */
+    --border: #334155;
+    --border-color: #334155;
+    --border-light: #273548;
+
+    /* 阴影 — 暗色下纯黑阴影 */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45);
+    --shadow-glow: 0 8px 30px rgba(99, 102, 241, 0.15);
+
+    /* 圆角和过渡不变 */
+}
+
+/* ========== 侧边栏通用区块 ========== */
+.sidebar-section {
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    transition: var(--transition);
+}
+
+.sidebar-section:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.sidebar-title {
+    color: var(--primary);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-bg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+}
+
+.sidebar-title::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 32px;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 1px;
+}
+
+/* ========== 文章列表（通用） ========== */
+.latest-articles,
+.hot-articles,
+.archive-list,
+.sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.latest-article-item,
+.hot-article-item,
+.sidebar-list-item {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.latest-article-item:last-child,
+.hot-article-item:last-child,
+.sidebar-list-item:last-child {
+    border-bottom: none;
+}
+
+/* 列表项链接 */
+.latest-article-link,
+.hot-article-title a,
+.archive-list li a,
+.sidebar-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.5;
+    display: block;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.latest-article-link:hover,
+.hot-article-title a:hover,
+.archive-list li a:hover,
+.sidebar-link:hover {
+    color: var(--primary);
+    background: var(--primary-bg);
+    transform: translateX(4px);
+}
+
+/* ========== 归档项 ========== */
+.archive-list li {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.archive-list li:last-child {
+    border-bottom: none;
+}
+
+.archive-count {
+    color: var(--text-muted);
+    font-size: 12px;
+    background: var(--primary-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 8px;
+}
+
+/* ========== 空状态 ========== */
+.empty-item {
+    color: var(--text-muted);
+    font-size: 14px;
+    padding: 12px;
+    text-align: center;
+    list-style: none;
+}
+
+/* ========== 掘金侧边栏 ========== */
+.sidebar-juejin {
+    border-left: 4px solid #0ea5e9 !important;
+}
+
+.sidebar-juejin .sidebar-title {
+    color: #0ea5e9;
+}
+
+.sidebar-juejin .sidebar-title::after {
+    background: #0ea5e9;
+}
+
+.sidebar-juejin .sidebar-link:hover {
+    color: #0ea5e9;
+    background: #e0f7ff;
+}
+
+/* ========== CSDN 侧边栏 ========== */
+.sidebar-csdn {
+    border-left: 4px solid #fc5531 !important;
+}
+
+.sidebar-csdn .sidebar-title {
+    color: #fc5531;
+}
+
+.sidebar-csdn .sidebar-title::after {
+    background: #fc5531;
+}
+
+.sidebar-csdn .sidebar-link:hover {
+    color: #fc5531;
+    background: #fff0ed;
+}
+
+/* ========== Widget 风格（保留兼容） ========== */
 .sidebar-widget {
-  background: var(--background-white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  border: 1px solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 20px;
-  backdrop-filter: blur(10px);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
 }
 
-/* 侧边栏容器 hover 效果 */
 .sidebar-widget:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px) scale(1.02);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
 }
 
-/* 侧边栏顶部装饰 */
-.sidebar-widget::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: var(--gradient-primary);
-}
-
-/* 侧边栏标题 */
 .sidebar-widget .widget-title {
-  color: var(--text-primary);
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 16px;
-  padding: 20px 20px 12px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.05), rgba(114, 46, 209, 0.05));
-  border-bottom: 1px solid var(--border-color);
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-bg);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* 标题装饰线 */
 .sidebar-widget .widget-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 20px;
-  width: 40px;
-  height: 3px;
-  background: var(--gradient-primary);
-  border-radius: 2px;
-  animation: titleSlide 1s ease forwards;
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 2px;
 }
 
-/* 标题图标 */
-.sidebar-widget .widget-title::before {
-  content: '';
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  background: var(--gradient-primary);
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-}
-
-/* 文章列表基础样式 */
 .sidebar-widget .article-list {
-  list-style: none;
-  padding: 0 20px 20px;
-  margin-bottom: 0;
-  line-height: 1.6;
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    line-height: 1.8;
 }
 
-/* 列表项间距 */
 .sidebar-widget .article-list li {
-  margin-bottom: 12px;
-  transition: var(--transition);
-  border-radius: var(--border-radius-sm);
-  padding: 8px 12px;
-  position: relative;
-  overflow: hidden;
+    margin-bottom: 0.75rem;
+    position: relative;
+    padding-left: 16px;
 }
 
-/* 列表项 hover 效果 */
-.sidebar-widget .article-list li:hover {
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.05), rgba(114, 46, 209, 0.05));
-  transform: translateX(8px);
+.sidebar-widget .article-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 50%;
+    transition: var(--transition);
 }
 
-/* 通用链接样式 */
+.sidebar-widget .article-list li:hover::before {
+    transform: scale(1.5);
+    box-shadow: 0 0 10px var(--primary-bg);
+}
+
 .sidebar-widget .link-item {
-  color: var(--text-secondary);
-  text-decoration: none;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: var(--transition);
-  font-size: 0.9rem;
-  font-weight: 500;
-  position: relative;
-  z-index: 1;
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: var(--transition);
+    font-weight: 400;
+    padding: 4px 0;
 }
 
-/* 链接 hover 效果 */
 .sidebar-widget .link-item:hover {
-  color: var(--primary-color);
-  transform: translateX(4px);
+    color: var(--primary);
+    transform: translateX(6px);
 }
 
-/* 社交链接样式 */
 .sidebar-widget .social-item {
-  color: var(--text-secondary);
-  text-decoration: none;
-  display: block;
-  margin-bottom: 12px;
-  transition: var(--transition);
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.75rem;
+    transition: var(--transition);
+    font-weight: 400;
+    padding: 4px 0;
 }
 
 .sidebar-widget .social-item:hover {
-  color: var(--primary-color);
-  transform: translateX(4px);
+    color: var(--primary);
+    transform: translateX(6px);
 }
 
-/* 无数据提示 */
 .sidebar-widget .empty-tip {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  padding: 20px;
-  text-align: center;
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.05), rgba(114, 46, 209, 0.05));
-  border-radius: var(--border-radius-sm);
-  margin: 0 20px 20px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 1rem 0;
+    text-align: center;
+    font-style: italic;
 }
 
-/* 归档项目样式 */
+.sidebar-widget .article-link {
+    color: var(--text-secondary) !important;
+    text-decoration: none !important;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: var(--transition);
+    font-weight: 400;
+    padding: 4px 0;
+}
+
+.sidebar-widget .article-link:hover {
+    color: var(--primary) !important;
+    transform: translateX(6px);
+}
+
 .sidebar-widget .archive-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  border-radius: var(--border-radius-sm);
-  transition: var(--transition);
-  position: relative;
-  overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    transition: var(--transition);
 }
 
 .sidebar-widget .archive-item:hover {
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.05), rgba(114, 46, 209, 0.05));
-  transform: translateX(4px);
+    transform: translateX(6px);
 }
 
 .sidebar-widget .archive-count {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  background: linear-gradient(135deg, rgba(255, 77, 79, 0.1), rgba(114, 46, 209, 0.1));
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    background: var(--primary-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    transition: var(--transition);
 }
 
-/* 自定义滚动条 */
-.sidebar-widget {
-  max-height: 400px;
-  overflow-y: auto;
+.sidebar-widget .archive-item:hover .archive-count {
+    background: var(--primary-bg-hover);
+    color: var(--primary);
 }
 
-.sidebar-widget::-webkit-scrollbar {
-  width: 6px;
+/* ========== 响应式 ========== */
+@media (max-width: 992px) {
+    .blog-sidebar {
+        margin-top: 24px;
+    }
+
+    .sidebar-section {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
 }
 
-.sidebar-widget::-webkit-scrollbar-track {
-  background: rgba(255, 77, 79, 0.05);
-  border-radius: 3px;
-}
-
-.sidebar-widget::-webkit-scrollbar-thumb {
-  background: var(--gradient-primary);
-  border-radius: 3px;
-  transition: var(--transition);
-}
-
-.sidebar-widget::-webkit-scrollbar-thumb:hover {
-  transform: scale(1.1);
-}
-
-/* 响应式设计 */
 @media (max-width: 768px) {
-  .sidebar-widget {
-    margin-bottom: 16px;
-  }
-  
-  .sidebar-widget .widget-title {
-    padding: 16px 16px 10px;
-    font-size: 1rem;
-  }
-  
-  .sidebar-widget .article-list {
-    padding: 0 16px 16px;
-  }
-  
-  .sidebar-widget .empty-tip {
-    padding: 16px;
-    margin: 0 16px 16px;
-  }
-  
-  .sidebar-widget .link-item {
-    font-size: 0.85rem;
-  }
+    .blog-sidebar {
+        margin-top: 20px;
+    }
+
+    .sidebar-section {
+        padding: 14px;
+        margin-bottom: 14px;
+        border-radius: var(--radius-md);
+    }
+
+    .sidebar-section .sidebar-title {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    .latest-article-link,
+    .hot-article-title a,
+    .archive-list li a,
+    .sidebar-link {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    .sidebar-widget {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .sidebar-widget .widget-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
 }
 
-/* 动画效果 */
-@keyframes titleSlide {
-  from {
-    width: 0;
-  }
-  to {
-    width: 40px;
-  }
-}
+@media (max-width: 576px) {
+    .sidebar-section {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
 
-/* 侧边栏项目动画 */
-.sidebar-widget li {
-  animation: sidebarItemFadeIn 0.5s ease forwards;
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-.sidebar-widget li:nth-child(1) { animation-delay: 0.1s; }
-.sidebar-widget li:nth-child(2) { animation-delay: 0.2s; }
-.sidebar-widget li:nth-child(3) { animation-delay: 0.3s; }
-.sidebar-widget li:nth-child(4) { animation-delay: 0.4s; }
-.sidebar-widget li:nth-child(5) { animation-delay: 0.5s; }
-
-@keyframes sidebarItemFadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    .sidebar-widget {
+        padding: 1rem;
+    }
 }

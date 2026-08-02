@@ -7,6 +7,7 @@ from django.shortcuts import render
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q
 from django.core.cache import cache
+from django.conf import settings
 
 from ..models import JuejinHotArticle, CSDNArticle, Category
 from ..ai_utils import generate_article_summary
@@ -50,10 +51,22 @@ def _get_last_articles(model, order_field, limit=10):
 
 
 def _ensure_summaries(article_list):
-    """保障文章都有摘要（优先已有，其次 AI 生成，最后标题兜底）"""
+    """保障文章都有摘要（优先已有，其次 AI 生成，最后标题兜底）
+    可通过 settings.CRAWLER_AI_OPTIMIZATION_ENABLED 关闭 AI 生成，直接使用标题兜底
+    """
     for art in article_list:
         current_summary = (art.summary or "").strip() or (art.ai_summary or "").strip()
         if current_summary:
+            continue
+        # AI 优化开关关闭时，跳过 AI 生成，直接使用标题作为摘要
+        if not settings.CRAWLER_AI_OPTIMIZATION_ENABLED:
+            fallback = (art.title or "暂无摘要").strip()
+            art.summary = fallback[:500]
+            art.ai_summary = fallback
+            try:
+                art.save(update_fields=["summary", "ai_summary"])
+            except Exception:
+                pass
             continue
         try:
             base_text = (art.title or "").strip() or "该文章暂无可用摘要内容"

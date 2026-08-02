@@ -38,7 +38,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django_redis import get_redis_connection
 from django.utils import timezone
-
 from ..models import Article, Category, Tag, Comment, CommentLike
 from ..forms import CommentForm
 from .decorators import time_it
@@ -81,13 +80,13 @@ def _batch_sync_comment_likes(comments):
         if c.id in id_map:
             c.like_count = id_map[c.id]
         elif c.id in missing_ids:
-            cache.set(f"comment:like_count:{c.id}", c.like_count, timeout=86400 + random.randint(0, 3600))
+            redis_conn.set(f"comment:like_count:{c.id}", c.like_count, ex=86400 + random.randint(0, 3600))
 
         for r in (c.sorted_replies if hasattr(c, 'sorted_replies') else []):
             if r.id in id_map:
                 r.like_count = id_map[r.id]
             elif r.id in missing_ids:
-                cache.set(f"comment:like_count:{r.id}", r.like_count, timeout=86400 + random.randint(0, 3600))
+                redis_conn.set(f"comment:like_count:{r.id}", r.like_count, ex=86400 + random.randint(0, 3600))
 
 
 # ---------------------------------------------------------------------------

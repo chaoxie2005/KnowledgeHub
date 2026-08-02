@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/redesign.css' %}">
   {% block style%}
   {% endblock%}
 </head>
@@ -42,6 +43,7 @@
   <script src='{% static "js/jquery.min.js" %}'></script>
   <script src='{% static "js/bootstrap.bundle.min.js" %}'></script>
   <script src='{% static "js/sweetalert.min.js" %}'></script>
+  {% include 'part/bottom.html' %}
 </body>
 
 </html>

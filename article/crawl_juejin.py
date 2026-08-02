@@ -19,6 +19,8 @@ if project_root not in sys.path:
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "extraordinaryblog.settings")
 django.setup()
 
+from django.conf import settings
+
 from article.models import JuejinHotArticle
 
 # 新增：导入AI工具函数
@@ -220,20 +222,24 @@ def save_juejin_article(article_data, juejin_article_id):
             )
             return None
 
-        # AI优化降级处理
-        try:
-            optimized_title = optimize_article_title(article_data["title"])
-        except Exception as e:
-            print(f"AI标题优化失败，使用原始标题: {e}")
-            optimized_title = article_data["title"]
+        # AI优化降级处理（可通过 settings.CRAWLER_AI_OPTIMIZATION_ENABLED 控制开关）
+        if settings.CRAWLER_AI_OPTIMIZATION_ENABLED:
+            try:
+                optimized_title = optimize_article_title(article_data["title"])
+            except Exception as e:
+                print(f"AI标题优化失败，使用原始标题: {e}")
+                optimized_title = article_data["title"]
 
-        try:
-            # 确保传入的内容不为空
-            content_for_ai = article_data.get("content") or article_data.get("summary", "") or article_data["title"]
-            ai_summary = generate_article_summary(content_for_ai)
-        except Exception as e:
-            print(f"AI摘要生成失败，使用原始摘要: {e}")
-            # 降级处理：使用原始摘要，如果原始摘要也为空，则使用标题
+            try:
+                # 确保传入的内容不为空
+                content_for_ai = article_data.get("content") or article_data.get("summary", "") or article_data["title"]
+                ai_summary = generate_article_summary(content_for_ai)
+            except Exception as e:
+                print(f"AI摘要生成失败，使用原始摘要: {e}")
+                # 降级处理：使用原始摘要，如果原始摘要也为空，则使用标题
+                ai_summary = article_data.get("summary", "") or article_data["title"]
+        else:
+            optimized_title = article_data["title"]
             ai_summary = article_data.get("summary", "") or article_data["title"]
 
         article = JuejinHotArticle(

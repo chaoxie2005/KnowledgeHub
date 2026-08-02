@@ -59,18 +59,17 @@ def comment_like(request, comment_id):
         # 4. 执行 Redis 事务
         pipe.execute()
 
-        # 5. 获取最新点赞数（优先从 Redis 获取，兜底从 DB）
-        new_like_count = cache.get(like_count_key)
+        # 5. 获取最新点赞数：pipeline 已 incr/decr 到 raw key，用 raw get 读取
+        new_like_count = redis_conn.get(like_count_key)
         if new_like_count is None:
             comment.refresh_from_db()
             new_like_count = comment.like_count
-            cache.set(like_count_key, new_like_count, timeout=86400 + random.randint(0, 3600)) # 缓存24小时
+            redis_conn.set(like_count_key, new_like_count, ex=86400 + random.randint(0, 3600))
         else:
             new_like_count = int(new_like_count)
-            # 如果 Redis 里的数是负的（极端并发错误），重置为0
             if new_like_count < 0:
                 new_like_count = 0
-                cache.set(like_count_key, 0)
+                redis_conn.set(like_count_key, 0)
 
         return JsonResponse({
             "status": "success",
@@ -98,15 +97,13 @@ def delete_comment(request, comment_id):
     article_id = comment.article_id
 
     try:
-        # 1. 清理该评论关联的 Redis 数据
-        cache.delete(f"comment:likes:set:{comment_id}")
-        cache.delete(f"comment:like_count:{comment_id}")
-
-        # 2. 清理文章详情页缓存（因为评论列表变了）
-        cache.delete(f"article:detail:{article_id}")
-
-        # 3. 数据库物理删除
+        # 1. 先删数据库，避免并发窗口
         comment.delete()
+
+        # 2. 再清理缓存
+        redis_conn = get_redis_connection()
+        redis_conn.delete(f"comment:likes:set:{comment_id}", f"comment:like_count:{comment_id}")
+        cache.delete(f"article:detail:{article_id}")
 
         return JsonResponse({"status": "success", "msg": "评论已删除"})
     except Exception:

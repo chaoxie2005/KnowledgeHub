@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csrf',
             ],
         },
     },
@@ -202,6 +203,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # 增加请求体大小限制，允许更大的文章内容
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
+
+# 爬虫AI优化开关（设置为 False 关闭自动AI优化标题和摘要，可随时改回 True 开启）
+CRAWLER_AI_OPTIMIZATION_ENABLED = os.getenv("CRAWLER_AI_OPTIMIZATION_ENABLED", "True") == "True"
 
 # Session 配置
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # 使用数据库存储

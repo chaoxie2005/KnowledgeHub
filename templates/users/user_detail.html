@@ -242,6 +242,129 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* ========== 暗色模式 ========== */
+    body.dark-theme {
+      background-color: #0F172A;
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .user-center-container {
+      background-color: #0F172A;
+    }
+
+    body.dark-theme ::-webkit-scrollbar-track {
+      background: #1E293B;
+    }
+
+    body.dark-theme ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+
+    body.dark-theme ::-webkit-scrollbar-thumb:hover {
+      background: #64748B;
+    }
+
+    body.dark-theme a {
+      color: #818CF8;
+    }
+
+    body.dark-theme a:hover {
+      color: #A5B4FC;
+    }
+
+    /* 顶部导航栏 */
+    body.dark-theme .top-nav {
+      background: #1E293B;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-theme .site-name {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .site-name a {
+      color: #E2E8F0;
+    }
+
+    /* 主题切换按钮 */
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background-color: #f0f0f0;
+      border-color: #007bff;
+    }
+
+    body.dark-theme .theme-toggle-btn {
+      border-color: #475569;
+      background: #1E293B;
+    }
+
+    body.dark-theme .theme-toggle-btn:hover {
+      background-color: #334155;
+      border-color: #818CF8;
+    }
+
+    /* 卡片 */
+    body.dark-theme .content-card {
+      background: #1E293B;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-theme .content-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-theme .section-title {
+      color: #E2E8F0;
+      border-bottom-color: #334155;
+    }
+
+    body.dark-theme .account-info {
+      background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+    }
+
+    body.dark-theme .username {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .signature {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .info-label {
+      color: #94A3B8;
+    }
+
+    body.dark-theme .info-value {
+      color: #E2E8F0;
+    }
+
+    body.dark-theme .profile-desc {
+      color: #94A3B8;
+      background-color: #0F172A;
+    }
+
+    body.dark-theme .large-avatar {
+      border-color: #475569;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-theme .large-avatar:hover {
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    }
   </style>
 </head>
 
@@ -252,6 +375,9 @@
       <div class="site-name">
         <a href="{% url 'core:index' %}" style="text-decoration: none; color: inherit;">首页</a>
       </div>
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="切换主题">
+        <span class="theme-icon">🌙</span>
+      </button>
     </div>
 
     <!-- 主体内容 -->
@@ -342,7 +468,22 @@
   </div>
 
   <script>
-    // 头像预览功能
+    // ========== 主题切换功能 ==========
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-theme');
+      themeIcon.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark-theme');
+      themeIcon.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // ========== 头像预览功能 ==========
     const avatarTrigger = document.getElementById('avatar-trigger')
     const avatarOverlay = document.getElementById('avatar-overlay')
     const avatarPreview = document.getElementById('avatar-preview')

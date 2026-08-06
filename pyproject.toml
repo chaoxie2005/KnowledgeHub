@@ -1,0 +1,45 @@
+[project]
+name = "extraordinaryblog"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.14.3",
+    "bcrypt>=5.0.0",
+    "bleach>=6.4.0",
+    "boto3>=1.43.65",
+    "chromadb>=1.5.9",
+    "cryptography>=50.0.0",
+    "dashscope>=1.26.5",
+    "django>=5.2,<6.0",
+    "django-apscheduler>=0.7.0",
+    "django-cors-headers>=4.9.0",
+    "django-debug-toolbar>=7.0.0",
+    "django-filter>=26.1",
+    "django-redis>=7.0.0",
+    "djangorestframework>=3.17.2",
+    "djangorestframework-simplejwt>=5.5.1",
+    "gunicorn>=26.0.0",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "langchain-classic>=1.0.8",
+    "langchain-community>=0.4.2",
+    "langchain-core>=1.5.3",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.2.10",
+    "langgraph-prebuilt>=1.1.0",
+    "lxml>=6.1.1",
+    "markdown>=3.10.3",
+    "pyjwt>=2.13.0",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+    "uvicorn>=0.52.1",
+]
+
+[project.scripts]
+extraordinaryblog = "extraordinaryblog:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"

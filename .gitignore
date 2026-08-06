@@ -17,3 +17,12 @@ db.sqlite3-journal
 .idea/
 .DS_Store
 collectstatic/
+draft/REFACTORING_DOCS.md
+.gitignore
+.gitignore
+data/chroma_blog/chroma.sqlite3
+draft/SECURITY_FIXES.md
+data/chroma_blog/chroma.sqlite3
+draft/AI_TTS_FEATURE.md
+.gitignore
+data/chroma_blog/chroma.sqlite3

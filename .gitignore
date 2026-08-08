@@ -26,3 +26,4 @@ data/chroma_blog/chroma.sqlite3
 draft/AI_TTS_FEATURE.md
 .gitignore
 data/chroma_blog/chroma.sqlite3
+PERFORMANCE_FIXES.md
